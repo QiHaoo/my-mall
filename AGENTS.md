@@ -108,6 +108,8 @@ com.mymall.common/
 ## 项目文档
 
 > **文档管理约定**：AGENTS.md 保持精简，只放技术选型、架构概览、文档索引等高频参考信息。详细内容放到 `docs/` 目录下。对于执行过程中可能需要查阅的文档，在此处维护索引，确保通过索引即可快速定位。
+>
+> **注意**：`docs/learn-docs/` 目录存放个人学习笔记，不属于项目开发文档，不在本索引范围内。
 
 ### docs 目录结构
 
@@ -126,10 +128,7 @@ com.mymall.common/
 | `docs/development-workflow.md` | AI 辅助开发流程规范（轻量 Spec + TDD，三阶段流程、核心/样板判定、配套 skill） |
 | `docs/controller-specification.md` | Controller 接口编写规范（参数校验、返回值、URL 设计、DTO 分离、检查清单） |
 | `docs/feign-config.md` | 远程调用（Feign）配置说明（依赖、@FeignClient 规范、调用链路、测试配置） |
-| `docs/learn-docs/service-discovery/` | 服务注册与发现学习笔记（Nacos 核心概念 → 实战配置 → 最佳实践） |
-| `docs/learn-docs/remote-call/` | 远程调用学习笔记（Feign 基础 → 核心机制 → 负载均衡 → 最佳实践） |
 | `docs/mybatis-plus-orm-notes.md` | MyBatis-Plus ORM 实践笔记（依赖配置、全局组件、使用约定） |
-| `docs/learn-docs/testing/` | 测试方案文档（E2E 方案对比、测试分层、WireMock 最佳实践） |
 | `docs/other/` | 归档文档（原始架构分析、参考资料等，开发时一般不需要） |
 
 > **进度文档与提交关联规则**：完成一个事项后，将过程中的多个小提交合并为一条提交并推送到远程，再在进度文档记录关联的提交 hash。过程中未合并推送的小提交不记录。
