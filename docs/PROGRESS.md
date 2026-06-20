@@ -16,6 +16,7 @@
 | 2026-06-19 | 中间件编排 | — | `docker-compose.yml`（profiles 分组，按阶段渐进启动） |
 | 2026-06-20 | 项目 Maven 骨架搭建 | — | 父 pom + 12 个服务模块 + mall-common 公共模块 |
 | 2026-06-20 | 文档体系建立 | 21f2a20 | `AGENTS.md` + `docs/` 目录结构 + 进度文档规范 + Git 工作流 |
+| 2026-06-20 | common 模块基础代码补充 | acd780f | R.java 统一响应封装、BaseEntity、MyMetaObjectHandler、MybatisPlusConfig、CodeGenerator 代码生成器 + MyBatis-Plus 代码生成规范文档 |
 
 ## 当前进行
 
