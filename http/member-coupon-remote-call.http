@@ -1,0 +1,14 @@
+### === mall-coupon（优惠券服务）===
+### 端口: 7001 | 启动类: CouponApplication
+
+### 1. 获取优惠券示例列表（Feign Provider）
+GET http://localhost:7001/coupon/coupon/list
+
+
+
+### === mall-member（会员服务）===
+### 端口: 7100 | 启动类: MemberApplication
+
+### 2. 远程调用 coupon 服务
+### 请求链: member → Feign → Nacos 发现 coupon → HTTP → coupon 返回
+GET http://localhost:7100/member/member/test-remote
