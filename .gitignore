@@ -31,3 +31,6 @@ logs/
 # Environment
 .env
 *.env.local
+
+# Qoder
+.workbuddy/
