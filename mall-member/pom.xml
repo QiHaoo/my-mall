@@ -49,11 +49,12 @@
             <artifactId>resilience4j-spring-boot3</artifactId>
         </dependency>
 
-        <!-- Seata -->
+        <!-- Seata（暂未启用，需要时取消注释）
         <dependency>
             <groupId>io.seata</groupId>
             <artifactId>seata-spring-boot-starter</artifactId>
         </dependency>
+        -->
 
         <!-- Actuator -->
         <dependency>

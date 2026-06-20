@@ -48,11 +48,12 @@
             <artifactId>spring-cloud-alibaba-sentinel-gateway</artifactId>
         </dependency>
 
-        <!-- Redis (令牌限流) -->
+        <!-- Redis（暂未启用，需要时取消注释）
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-redis-reactive</artifactId>
         </dependency>
+        -->
 
         <!-- SpringDoc (响应式) -->
         <dependency>

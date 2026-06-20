@@ -49,11 +49,12 @@
             <artifactId>resilience4j-spring-boot3</artifactId>
         </dependency>
 
-        <!-- MinIO (对象存储) -->
+        <!-- MinIO（暂未启用，需要时取消注释）
         <dependency>
             <groupId>io.minio</groupId>
             <artifactId>minio</artifactId>
         </dependency>
+        -->
 
         <!-- Actuator -->
         <dependency>
