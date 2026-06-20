@@ -24,7 +24,6 @@
 |------|------|--------|
 | RocketMQ NameServer | localhost:9876 | mall-rmqnamesrv |
 | RocketMQ Broker | localhost:10911 | mall-rmqbroker |
-| RocketMQ Proxy gRPC | localhost:8080 | — |
 | RocketMQ Dashboard | http://localhost:8180 | mall-rmqdashboard |
 
 ### 搜索 + 存储（profile: search / storage）
@@ -211,7 +210,9 @@ wsl hostname -I
 |------|------|
 | `docker pull` 超时 `i/o timeout` | 检查镜像加速器：`docker info \| grep "Registry Mirrors"` |
 | `systemctl` 报 `not been booted with systemd` | WSL2 未启用 systemd，写入 `/etc/wsl.conf` 后 `wsl --shutdown` 重启 |
-| 端口被占用 | 修改 `docker-compose.yml` 端口映射左侧（宿主机端口） |
+| 端口被占用 | 修改 `docker-compose.yml` 端口映射左侧（宿主机端口）；如 Windows 有 MySQL 服务需先停掉 `net stop MySQL80` |
+| MySQL 启动失败 `unknown variable 'default-authentication-plugin'` | MySQL 8.4 已移除该参数，docker-compose.yml 中已删除，删掉旧数据卷重建：`docker volume rm mall-dev_mysql-data` |
+| RocketMQ Broker 反复重启 NPE | docker-compose.yml 中不要挂载 `/home/rocketmq/store` 的 volume，会让 broker 初始化失败；已从 compose 中移除该挂载 |
 | OpenSearch 启动失败 `max virtual memory` | `sudo sysctl -w vm.max_map_count=262144` |
 | 内存不足 | 按阶段启动，或在 `.wslconfig` 调大 `memory` |
 | WSL2 占用内存不释放 | `wsl --shutdown` 后重新进入 |

@@ -56,7 +56,6 @@ services:
     command:
       --character-set-server=utf8mb4
       --collation-server=utf8mb4_unicode_ci
-      --default-authentication-plugin=mysql_native_password
       --lower-case-table-names=1
       --max-connections=500
     ports:
@@ -93,7 +92,7 @@ services:
     profiles: ["mq"]
     environment:
       - JAVA_OPT_EXT=-server -Xms256m -Xmx256m -Xmn128m
-    command: sh mqnamesrv
+    command: nameserver
     ports:
       - "9876:9876"
     volumes:
@@ -107,17 +106,13 @@ services:
     profiles: ["mq"]
     environment:
       - NAMESRV_ADDR=rmqnamesrv:9876
-      - JAVA_OPT_EXT=-server -Xms512m -Xmx512m -Xmn256m
-    command: sh mqbroker -n rmqnamesrv:9876 --enable-proxy
+      - JAVA_OPT_EXT=-server -Xms256m -Xmx256m -Xmn128m
+    command: broker -n rmqnamesrv:9876
     depends_on:
       - rmqnamesrv
     ports:
       - "10911:10911"
       - "10909:10909"
-      - "8080:8080"   # proxy grpc / dashboard
-    volumes:
-      - rmqbroker-store:/home/rocketmq/store
-      - rmqbroker-logs:/home/rocketmq/logs
     restart: unless-stopped
 
   # ---------- RocketMQ Dashboard（可视化管理） ----------
