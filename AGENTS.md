@@ -74,3 +74,32 @@ CI/CD：  GitHub Actions → Harbor → ArgoCD → K8s
 | `mall-seckill` | 秒杀服务（Redis 预减库存 + RocketMQ 削峰） | `mall_seckill` |
 | `mall-third` | 第三方服务（短信、支付、OSS 上传） | — |
 | `mall-admin` | 后台管理（商品上下架、订单管理、数据看板） | — |
+
+## 项目文档
+
+> **文档管理约定**：AGENTS.md 保持精简，只放技术选型、架构概览、文档索引等高频参考信息。详细内容放到 `docs/` 目录下。对于执行过程中可能需要查阅的文档，在此处维护索引，确保通过索引即可快速定位。
+
+### docs 目录结构
+
+> `docs/` 根目录放全局文档；每个服务/模块在 `docs/` 下建同名子目录，该模块所有文档（含 PROGRESS）放其中。
+
+| 文档 | 说明 |
+|------|------|
+| `docs/PROGRESS.md` | **项目总进度**（已完成 + 当前进行，不列计划） |
+| `docs/_TEMPLATE-PROGRESS.md` | 服务进度文档模板（复制到各服务目录命名为 PROGRESS.md） |
+| `docs/{服务名}/` | 某服务的所有文档，含 `PROGRESS.md` 及该模块的设计、接口文档等 |
+| `docs/git-workflow.md` | Git 管理规范（分支策略、Commit 规范、发布流程） |
+| `docs/tech-stack-and-architecture-2026.md` | 技术选型与架构设计（选型理由、架构图、服务划分） |
+| `docs/local-dev-reference.md` | 本地开发环境手册（服务连接信息、启停命令、IDEA 配置） |
+| `docs/other/` | 归档文档（原始架构分析、参考资料等，开发时一般不需要） |
+
+> **进度文档与提交关联规则**：完成一个事项后，将过程中的多个小提交合并为一条提交并推送到远程，再在进度文档记录关联的提交 hash。过程中未合并推送的小提交不记录。
+
+### 根目录配置文件
+
+| 文件 | 说明 |
+|------|------|
+| `docker-compose.yml` | 全部中间件编排（profiles 分组：core/mq/search/storage/monitor） |
+| `dev-environment-setup.md` | 开发环境搭建指南（WSL2+Docker，从零到可用） |
+| `config/prometheus/prometheus.yml` | Prometheus 采集配置 |
+| `init/` | 数据库初始化脚本 |
