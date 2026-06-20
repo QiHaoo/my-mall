@@ -53,6 +53,7 @@
 
         <!-- 数据访问 -->
         <mybatis-plus.version>3.5.10.1</mybatis-plus.version>
+        <velocity.version>2.4</velocity.version>
         <mysql.version>8.4.0</mysql.version>
         <shardingsphere.version>5.5.1</shardingsphere.version>
 
@@ -110,6 +111,27 @@
                 <groupId>com.baomidou</groupId>
                 <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
                 <version>${mybatis-plus.version}</version>
+            </dependency>
+
+            <!-- MyBatis-Plus 分页/乐观锁等插件（3.5.4+ 独立模块） -->
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-jsqlparser</artifactId>
+                <version>${mybatis-plus.version}</version>
+            </dependency>
+
+            <!-- MyBatis-Plus 代码生成器 -->
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-generator</artifactId>
+                <version>${mybatis-plus.version}</version>
+            </dependency>
+
+            <!-- Velocity 模板引擎（代码生成器依赖） -->
+            <dependency>
+                <groupId>org.apache.velocity</groupId>
+                <artifactId>velocity-engine-core</artifactId>
+                <version>${velocity.version}</version>
             </dependency>
 
             <!-- MySQL Driver -->
