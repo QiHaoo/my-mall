@@ -248,138 +248,46 @@ update_time DATETIME NOT NULL  DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMES
 
 ## 五、代码生成器使用方法
 
-### 5.1 生成器代码
+### 5.1 生成器设计
 
 路径：`mall-common/src/test/java/com/mymall/common/generator/CodeGenerator.java`
 
-> 放在 `src/test/java` 下，不打包进正式产物，仅开发时运行。
+> 每个模块对应一个 `@Test` 方法，所有配置已预置，无需手动修改。在 IDEA 中右键点击对应方法即可生成代码。
 
-```java
-package com.mymall.common.generator;
+**已预配置的模块：**
 
-import com.baomidou.mybatisplus.generator.FastAutoGenerator;
-import com.baomidou.mybatisplus.generator.config.OutputFile;
-import com.baomidou.mybatisplus.generator.config.rules.NamingStrategy;
-import com.baomidou.mybatisplus.generator.engine.VelocityTemplateEngine;
-
-import java.util.Collections;
-
-public class CodeGenerator {
-
-    // ========== 修改这几项配置 ==========
-    private static final String URL = "jdbc:mysql://localhost:3306/mymall_product?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai";
-    private static final String USERNAME = "root";
-    private static final String PASSWORD = "root123";
-    private static final String MODULE_NAME = "product";           // 模块名
-    private static final String[] TABLES = {"pms_spu_info", "pms_sku_info"};  // 表名
-    private static final String TABLE_PREFIX = "pms_";             // 表前缀（生成时去掉）
-    // ====================================
-
-    private static final String PARENT_PACKAGE = "com.mymall";
-    private static final String OUTPUT_DIR = System.getProperty("user.dir") + "/mall-" + MODULE_NAME + "/src/main/java";
-    private static final String XML_OUTPUT_DIR = System.getProperty("user.dir") + "/mall-" + MODULE_NAME + "/src/main/resources/mapper/" + MODULE_NAME;
-
-    public static void main(String[] args) {
-        FastAutoGenerator.create(URL, USERNAME, PASSWORD)
-                .globalConfig(builder -> builder
-                        .author("mymall")
-                        .outputDir(OUTPUT_DIR)
-                        .disableOpenDir()
-                )
-                .packageConfig(builder -> builder
-                        .parent(PARENT_PACKAGE)
-                        .moduleName(MODULE_NAME)
-                        .pathInfo(Collections.singletonMap(
-                                OutputFile.xml, XML_OUTPUT_DIR))
-                )
-                .strategyConfig(builder -> builder
-                        .addInclude(TABLES)
-                        .addTablePrefix(TABLE_PREFIX)
-                )
-                .strategyConfig(builder -> builder
-                        .entityBuilder()
-                        .superClass("com.mymall.common.entity.BaseEntity")
-                        .enableLombok()
-                        .enableChain()
-                        .enableSerialVersionUID()
-                        .naming(NamingStrategy.underline_to_camel)
-                        .columnNaming(NamingStrategy.underline_to_camel)
-                        .addIgnoreColumns("id", "create_time", "update_time")  // 公共字段由 BaseEntity 管理
-                )
-                .strategyConfig(builder -> builder
-                        .mapperBuilder()
-                        .enableBaseResultMap()
-                )
-                .strategyConfig(builder -> builder
-                        .serviceBuilder()
-                        .formatServiceFileName("%sService")
-                        .formatServiceImplFileName("%sServiceImpl")
-                )
-                .strategyConfig(builder -> builder
-                        .controllerBuilder()
-                        .disable()  // 不生成 Controller，手写
-                )
-                .templateEngine(new VelocityTemplateEngine())
-                .execute();
-
-        System.out.println("代码生成完成！输出目录：" + OUTPUT_DIR);
-    }
-}
-```
+| 方法 | 模块 | 数据库 | 表前缀 | 表数量 |
+|------|------|--------|--------|--------|
+| `generateProduct()` | mall-product | mymall_pms | pms_ | 15 |
+| `generateOrder()` | mall-order | mymall_oms | oms_ | 8 |
+| `generateMember()` | mall-member | mymall_ums | ums_ | 9 |
+| `generateWare()` | mall-ware | mymall_wms | wms_ | 6 |
+| `generateCoupon()` | mall-coupon | mymall_sms | sms_ | 15 |
 
 ### 5.2 操作步骤
 
-以 mall-product 服务为例：
+1. **运行生成器**
 
-1. **建库建表**
+   在 IDEA 中打开 `CodeGenerator.java`，右键点击目标方法（如 `generateProduct()`）→ Run。
 
-   ```sql
-   CREATE DATABASE IF NOT EXISTS mymall_product DEFAULT CHARSET utf8mb4;
-   USE mymall_product;
+2. **检查生成结果**
 
-   CREATE TABLE pms_spu_info (
-       id          BIGINT       NOT NULL PRIMARY KEY COMMENT '主键',
-       spu_name    VARCHAR(200) NOT NULL COMMENT '商品名称',
-       spu_description TEXT     COMMENT '商品描述',
-       catalog_id  BIGINT       COMMENT '分类ID',
-       brand_id    BIGINT       COMMENT '品牌ID',
-       price       DECIMAL(10,2) COMMENT '价格',
-       publish_status TINYINT   DEFAULT 0 COMMENT '上架状态[0-下架 1-上架]',
-       create_time DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-       update_time DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间'
-   ) COMMENT '商品SPU信息表';
+   生成的代码输出到 `mall-{module}/src/main/java/com/mymall/{module}/` 下：
    ```
-
-2. **修改生成器配置**
-
-   打开 `CodeGenerator.java`，修改以下常量：
-   - `URL`：数据库名改为 `mymall_product`
-   - `MODULE_NAME`：改为 `product`
-   - `TABLES`：填入要生成的表名
-   - `TABLE_PREFIX`：填入表前缀（如 `pms_`）
-
-3. **运行生成器**
-
-   在 IDEA 中打开 `CodeGenerator.java`，右键 → Run 'CodeGenerator.main()'。
-
-4. **检查生成结果**
-
-   生成的代码会输出到 `mall-product/src/main/java/com/mymall/product/` 下：
+   entity/XxxEntity.java
+   mapper/XxxMapper.java
+   service/XxxService.java
+   service/impl/XxxServiceImpl.java
    ```
-   entity/SpuInfoEntity.java
-   mapper/SpuInfoMapper.java
-   service/SpuInfoService.java
-   service/impl/SpuInfoServiceImpl.java
-   ```
-   Mapper XML 输出到 `mall-product/src/main/resources/mapper/product/`。
+   Mapper XML 输出到 `mall-{module}/src/main/resources/mapper/{module}/`。
 
-5. **手写 Controller**
+3. **手写 Controller**
 
-   在 `com.mymall.product.controller` 包下手写 Controller（见第六节规范）。
+   在 `com.mymall.{module}.controller` 包下手写 Controller（见第六节规范）。
 
-6. **配置 Mapper 扫描**
+4. **配置 Mapper 扫描**
 
-   启动类加 `@MapperScan("com.mymall.product.mapper")`：
+   启动类加 `@MapperScan("com.mymall.{module}.mapper")`：
    ```java
    @SpringBootApplication
    @MapperScan("com.mymall.product.mapper")
@@ -407,31 +315,34 @@ public class CodeGenerator {
 ```java
 package com.mymall.product.entity;
 
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.mymall.common.entity.BaseEntity;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Data
-@EqualsAndHashCode(callSuper = true)
 @TableName("pms_spu_info")
-public class SpuInfoEntity extends BaseEntity {
+public class SpuInfoEntity {
 
-    private static final long serialVersionUID = 1L;
+    @TableId(type = IdType.AUTO)
+    private Long id;
 
     private String spuName;
     private String spuDescription;
     private Long catalogId;
     private Long brandId;
-    private BigDecimal price;
+    private BigDecimal weight;
     private Integer publishStatus;
+    private LocalDateTime createTime;
+    private LocalDateTime updateTime;
 }
 ```
 
-- 继承 `BaseEntity`，不重复定义 id / createTime / updateTime
+- 生成器生成完整字段（含主键和时间字段），不继承 BaseEntity
+- 自定义主键（如 `attr_id`、`brand_id`）需手动加 `@TableId(type = IdType.AUTO)`
 - `@TableName` 指定表名
-- `@EqualsAndHashCode(callSuper = true)` 包含父类字段
 
 ### 6.2 Mapper
 
@@ -590,17 +501,17 @@ public void publishSpu(Long spuId) {
 
 ---
 
-## 八、各服务生成参数速查表
+## 八、新增模块
 
-开发每个服务时，修改 `CodeGenerator.java` 的配置即可：
+如需为尚未预配置的模块生成代码，在 `CodeGenerator.java` 中新增一个 `@Test` 方法即可：
 
-| 服务模块 | 数据库 | MODULE_NAME | TABLE_PREFIX | 示例表名 |
-|---------|--------|------------|-------------|---------|
-| mall-product | mymall_product | product | pms_ | pms_spu_info |
-| mall-order | mymall_order | order | oms_ | oms_order |
-| mall-member | mymall_member | member | ums_ | ums_member |
-| mall-ware | mymall_ware | ware | wms_ | wms_ware_info |
-| mall-coupon | mymall_coupon | coupon | sms_ | sms_coupon |
-| mall-seckill | mymall_seckill | seckill | sks_ | sks_session |
+```java
+@Test
+void generateXxx() {
+    generate("mymall_xxx", "xxx", "xxx_", new String[]{
+            "xxx_table1", "xxx_table2"
+    });
+}
+```
 
-> 表前缀参考谷粒商城原教程的命名规范，pms = Product Management System，oms = Order Management System，以此类推。
+> 表前缀参考命名规范：pms = Product Management System，oms = Order Management System，以此类推。
