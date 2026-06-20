@@ -94,6 +94,8 @@ CI/CD：  GitHub Actions → Harbor → ArgoCD → K8s
 | `docs/service-registration-config.md` | 服务注册配置说明（Nacos 配置、禁用项、依赖清理、端口规划） |
 | `docs/mybatis-plus-codegen-guide.md` | MyBatis-Plus 代码生成规范（生成器使用、包结构、Entity/Mapper/Service/Controller 规范） |
 | `docs/development-workflow.md` | AI 辅助开发流程规范（轻量 Spec + TDD，三阶段流程、核心/样板判定、配套 skill） |
+| `docs/learn-docs/service-discovery/` | 服务注册与发现学习笔记（Nacos 核心概念 → 实战配置 → 最佳实践） |
+| `docs/mybatis-plus-orm-notes.md` | MyBatis-Plus ORM 实践笔记（依赖配置、全局组件、使用约定） |
 | `docs/other/` | 归档文档（原始架构分析、参考资料等，开发时一般不需要） |
 
 > **进度文档与提交关联规则**：完成一个事项后，将过程中的多个小提交合并为一条提交并推送到远程，再在进度文档记录关联的提交 hash。过程中未合并推送的小提交不记录。
