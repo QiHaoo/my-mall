@@ -21,6 +21,8 @@
 | 2026-06-20 | AI 辅助开发流程规范制定 | 20559b0 | `docs/development-workflow.md`（轻量 Spec + TDD，三阶段流程、核心/样板判定、配套 skill） |
 | 2026-06-20 | coupon/member 服务骨架搭建 | 9575ead | CouponApplication、MemberApplication 启动类 + application.yml（Nacos 注册配置）+ `docs/service-registration-config.md` 服务注册配置说明文档 |
 | 2026-06-20 | 依赖冲突修复 | d2b577a | 移除 member/coupon 模块中冲突的 resilience4j-spring-cloud2 依赖 |
+| 2026-06-20 | MyBatis-Plus ORM 实践笔记 | 7bb7a8a | `docs/mybatis-plus-orm-notes.md`（依赖、配置、BaseEntity、MyMetaObjectHandler、使用约定） |
+| 2026-06-20 | Feign 远程调用 + R 链式 put + 规范文档 | `1b97988` `1f72204` `a51a714` | R.put() 链式方法、CouponController/MemberController Feign 示例、@MapperScan 独立配置、@WebMvcTest + WireMock 双测、Controller/Feign/测试规范文档、远程调用学习笔记 |
 
 ---
 
@@ -28,7 +30,7 @@
 
 | 事项 | 模块 | 状态说明 |
 |------|------|---------|
-| 服务注册验证 | mall-coupon / mall-member | 骨架已搭建，待启动验证 Nacos 注册是否成功 |
+| 服务注册验证 | mall-coupon / mall-member | Feign 调用链路已搭建，待启动两个服务验证 Nacos 注册 + 远程调用 |
 
 ---
 
@@ -39,10 +41,10 @@
 | 服务 | 进度文档 | 状态 |
 |------|---------|------|
 | mall-product | `docs/mall-product/PROGRESS.md` | 骨架 ✅ / 代码生成 ✅ / 服务注册待验证 |
-| mall-member | `docs/mall-member/PROGRESS.md` | 骨架 ✅ / 代码生成 ✅ / 服务注册待验证 |
+| mall-member | `docs/mall-member/PROGRESS.md` | 骨架 ✅ / 代码生成 ✅ / Feign Consumer ✅ / 双测 ✅ |
 | mall-order | `docs/mall-order/PROGRESS.md` | 骨架 ✅ / 代码生成 ✅ |
 | mall-ware | `docs/mall-ware/PROGRESS.md` | 骨架 ✅ / 代码生成 ✅ |
-| mall-coupon | `docs/mall-coupon/PROGRESS.md` | 骨架 ✅ / 代码生成 ✅ / 服务注册待验证 |
+| mall-coupon | `docs/mall-coupon/PROGRESS.md` | 骨架 ✅ / 代码生成 ✅ / Feign Provider ✅ |
 | mall-seckill | — | 骨架 ✅ |
 | mall-auth | — | 骨架 ✅ |
 | mall-gateway | — | 骨架 ✅ |
