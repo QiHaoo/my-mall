@@ -75,6 +75,36 @@ CI/CD：  GitHub Actions → Harbor → ArgoCD → K8s
 | `mall-third` | 第三方服务（短信、支付、OSS 上传） | — |
 | `mall-admin` | 后台管理（商品上下架、订单管理、数据看板） | — |
 
+## 代码组织结构
+
+> 每个业务模块统一遵循以下包结构，`{module}` 替换为模块名。
+
+```
+com.mymall.{module}/
+├── {Module}Application.java      # 启动类（保持精简，不放 @MapperScan）
+├── controller/                    # REST Controller
+├── feign/                         # Feign 远程调用客户端接口（@FeignClient）
+├── entity/                        # 数据库实体
+├── mapper/                        # MyBatis Mapper（单表 CRUD 用 BaseMapper）
+├── service/                       # Service 接口
+│   └── impl/                      # Service 实现
+└── config/                        # 本模块独有配置（MyBatisConfig / FeignConfig 等）
+```
+
+> **@MapperScan 必须独立**：不要将 `@MapperScan` 写在 `{Module}Application` 启动类上，必须单独放到 `config/MyBatisConfig.java` 中。否则 `@WebMvcTest` 切片测试时会尝试初始化 Mapper Bean，因缺少 DataSource 导致 ApplicationContext 加载失败。
+```
+
+> **mall-common 特殊结构**
+
+```
+com.mymall.common/
+├── config/                        # 全局配置（MybatisPlusConfig 等）
+├── entity/                        # 公共实体基类（BaseEntity）
+├── handler/                       # 处理器（MyMetaObjectHandler 等）
+├── util/                          # 工具类
+└── exception/                     # 全局异常定义
+```
+
 ## 项目文档
 
 > **文档管理约定**：AGENTS.md 保持精简，只放技术选型、架构概览、文档索引等高频参考信息。详细内容放到 `docs/` 目录下。对于执行过程中可能需要查阅的文档，在此处维护索引，确保通过索引即可快速定位。
@@ -94,13 +124,19 @@ CI/CD：  GitHub Actions → Harbor → ArgoCD → K8s
 | `docs/service-registration-config.md` | 服务注册配置说明（Nacos 配置、禁用项、依赖清理、端口规划） |
 | `docs/mybatis-plus-codegen-guide.md` | MyBatis-Plus 代码生成规范（生成器使用、包结构、Entity/Mapper/Service/Controller 规范） |
 | `docs/development-workflow.md` | AI 辅助开发流程规范（轻量 Spec + TDD，三阶段流程、核心/样板判定、配套 skill） |
+| `docs/controller-specification.md` | Controller 接口编写规范（参数校验、返回值、URL 设计、DTO 分离、检查清单） |
+| `docs/feign-config.md` | 远程调用（Feign）配置说明（依赖、@FeignClient 规范、调用链路、测试配置） |
 | `docs/learn-docs/service-discovery/` | 服务注册与发现学习笔记（Nacos 核心概念 → 实战配置 → 最佳实践） |
+| `docs/learn-docs/remote-call/` | 远程调用学习笔记（Feign 基础 → 核心机制 → 负载均衡 → 最佳实践） |
 | `docs/mybatis-plus-orm-notes.md` | MyBatis-Plus ORM 实践笔记（依赖配置、全局组件、使用约定） |
+| `docs/learn-docs/testing/` | 测试方案文档（E2E 方案对比、测试分层、WireMock 最佳实践） |
 | `docs/other/` | 归档文档（原始架构分析、参考资料等，开发时一般不需要） |
 
 > **进度文档与提交关联规则**：完成一个事项后，将过程中的多个小提交合并为一条提交并推送到远程，再在进度文档记录关联的提交 hash。过程中未合并推送的小提交不记录。
 >
 > **⚠️ 提交前必做**：每次要做新提交之前，先更新进度文档（`docs/PROGRESS.md` 或 `docs/{服务名}/PROGRESS.md`），确认记录完整后再执行 commit。进度文档与代码提交必须同步，不允许先提交后补文档。
+>
+> **⚠️ 提交必须经用户确认**：任何时候都不能在用户未明确确认的情况下执行 `git commit` 或 `git push`。做完代码修改后，先展示变更摘要并询问用户确认，用户说「可以提交」或明确同意后，再执行 commit / push。
 >
 > **进度文档记录范围**：只记录对项目实现有重要影响的事项（新功能、架构调整、关键 bug 修复等）。依赖版本调整、配置文件微调、文档格式修正等次要变更不记入进度文档。
 >
