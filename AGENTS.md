@@ -1,0 +1,76 @@
+# 商城系统 (my-mall)
+
+> 学习项目，技术选型原则：最优 / 最流行 / 最值得学
+
+## 技术选型
+
+| 类别 | 选型 |
+|------|------|
+| 开发语言 | Java 21 (LTS) |
+| 核心框架 | Spring Boot 3.4 |
+| 微服务套件 | Spring Cloud 2024.0 + Spring Cloud Alibaba 2023.0 |
+| 注册/配置中心 | Nacos 2.4 |
+| API 网关 | Spring Cloud Gateway 4.x |
+| 负载均衡 | Spring Cloud LoadBalancer |
+| 服务调用 | OpenFeign + Spring 6 HTTP Interface |
+| 熔断降级 | Resilience4j（代码级）+ Sentinel（规则级） |
+| 认证授权 | Spring Authorization Server + Spring Security 6 |
+| 分布式事务 | Seata 2.1 |
+| 数据库 | MySQL 8.4 (LTS) + ShardingSphere 5.5（分库分表） |
+| 缓存 | Redis 7.4 Cluster + Redisson（分布式锁） |
+| 消息队列 | RocketMQ 5.3 |
+| 搜索引擎 | OpenSearch 2.x |
+| 对象存储 | MinIO |
+| 任务调度 | XXL-Job 2.4 |
+| 数据同步 | Canal 1.1（MySQL binlog → MQ → ES/缓存） |
+| 链路追踪 | Micrometer Tracing + OpenTelemetry + Tempo |
+| 监控 | Prometheus + Grafana + VictoriaMetrics |
+| 日志 | Loki + Promtail |
+| 告警 | Alertmanager + Grafana Alerting |
+| 容器化 | Docker + K8s 1.30 + Helm |
+| CI/CD | GitHub Actions (CI) + ArgoCD (GitOps CD) |
+| 镜像仓库 | Harbor 2.x |
+| ORM | MyBatis-Plus 3.5+ |
+| API 文档 | SpringDoc OpenAPI 3 |
+| 前端 | Vue 3 + TypeScript + Vite |
+
+## 架构
+
+```
+用户终端 → CDN/WAF → Spring Cloud Gateway（鉴权/限流/路由）
+  → LoadBalancer
+    → 业务微服务（OpenFeign + Resilience4j + Sentinel + Seata）
+      → MySQL / Redis / RocketMQ / OpenSearch / MinIO
+
+可观测性：OpenTelemetry → Tempo(追踪) + Prometheus(指标) + Loki(日志) → Grafana
+CI/CD：  GitHub Actions → Harbor → ArgoCD → K8s
+```
+
+**服务治理机制**
+
+| 能力 | 实现 |
+|------|------|
+| 服务注册与发现 | Nacos |
+| 客户端负载均衡 | Spring Cloud LoadBalancer |
+| 服务间调用 | OpenFeign / Spring 6 HTTP Interface |
+| 熔断降级 | Resilience4j（方法级）+ Sentinel（接口级 QPS/热点限流） |
+| 配置管理 | Nacos（动态推送、环境隔离、版本回滚） |
+| 分布式事务 | Seata AT（自动补偿）/ TCC（手动确认） |
+| 认证授权 | Spring Authorization Server 颁发 JWT + Spring Security 6 校验 |
+
+## 服务划分
+
+| 服务 | 职责 | 数据库 |
+|------|------|--------|
+| `mall-gateway` | API 网关（统一入口、鉴权、限流、路由） | — |
+| `mall-auth` | 认证授权（OAuth2 登录、JWT 颁发） | `mall_auth` |
+| `mall-member` | 会员中心（注册、登录、收货地址、积分） | `mall_member` |
+| `mall-product` | 商品中心（SPU/SKU、分类、品牌、属性） | `mall_product` |
+| `mall-search` | 搜索服务（商品检索、聚合筛选） | — |
+| `mall-cart` | 购物车（Redis Hash 存储） | — |
+| `mall-order` | 订单中心（下单、状态流转、超时取消） | `mall_order` |
+| `mall-ware` | 库存中心（库存扣减、回滚、预警） | `mall_ware` |
+| `mall-coupon` | 营销中心（优惠券、满减、促销活动） | `mall_coupon` |
+| `mall-seckill` | 秒杀服务（Redis 预减库存 + RocketMQ 削峰） | `mall_seckill` |
+| `mall-third` | 第三方服务（短信、支付、OSS 上传） | — |
+| `mall-admin` | 后台管理（商品上下架、订单管理、数据看板） | — |

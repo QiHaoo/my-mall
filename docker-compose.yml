@@ -1,0 +1,281 @@
+# ===================================================================
+# my-mall 开发环境中间件编排
+# 基于 2026 推荐技术栈，使用 Docker Compose profiles 分组管理
+#
+# 使用方式：
+#   启动核心中间件（阶段一二）：docker compose --profile core up -d
+#   启动消息队列（阶段三）：   docker compose --profile mq up -d
+#   启动搜索+对象存储（阶段四）：docker compose --profile search --profile storage up -d
+#   启动监控（阶段五）：       docker compose --profile monitor up -d
+#   启动全部：                 docker compose --profile core --profile mq --profile search --profile storage --profile monitor up -d
+#   停止全部：                 docker compose down
+#   查看状态：                 docker compose ps
+#
+# 内存建议：全部启动约需 6-8GB，可按阶段渐进启用
+# ===================================================================
+
+name: mall-dev
+
+services:
+
+  # ============================================================
+  # [core] 核心中间件 — 注册配置 + 数据库 + 缓存
+  # ============================================================
+
+  # ---------- Nacos 2.4 注册中心 + 配置中心 ----------
+  nacos:
+    image: nacos/nacos-server:v2.4.3
+    container_name: mall-nacos
+    profiles: ["core"]
+    environment:
+      - MODE=standalone
+      - NACOS_AUTH_ENABLE=true
+      - NACOS_AUTH_IDENTITY_KEY=mall
+      - NACOS_AUTH_IDENTITY_VALUE=mall123
+      - NACOS_AUTH_TOKEN=SecretKey012345678901234567890123456789012345678901234567890123456789
+      - NACOS_AUTH_TOKEN_EXPIRE_SECONDS=18000
+      - JVM_XMS=256m
+      - JVM_XMX=256m
+    ports:
+      - "8848:8848"   # 主端口
+      - "9848:9848"   # gRPC 端口（2.x 客户端必须）
+      - "9849:9849"   # gRPC raft
+    volumes:
+      - nacos-data:/home/nacos/data
+      - nacos-logs:/home/nacos/logs
+    restart: unless-stopped
+
+  # ---------- MySQL 8.4 数据库 ----------
+  mysql:
+    image: mysql:8.4
+    container_name: mall-mysql
+    profiles: ["core"]
+    environment:
+      - MYSQL_ROOT_PASSWORD=root123
+      - TZ=Asia/Shanghai
+    command:
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --default-authentication-plugin=mysql_native_password
+      --lower-case-table-names=1
+      --max-connections=500
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./init/mysql:/docker-entrypoint-initdb.d  # 放建库SQL
+    restart: unless-stopped
+
+  # ---------- Redis 7.4 缓存 ----------
+  redis:
+    image: redis:7.4-alpine
+    container_name: mall-redis
+    profiles: ["core"]
+    command: redis-server
+      --requirepass redis123
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+      --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+
+  # ============================================================
+  # [mq] 消息队列 — RocketMQ 5.x
+  # ============================================================
+
+  # ---------- RocketMQ NameServer ----------
+  rmqnamesrv:
+    image: apache/rocketmq:5.3.1
+    container_name: mall-rmqnamesrv
+    profiles: ["mq"]
+    environment:
+      - JAVA_OPT_EXT=-server -Xms256m -Xmx256m -Xmn128m
+    command: sh mqnamesrv
+    ports:
+      - "9876:9876"
+    volumes:
+      - rmqnamesrv-logs:/home/rocketmq/logs
+    restart: unless-stopped
+
+  # ---------- RocketMQ Broker ----------
+  rmqbroker:
+    image: apache/rocketmq:5.3.1
+    container_name: mall-rmqbroker
+    profiles: ["mq"]
+    environment:
+      - NAMESRV_ADDR=rmqnamesrv:9876
+      - JAVA_OPT_EXT=-server -Xms512m -Xmx512m -Xmn256m
+    command: sh mqbroker -n rmqnamesrv:9876 --enable-proxy
+    depends_on:
+      - rmqnamesrv
+    ports:
+      - "10911:10911"
+      - "10909:10909"
+      - "8080:8080"   # proxy grpc / dashboard
+    volumes:
+      - rmqbroker-store:/home/rocketmq/store
+      - rmqbroker-logs:/home/rocketmq/logs
+    restart: unless-stopped
+
+  # ---------- RocketMQ Dashboard（可视化管理） ----------
+  rmqdashboard:
+    image: apacherocketmq/rocketmq-dashboard:1.0.0
+    container_name: mall-rmqdashboard
+    profiles: ["mq"]
+    environment:
+      - JAVA_OPTS=-Drocketmq.namesrv.addr=rmqnamesrv:9876
+    depends_on:
+      - rmqnamesrv
+    ports:
+      - "8180:8080"
+    restart: unless-stopped
+
+  # ============================================================
+  # [search] 搜索引擎 — OpenSearch 2.x
+  # ============================================================
+
+  # ---------- OpenSearch ----------
+  opensearch:
+    image: opensearchproject/opensearch:2.18.0
+    container_name: mall-opensearch
+    profiles: ["search"]
+    environment:
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "DISABLE_SECURITY_PLUGIN=true"   # 学习用，禁用安全插件
+      - cluster.name=mall-cluster
+      - node.name=mall-node-1
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    ports:
+      - "9200:9200"
+      - "9600:9600"
+    volumes:
+      - opensearch-data:/usr/share/opensearch/data
+    restart: unless-stopped
+
+  # ---------- OpenSearch Dashboards（可视化） ----------
+  opensearch-dashboards:
+    image: opensearchproject/opensearch-dashboards:2.18.0
+    container_name: mall-opensearch-dashboards
+    profiles: ["search"]
+    environment:
+      - OPENSEARCH_HOSTS=http://opensearch:9200
+      - DISABLE_SECURITY_DASHBOARDS_PLUGIN=true
+    depends_on:
+      - opensearch
+    ports:
+      - "5601:5601"
+    restart: unless-stopped
+
+  # ============================================================
+  # [storage] 对象存储 — MinIO（S3 兼容）
+  # ============================================================
+
+  minio:
+    image: minio/minio:latest
+    container_name: mall-minio
+    profiles: ["storage"]
+    environment:
+      - MINIO_ROOT_USER=minioadmin
+      - MINIO_ROOT_PASSWORD=minioadmin123
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"   # S3 API
+      - "9001:9001"   # 管理控制台
+    volumes:
+      - minio-data:/data
+    restart: unless-stopped
+
+  # ============================================================
+  # [monitor] 监控可观测
+  # ============================================================
+
+  # ---------- Prometheus 指标采集 ----------
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: mall-prometheus
+    profiles: ["monitor"]
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.retention.time=15d"
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./config/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    restart: unless-stopped
+
+  # ---------- Grafana 可视化 ----------
+  grafana:
+    image: grafana/grafana:latest
+    container_name: mall-grafana
+    profiles: ["monitor"]
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin123
+      - GF_INSTALL_PLUGINS=grafana-opensearch-datasource
+    depends_on:
+      - prometheus
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+    restart: unless-stopped
+
+  # ============================================================
+  # [infra] 基础设施服务（按需）
+  # ============================================================
+
+  # ---------- Seata 分布式事务 Server ----------
+  seata:
+    image: seataio/seata-server:2.0.0
+    container_name: mall-seata
+    profiles: ["core"]
+    environment:
+      - SEATA_PORT=8091
+      - STORE_MODE=file
+      - SEATA_IP=seata
+    ports:
+      - "8091:8091"
+      - "7091:7091"
+    volumes:
+      - seata-logs:/seata-server/logs
+    restart: unless-stopped
+
+  # ---------- Sentinel Dashboard 流控控制台 ----------
+  sentinel:
+    image: bladex/sentinel-dashboard:1.8.8
+    container_name: mall-sentinel
+    profiles: ["core"]
+    environment:
+      - JAVA_OPTS=-Dserver.port=8858 -Dcsp.sentinel.dashboard.server=localhost:8858 -Dproject.name=sentinel-dashboard
+    ports:
+      - "8858:8858"
+    restart: unless-stopped
+
+# ============================================================
+# 数据卷
+# ============================================================
+volumes:
+  nacos-data:
+  nacos-logs:
+  mysql-data:
+  redis-data:
+  rmqnamesrv-logs:
+  rmqbroker-store:
+  rmqbroker-logs:
+  opensearch-data:
+  minio-data:
+  prometheus-data:
+  grafana-data:
+  seata-logs:

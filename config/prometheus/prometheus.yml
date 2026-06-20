@@ -1,0 +1,19 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  # Prometheus 自身
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  # 各微服务（Spring Boot Actuator 暴露的 metrics）
+  # 业务服务上线后在下方添加对应 target
+  - job_name: "mall-services"
+    metrics_path: "/actuator/prometheus"
+    static_configs:
+      - targets: ["host.docker.internal:8080"]  # 网关
+        labels:
+          service: "mall-gateway"
+    # 开发期服务在宿主机运行，用 host.docker.internal 访问
