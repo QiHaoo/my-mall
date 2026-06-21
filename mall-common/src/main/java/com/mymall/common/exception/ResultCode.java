@@ -1,0 +1,57 @@
+package com.mymall.common.exception;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+/**
+ * 统一错误码枚举
+ * <p>
+ * 码段规划：
+ * <ul>
+ *   <li>0 - 成功</li>
+ *   <li>400~499 - 客户端错误</li>
+ *   <li>500~599 - 服务端错误</li>
+ *   <li>40001~49999 - 优惠券服务</li>
+ *   <li>50001~59999 - 商品服务</li>
+ *   <li>60001~69999 - 订单服务</li>
+ *   <li>70001~79999 - 会员服务</li>
+ *   <li>80001~89999 - 库存服务</li>
+ * </ul>
+ */
+@Getter
+@AllArgsConstructor
+public enum ResultCode {
+
+    // ==================== 通用 ====================
+    SUCCESS(0, "成功"),
+    PARAM_ERROR(400, "参数错误"),
+    UNAUTHORIZED(401, "未登录或 token 已过期"),
+    FORBIDDEN(403, "无权限"),
+    NOT_FOUND(404, "资源不存在"),
+    METHOD_NOT_ALLOWED(405, "请求方法不允许"),
+    INTERNAL_ERROR(500, "服务器内部错误"),
+
+    // ==================== 优惠券服务 40001+ ====================
+    COUPON_NOT_FOUND(40001, "优惠券不存在"),
+    COUPON_EXPIRED(40002, "优惠券已过期"),
+    COUPON_LIMIT_EXCEEDED(40003, "优惠券领取数量已达上限"),
+
+    // ==================== 商品服务 50001+ ====================
+    PRODUCT_NOT_FOUND(50001, "商品不存在"),
+    PRODUCT_OFF_SHELF(50002, "商品已下架"),
+
+    // ==================== 订单服务 60001+ ====================
+    ORDER_NOT_FOUND(60001, "订单不存在"),
+    ORDER_STATUS_ERROR(60002, "订单状态异常"),
+
+    // ==================== 会员服务 70001+ ====================
+    MEMBER_NOT_FOUND(70001, "会员不存在"),
+    MEMBER_DISABLED(70002, "会员已被禁用"),
+
+    // ==================== 库存服务 80001+ ====================
+    STOCK_NOT_ENOUGH(80001, "库存不足"),
+    ;
+
+    private final int code;
+    private final String message;
+}

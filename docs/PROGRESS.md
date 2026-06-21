@@ -25,9 +25,10 @@
 | 2026-06-20 | Feign 远程调用 + R 链式 put + 规范文档 | `1b97988` `1f72204` `a51a714` | R.put() 链式方法、CouponController/MemberController Feign 示例、@MapperScan 独立配置、@WebMvcTest + WireMock 双测、Controller/Feign/测试规范文档、远程调用学习笔记 |
 | 2026-06-21 | Nacos 配置中心集成 + 文档补充 | `61e0414` `8cbbaa4` | coupon 模块集成 Nacos Config、ConfigDemoController 演示接口（8个演示场景）、配置规范文档、使用指南、学习笔记 |
 | 2026-06-21 | 配置中心文档优化 + ConfigDemoController 修复 | `c2685cd` | service-registration-config.md 重新组织章节、Spring Cloud Nacos Config 集成细节补充、@Qualifier 解决多 ContextRefresher Bean 冲突、HTTP 测试文件 |
-| 2026-06-21 | 编码 & 测试规范文档 | ⏳ 待提交 | controller-specification.md 生产级增强（校验分组、分页、幂等性）、coding-standards.md 新建（8章节）、testing-specification.md 新建（10章节） |
-| 2026-06-21 | common 模块缺失项分析 | ⏳ 待提交 | `docs/common-module-gap-analysis.md`（P0/P1/P2/P3 四档，共 17 项缺失） |
-| 2026-06-21 | 网关模块搭建 + 文档 | ⏳ 待提交 | mall-gateway 模块骨架、Spring Cloud Gateway 配置、gateway-config-guide.md、api-gateway 学习笔记 |
+| 2026-06-21 | 编码 & 测试规范文档 | `681bc60` | controller-specification.md 生产级增强（校验分组、分页、幂等性）、coding-standards.md 新建（8章节）、testing-specification.md 新建（10章节） |
+| 2026-06-21 | common 模块缺失项分析 | `b295e14` | `docs/common-module-gap-analysis.md`（P0/P1/P2/P3 四档，共 17 项缺失） |
+| 2026-06-21 | 网关模块搭建 + 文档 | `12445db` | mall-gateway 模块骨架、Spring Cloud Gateway 配置、gateway-config-guide.md、api-gateway 学习笔记 |
+| 2026-06-21 | common 模块 P0+P1 补齐 | ⏳ 待提交 | 修复包扫描 Bug + 补齐异常体系/全局异常处理/分页基类/BaseEntity 修复/SpringDoc 配置/hutool 版本统一 |
 
 ---
 
@@ -35,7 +36,7 @@
 
 | 事项 | 模块 | 状态说明 |
 |------|------|---------|
-| common 模块补齐 | mall-common | P0 包扫描 Bug 待修复，P1 缺失项待补齐（BizException、GlobalExceptionHandler、PageQuery 等） |
+| common 模块 P2 补齐 | mall-common | CORS 配置、CommonConstants、UserContext、BaseEntity @Version 待补 |
 | 商品模块开发 | mall-product | 待启动，是电商核心数据模型（SPU/SKU/分类/品牌/属性） |
 
 ---

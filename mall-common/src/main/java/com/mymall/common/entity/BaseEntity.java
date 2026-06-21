@@ -10,7 +10,8 @@ import java.time.LocalDateTime;
  * 公共实体基类
  * <p>
  * 主键策略：ASSIGN_ID（雪花算法，分布式友好）
- * 所有生成的 Entity 继承此类，表中不再重复定义 id / createTime / updateTime
+ * 逻辑删除：isDeleted（0=正常，1=已删除）
+ * 所有生成的 Entity 继承此类，表中不再重复定义公共字段
  */
 @Data
 public class BaseEntity implements Serializable {
@@ -23,4 +24,8 @@ public class BaseEntity implements Serializable {
 
     @TableField(fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updateTime;
+
+    @TableLogic
+    @TableField(fill = FieldFill.INSERT)
+    private Integer isDeleted;
 }

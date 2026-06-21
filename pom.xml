@@ -77,6 +77,9 @@
 
         <!-- API 文档 -->
         <springdoc.version>2.7.0</springdoc.version>
+
+        <!-- 工具类 -->
+        <hutool.version>5.8.32</hutool.version>
     </properties>
 
     <dependencyManagement>
@@ -207,6 +210,13 @@
                 <groupId>com.mall</groupId>
                 <artifactId>mall-common</artifactId>
                 <version>${project.version}</version>
+            </dependency>
+
+            <!-- Hutool 工具类 -->
+            <dependency>
+                <groupId>cn.hutool</groupId>
+                <artifactId>hutool-all</artifactId>
+                <version>${hutool.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

@@ -1,7 +1,8 @@
 # mall-common 模块缺失项分析
 
 > 分析时间：2026-06-21  
-> 目的：梳理 common 模块在正式开发业务代码前需要补充的内容，按优先级分档
+> 目的：梳理 common 模块在正式开发业务代码前需要补充的内容，按优先级分档  
+> P0/P1 实现完成时间：2026-06-22
 
 ---
 
@@ -131,33 +132,24 @@ public class PageQuery {
 }
 ```
 
-#### P1-5：BaseEntity 补充 @TableLogic
+#### P1-5：BaseEntity 补充 @TableLogic + isDeleted 字段
 
-`application.yml` 已配置逻辑删除字段 `is_deleted`，但 `BaseEntity` 没有对应的注解，
+`application.yml` 已配置逻辑删除字段 `is_deleted`，但 `BaseEntity` 没有对应的注解和字段，
 逻辑删除功能不生效（删除操作会物理删除）。
 
 ```java
-@Data
-public abstract class BaseEntity {
-    @TableId(type = IdType.AUTO)
-    private Long id;
-
-    @TableField(fill = FieldFill.INSERT)
-    private LocalDateTime createTime;
-
-    @TableField(fill = FieldFill.INSERT_UPDATE)
-    private LocalDateTime updateTime;
-
-    @TableLogic  // ← 缺失，补上
-    @TableField(fill = FieldFill.INSERT)
-    private Integer isDeleted = 0;
-}
+@TableLogic
+@TableField(fill = FieldFill.INSERT)
+private Integer isDeleted;
 ```
 
-#### P1-6：BaseEntity 的 @Entity 注解错误
+> **备注**：BaseEntity 暂不使用（业务 Entity 暂不继承），留待后续启用。
 
-`BaseEntity` 上有 `@Entity`（JPA 注解），但项目用的是 MyBatis-Plus，
-这个注解多余且可能引起混淆，应移除。
+#### P1-6：BaseEntity 的 @Entity 注解
+
+~~`BaseEntity` 上有 `@Entity`（JPA 注解），但项目用的是 MyBatis-Plus~~
+
+**结论**：代码中未发现 `@Entity` 注解，无需处理。
 
 #### P1-7：SpringDoc OpenAPI 配置
 
@@ -210,13 +202,14 @@ public class SpringDocConfig {
 ## 三、建议的处理顺序
 
 ```
-第一步：修 P0 包扫描 Bug（5 分钟）
-  └─ 创建 META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports
+第一步：修 P0 包扫描 Bug ✅ 已完成
+  └─ 创建 META-INF/spring/...AutoConfiguration.imports
+  └─ MybatisPlusConfig 增加 @ComponentScan("com.mymall.common")
 
-第二步：补 P1 全部（约 1-2 小时）
+第二步：补 P1 全部 ✅ 已完成
   ├─ BizException + ResultCode 枚举 + GlobalExceptionHandler（一组，互相依赖）
   ├─ PageQuery 分页基类
-  ├─ BaseEntity 修复（@TableLogic、移除 @Entity）
+  ├─ BaseEntity 补充 @TableLogic + isDeleted 字段（暂不使用，留待后续）
   ├─ SpringDoc OpenAPI 配置类
   └─ hutool 版本统一到父 POM
 
