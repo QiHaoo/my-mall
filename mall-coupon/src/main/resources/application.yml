@@ -4,17 +4,21 @@ server:
 spring:
   application:
     name: mall-coupon
+  config:
+    import:
+      - "nacos:mall-coupon.yaml?refreshEnabled=true"
   autoconfigure:
     exclude:
-      - io.seata.spring.boot.autoconfigure.SeataAutoConfiguration
-      - org.redisson.spring.starter.RedissonAutoConfigurationV2
       - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
       - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
   cloud:
     nacos:
       config:
-        import-check:
-          enabled: false
+        server-addr: 127.0.0.1:8848
+        namespace: my-mall
+        group: DEFAULT_GROUP
+        username: nacos
+        password: nacos
       discovery:
         server-addr: 127.0.0.1:8848
         namespace: my-mall
