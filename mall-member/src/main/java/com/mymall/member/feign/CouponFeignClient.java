@@ -4,6 +4,8 @@ import com.mymall.common.result.R;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 
+import java.util.Map;
+
 /**
  * 远程调用 mall-coupon 服务的 Feign 客户端接口
  *

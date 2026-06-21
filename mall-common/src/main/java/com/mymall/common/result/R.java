@@ -62,12 +62,12 @@ public class R<T> implements Serializable {
      * <pre>{@code R.ok().put("coupons", list).put("total", 2);}</pre>
      */
     @SuppressWarnings("unchecked")
-    public R<Map<String, Object>> put(String key, Object value) {
+    public R<T> put(String key, Object value) {
         if (this.data == null || !(this.data instanceof Map)) {
-            this.data = (T) new HashMap<>();
+            this.data = (T) new HashMap<String, Object>();
         }
         ((Map<String, Object>) this.data).put(key, value);
-        return (R<Map<String, Object>>) this;
+        return this;
     }
 
     private static <T> R<T> restResult(T data, Integer code, String msg) {

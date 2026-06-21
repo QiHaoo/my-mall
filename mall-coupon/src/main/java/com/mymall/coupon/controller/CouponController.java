@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 优惠券服务示例接口 — 供其他服务通过 Feign 远程调用

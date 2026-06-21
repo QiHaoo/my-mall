@@ -7,6 +7,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Map;
+
 /**
  * 会员服务示例接口 — 演示通过 Feign 远程调用 mall-coupon
  */
@@ -21,7 +23,7 @@ public class MemberController {
      * 调用远程 coupon 服务获取优惠券列表，验证服务间调用链路
      */
     @GetMapping("/test-remote")
-    public R<?> testRemote() {
+    public R<Map<String, Object>> testRemote() {
         // Feign 自动将 coupon 服务返回的 R 反序列化为 R 对象
         return couponFeignClient.list();
     }
