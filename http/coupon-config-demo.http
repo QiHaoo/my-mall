@@ -1,0 +1,89 @@
+### Nacos 配置中心演示接口
+### 服务: mall-coupon (端口 7000)
+### 使用前确保 Nacos 中已创建 mall-coupon.yaml 配置
+
+### ========== 1. 配置概览 ==========
+
+### 获取所有配置概览
+GET http://localhost:7000/config-demo/all
+
+### ========== 2. 折扣计算 ==========
+
+### 计算折扣价（全局折扣）
+GET http://localhost:7000/config-demo/calculate?price=100
+
+### 计算折扣价（自定义价格）
+GET http://localhost:7000/config-demo/calculate?price=299.9
+
+### ========== 3. 功能开关（Feature Toggle）==========
+
+### 查看促销活动中台状态
+### 修改 Nacos 中 coupon.demo.promotion-enabled 为 true/false 观察变化
+GET http://localhost:7000/config-demo/promotion-center
+
+### ========== 4. 动态限流 ==========
+
+### 模拟 API 调用（多次调用观察限流触发）
+### 修改 Nacos 中 coupon.demo.rate-limit 调整阈值
+GET http://localhost:7000/config-demo/api-call
+
+### 模拟 API 调用 - 第 2 次
+GET http://localhost:7000/config-demo/api-call
+
+### 模拟 API 调用 - 第 3 次
+GET http://localhost:7000/config-demo/api-call
+
+### 重置计数器
+POST http://localhost:7000/config-demo/reset-counter
+
+### ========== 5. 服务降级 ==========
+
+### 查询优惠券 - 完整模式（degrade-level=0）
+### 修改 Nacos 中 coupon.demo.degrade-level 为 0/1/2 观察变化
+GET http://localhost:7000/config-demo/coupons
+
+### ========== 6. 分类折扣（Map 配置）==========
+
+### 数码品类折扣
+GET http://localhost:7000/config-demo/category-price?category=数码&price=200
+
+### 家电品类折扣
+GET http://localhost:7000/config-demo/category-price?category=家电&price=3000
+
+### 服饰品类折扣
+GET http://localhost:7000/config-demo/category-price?category=服饰&price=500
+
+### 食品品类折扣
+GET http://localhost:7000/config-demo/category-price?category=食品&price=80
+
+### 未配置品类（使用默认 1.0 无折扣）
+GET http://localhost:7000/config-demo/category-price?category=图书&price=100
+
+### ========== 7. A/B 测试 ==========
+
+### A/B 测试（多次调用观察分流）
+### 修改 Nacos 中 coupon.demo.ab-test.enabled 和 ab-test.percentage
+GET http://localhost:7000/config-demo/ab-test
+
+### A/B 测试 - 第 2 次
+GET http://localhost:7000/config-demo/ab-test
+
+### A/B 测试 - 第 3 次
+GET http://localhost:7000/config-demo/ab-test
+
+### A/B 测试 - 第 4 次
+GET http://localhost:7000/config-demo/ab-test
+
+### A/B 测试 - 第 5 次
+GET http://localhost:7000/config-demo/ab-test
+
+### ========== 8. 手动刷新配置 ==========
+
+### 手动触发配置刷新（演示 ContextRefresher API）
+### 正常情况下 Nacos 自动推送，无需手动刷新
+POST http://localhost:7000/config-demo/refresh
+
+### ========== 动态刷新验证流程 ==========
+### 1. 先调用 GET /config-demo/all 记录当前值
+### 2. 在 Nacos 控制台修改 mall-coupon.yaml 配置
+### 3. 再次调用 GET /config-demo/all 观察值已更新（无需重启）

@@ -1,5 +1,6 @@
 package com.mymall.coupon.controller;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.cloud.context.refresh.ContextRefresher;
@@ -37,7 +38,10 @@ public class ConfigDemoController {
 
     private final ContextRefresher contextRefresher;
 
-    public ConfigDemoController(ContextRefresher contextRefresher) {
+    public ConfigDemoController(
+            // Spring Cloud 2023+ 注册了两个 ContextRefresher:
+            // configDataContextRefresher (spring.config.import) 和 legacyContextRefresher (bootstrap)
+            @Qualifier("configDataContextRefresher") ContextRefresher contextRefresher) {
         this.contextRefresher = contextRefresher;
     }
 
