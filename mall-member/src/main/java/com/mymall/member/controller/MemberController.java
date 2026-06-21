@@ -21,7 +21,7 @@ public class MemberController {
      * 调用远程 coupon 服务获取优惠券列表，验证服务间调用链路
      */
     @GetMapping("/test-remote")
-    public R testRemote() {
+    public R<?> testRemote() {
         // Feign 自动将 coupon 服务返回的 R 反序列化为 R 对象
         return couponFeignClient.list();
     }

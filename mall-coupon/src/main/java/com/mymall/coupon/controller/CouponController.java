@@ -22,7 +22,7 @@ public class CouponController {
      * <p>实际项目实现时，数据来源于 Service → Mapper → DB 查询链路。
      */
     @GetMapping("/list")
-    public R list() {
+    public R<Map<String, Object>> list() {
         // 模拟两条优惠券数据，演示远程调用时实体对象的序列化传输
         Coupon c1 = new Coupon();
         c1.setId(1L);

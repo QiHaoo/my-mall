@@ -16,5 +16,5 @@ public interface CouponFeignClient {
 
     /** 调用 coupon 服务的优惠券列表接口 */
     @GetMapping("/list")
-    R list();
+    R<Map<String, Object>> list();
 }
