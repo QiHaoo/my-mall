@@ -133,3 +133,101 @@ docker compose up -d nacos
 # 4. 查看注册结果
 # http://127.0.0.1:8848/nacos → 服务列表
 ```
+
+---
+
+## 7. 服务发现配置规范
+
+### 7.1 命名空间（Namespace）
+
+按**环境**划分，命名统一加环境后缀：
+
+| 命名空间 ID | 名称 | 用途 |
+|-------------|------|------|
+| `my-mall-dev` | 开发环境 | 本地开发（当前使用 `my-mall`，后续迁移） |
+| `my-mall-test` | 测试环境 | 集成测试 / 联调 |
+| `my-mall-prod` | 生产环境 | 正式部署 |
+
+> **原则**：命名空间做环境隔离，Group 不做环境区分（避免配置翻倍）。
+>
+> **生产要点**：不同环境的 Nacos Server 必须是独立实例，不能共用同一个 Server 靠 Namespace 隔离。
+
+### 7.2 分组（Group）
+
+本项目统一使用 `DEFAULT_GROUP`，不按 Group 做业务或环境划分。
+
+**理由**：
+- 环境已通过 Namespace 隔离
+- 业务通过服务名区分
+- 减少 Group 管理成本
+
+### 7.3 服务命名
+
+统一格式：`mall-{模块名}`
+
+| 服务名 | 模块 |
+|--------|------|
+| `mall-coupon` | 营销中心 |
+| `mall-member` | 会员中心 |
+| `mall-product` | 商品中心 |
+| `mall-order` | 订单中心 |
+| `mall-ware` | 库存中心 |
+| `mall-gateway` | API 网关 |
+| `mall-auth` | 认证服务 |
+| `mall-search` | 搜索服务 |
+| `mall-cart` | 购物车 |
+| `mall-seckill` | 秒杀服务 |
+| `mall-third` | 第三方服务 |
+| `mall-admin` | 后台管理 |
+
+### 7.4 元数据（Metadata）
+
+按需添加，不做强制要求。推荐场景：
+
+```yaml
+spring:
+  cloud:
+    nacos:
+      discovery:
+        metadata:
+          version: v1.0          # 版本号（灰度发布时用）
+```
+
+| 场景 | 元数据 | 说明 |
+|------|--------|------|
+| 灰度发布 | `version` | 按版本号路由流量 |
+| 就近访问 | `region` | 按区域路由 |
+
+### 7.5 集群（Cluster）
+
+本项目开发阶段不使用 Cluster 配置，保持默认 `DEFAULT`。
+
+**生产部署**：
+- Nacos Server 至少 3 节点集群部署
+- 服务实例的 Cluster 按机房/可用区划分，实现就近访问
+- 配合 Spring Cloud LoadBalancer 的 `NacosRule` 实现同集群优先调用
+
+### 7.6 开发阶段临时配置
+
+以下配置仅用于当前开发阶段，**生产环境不需要**：
+
+| 配置 | 原因 | 生产环境状态 |
+|------|------|------------|
+| `autoconfigure.exclude` (Seata/Redis) | 中间件未启动 | 移除，正常启用所有组件 |
+| `resilience4j-spring-cloud2` 移除 | Bean 冲突 | 只保留 `spring-boot3` |
+| `import-check.enabled: false` | 未启用配置中心 | 移除，启用配置中心 |
+| `log-impl: StdOutImpl` | 开发调试用 | 生产使用日志框架，不输出到 stdout |
+
+### 7.7 Nacos Server 部署模式
+
+| 环境 | 模式 | 说明 |
+|------|------|------|
+| 开发 | 单机模式 | `docker run` 即可 |
+| 测试 | 单机/双机 | 可容忍短暂不可用 |
+| 生产 | 集群模式（≥ 3 节点） | 必须高可用，配合 MySQL 持久化 |
+
+生产集群要求：
+- Nacos Server ≥ 3 节点
+- 使用外部 MySQL 存储（不用内嵌 Derby）
+- 开启鉴权（`nacos.core.auth.enabled=true`）
+- 修改默认密码（默认 `nacos/nacos` 必须改）

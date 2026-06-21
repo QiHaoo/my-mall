@@ -23,6 +23,7 @@
 | 2026-06-20 | 依赖冲突修复 | d2b577a | 移除 member/coupon 模块中冲突的 resilience4j-spring-cloud2 依赖 |
 | 2026-06-20 | MyBatis-Plus ORM 实践笔记 | 7bb7a8a | `docs/mybatis-plus-orm-notes.md`（依赖、配置、BaseEntity、MyMetaObjectHandler、使用约定） |
 | 2026-06-20 | Feign 远程调用 + R 链式 put + 规范文档 | `1b97988` `1f72204` `a51a714` | R.put() 链式方法、CouponController/MemberController Feign 示例、@MapperScan 独立配置、@WebMvcTest + WireMock 双测、Controller/Feign/测试规范文档、远程调用学习笔记 |
+| 2026-06-21 | Nacos 配置中心集成 + 文档补充 | ⏳ 待提交 | coupon 模块集成 Nacos Config、ConfigDemoController 演示接口（8个演示场景）、配置规范文档、使用指南、学习笔记 |
 
 ---
 
@@ -30,6 +31,7 @@
 
 | 事项 | 模块 | 状态说明 |
 |------|------|---------|
+| Nacos 配置中心验证 | mall-coupon | 配置中心已集成，待在 Nacos 控制台创建配置并验证动态刷新 |
 | 服务注册验证 | mall-coupon / mall-member | Feign 调用链路已搭建，待启动两个服务验证 Nacos 注册 + 远程调用 |
 
 ---
