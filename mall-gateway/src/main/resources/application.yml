@@ -1,0 +1,193 @@
+server:
+  port: 1000
+
+spring:
+  application:
+    name: mall-gateway
+  config:
+    import:
+      - "nacos:mall-gateway.yaml?refreshEnabled=true"
+  autoconfigure:
+    exclude:
+      - io.seata.spring.boot.autoconfigure.SeataAutoConfiguration
+  cloud:
+    nacos:
+      config:
+        server-addr: 127.0.0.1:8848
+        namespace: my-mall
+        group: DEFAULT_GROUP
+        username: nacos
+        password: nacos
+      discovery:
+        server-addr: 127.0.0.1:8848
+        namespace: my-mall
+        username: nacos
+        password: nacos
+    gateway:
+      # ==================== 本地路由（演示用，生产建议放 Nacos）====================
+
+      routes:
+        # ---------- 1. 负载均衡路由：转发到微服务 ----------
+        - id: product-route
+          uri: lb://mall-product
+          predicates:
+            - Path=/api/product/**
+          filters:
+            - StripPrefix=1
+
+        - id: member-route
+          uri: lb://mall-member
+          predicates:
+            - Path=/api/member/**
+          filters:
+            - StripPrefix=1
+
+        - id: coupon-route
+          uri: lb://mall-coupon
+          predicates:
+            - Path=/api/coupon/**
+          filters:
+            - StripPrefix=1
+
+        - id: order-route
+          uri: lb://mall-order
+          predicates:
+            - Path=/api/order/**
+          filters:
+            - StripPrefix=1
+
+        - id: ware-route
+          uri: lb://mall-ware
+          predicates:
+            - Path=/api/ware/**
+          filters:
+            - StripPrefix=1
+
+        # ---------- 2. 外部 URL 路由：转发到外部网站 ----------
+        # 访问 /go/baidu → 跳转到百度
+        - id: baidu-route
+          uri: https://www.baidu.com
+          predicates:
+            - Path=/go/baidu
+
+        # 访问 /go/github → 跳转到 GitHub
+        - id: github-route
+          uri: https://github.com
+          predicates:
+            - Path=/go/github
+
+        # 访问 /go/nacos → 跳转到 Nacos 控制台
+        - id: nacos-console
+          uri: http://127.0.0.1:8848
+          predicates:
+            - Path=/go/nacos, /go/nacos/**
+
+        # ---------- 3. 断言演示路由：各种 Predicate 用法 ----------
+        # 仅 GET 请求可访问
+        - id: get-only-route
+          uri: https://httpbin.org
+          predicates:
+            - Path=/demo/get-only
+            - Method=GET
+          filters:
+            - SetPath=/get
+            - AddResponseHeader=X-Demo, get-only-route
+
+        # 带指定 Header 才能访问
+        - id: header-route
+          uri: https://httpbin.org
+          predicates:
+            - Path=/demo/with-header
+            - Header=X-Token, .+
+          filters:
+            - SetPath=/headers
+            - AddResponseHeader=X-Demo, header-route
+
+        # 带指定查询参数才能访问
+        - id: query-route
+          uri: https://httpbin.org
+          predicates:
+            - Path=/demo/with-query
+            - Query=color
+          filters:
+            - SetPath=/get
+            - AddResponseHeader=X-Demo, query-route
+
+        # 按时间段访问（演示 Between Predicate）
+        # 注意：生产环境使用，开发时注释掉 After/Before 即可
+        # - id: time-route
+        #   uri: https://httpbin.org
+        #   predicates:
+        #     - Path=/demo/time-limited
+        #     - After=2024-01-01T00:00:00+08:00
+        #     - Before=2030-12-31T23:59:59+08:00
+        #   filters:
+        #     - SetPath=/get
+
+        # 按客户端 IP 访问（内网演示）
+        - id: ip-route
+          uri: https://httpbin.org
+          predicates:
+            - Path=/demo/ip-only
+            - RemoteAddr=127.0.0.1, 192.168.0.0/16, 10.0.0.0/8
+          filters:
+            - SetPath=/ip
+            - AddResponseHeader=X-Demo, ip-route
+
+        # 按权重灰度路由（50% 走 A，50% 走 B）
+        - id: gray-a-route
+          uri: https://httpbin.org
+          predicates:
+            - Path=/demo/gray
+            - Weight=gray-group, 50
+          filters:
+            - SetPath=/get
+            - AddResponseHeader=X-Gray, A
+            - AddResponseHeader=X-Demo, gray-a-route
+
+        - id: gray-b-route
+          uri: https://www.baidu.com
+          predicates:
+            - Path=/demo/gray
+            - Weight=gray-group, 50
+          filters:
+            - AddResponseHeader=X-Gray, B
+            - AddResponseHeader=X-Demo, gray-b-route
+
+        # ---------- 4. 路径重写演示 ----------
+        # /old-api/xxx → 重写为 /api/xxx
+        - id: rewrite-route
+          uri: https://httpbin.org
+          predicates:
+            - Path=/old-api/**
+          filters:
+            - RewritePath=/old-api/(?<segment>.*), /api/${segment}
+            - AddResponseHeader=X-Demo, rewrite-route
+
+      # ==================== 全局 CORS 配置 ====================
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowed-origins: "http://localhost:5173"
+            allowed-methods: "*"
+            allowed-headers: "*"
+            allow-credentials: true
+            max-age: 3600
+
+# ==================== Actuator 监控端点 ====================
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,gateway,metrics
+  endpoint:
+    gateway:
+      enabled: true
+    health:
+      show-details: always
+
+# ==================== 日志配置 ====================
+logging:
+  level:
+    org.springframework.cloud.gateway: info
+    com.mymall.gateway: debug

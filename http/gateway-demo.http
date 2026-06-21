@@ -1,0 +1,98 @@
+### API 网关演示接口
+### 服务: mall-gateway (端口 1000)
+### 使用前确保 Nacos 已启动，命名空间 my-mall 已创建
+
+### ========== 1. 负载均衡路由（需要下游服务启动）==========
+
+### 商品服务路由
+GET http://localhost:1000/api/product/list
+
+### 会员服务路由
+GET http://localhost:1000/api/member/info
+
+### 优惠券服务路由
+GET http://localhost:1000/api/coupon/list
+
+### 订单服务路由
+GET http://localhost:1000/api/order/detail
+
+### 库存服务路由
+GET http://localhost:1000/api/ware/stock
+
+### ========== 2. 外部 URL 路由 ==========
+
+### 路由到百度
+GET http://localhost:1000/go/baidu
+
+### 路由到 GitHub
+GET http://localhost:1000/go/github
+
+### 路由到 Nacos 控制台
+GET http://localhost:1000/go/nacos
+
+### ========== 3. 断言演示路由 ==========
+
+### 仅 GET 请求可访问（httpbin.org/get）
+GET http://localhost:1000/demo/get-only
+
+### POST 请求会被拒绝（404，因为 Method=GET 断言不满足）
+POST http://localhost:1000/demo/get-only
+Content-Type: application/json
+
+{}
+
+### 带 Header 才能访问（需要 X-Token 头）
+GET http://localhost:1000/demo/with-header
+X-Token: my-secret-token
+
+### 不带 Header 会被拒绝（404）
+GET http://localhost:1000/demo/with-header
+
+### 带查询参数才能访问
+GET http://localhost:1000/demo/with-query?color=red
+
+### 不带查询参数会被拒绝
+GET http://localhost:1000/demo/with-query
+
+### 按 IP 访问（仅允许内网 IP）
+GET http://localhost:1000/demo/ip-only
+
+### 灰度路由（多次调用观察 A/B 版本分流）
+### 50% 概率返回 httpbin.org（X-Gray: A）
+### 50% 概率返回 百度（X-Gray: B）
+GET http://localhost:1000/demo/gray
+
+### 灰度路由 - 第 2 次
+GET http://localhost:1000/demo/gray
+
+### 灰度路由 - 第 3 次
+GET http://localhost:1000/demo/gray
+
+### 灰度路由 - 第 4 次
+GET http://localhost:1000/demo/gray
+
+### 灰度路由 - 第 5 次
+GET http://localhost:1000/demo/gray
+
+### ========== 4. 路径重写演示 ==========
+
+### /old-api/xxx → 重写为 /api/xxx
+GET http://localhost:1000/old-api/v1/users
+
+### ========== 5. Actuator 监控端点 ==========
+
+### 查看所有路由
+GET http://localhost:1000/actuator/gateway/routes
+
+### 查看健康状态
+GET http://localhost:1000/actuator/health
+
+### ========== 6. 链路追踪验证 ==========
+
+### 请求返回时会带上 X-Trace-Id 响应头
+### 可以在响应头中查看自动生成的 TraceId
+GET http://localhost:1000/demo/get-only
+
+### 也可以手动传入 TraceId（网关不会覆盖）
+GET http://localhost:1000/demo/get-only
+X-Trace-Id: my-custom-trace-id-12345
