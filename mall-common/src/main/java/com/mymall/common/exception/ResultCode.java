@@ -40,6 +40,15 @@ public enum ResultCode {
     PRODUCT_NOT_FOUND(50001, "商品不存在"),
     PRODUCT_OFF_SHELF(50002, "商品已下架"),
 
+    // ==================== 商品分类 51001+ ====================
+    CATEGORY_NOT_FOUND(51001, "分类不存在"),
+    CATEGORY_HAS_PRODUCTS(51002, "分类下存在关联商品，无法删除"),
+    CATEGORY_HAS_BRANDS(51003, "分类下存在关联品牌，无法删除"),
+    CATEGORY_LEVEL_EXCEEDED(51004, "分类最多支持三级"),
+    CATEGORY_NAME_DUPLICATE(51005, "同级分类名称已存在"),
+    CATEGORY_CIRCULAR_REF(51006, "不能将分类移动到自身的子节点下"),
+    CATEGORY_ROOT_DELETE(51007, "一级分类不允许删除"),
+
     // ==================== 订单服务 60001+ ====================
     ORDER_NOT_FOUND(60001, "订单不存在"),
     ORDER_STATUS_ERROR(60002, "订单状态异常"),
