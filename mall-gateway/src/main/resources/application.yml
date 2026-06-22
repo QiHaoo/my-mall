@@ -7,9 +7,6 @@ spring:
   config:
     import:
       - "nacos:mall-gateway.yaml?refreshEnabled=true"
-  autoconfigure:
-    exclude:
-      - io.seata.spring.boot.autoconfigure.SeataAutoConfiguration
   cloud:
     nacos:
       config:
@@ -64,23 +61,29 @@ spring:
             - StripPrefix=1
 
         # ---------- 2. 外部 URL 路由：转发到外部网站 ----------
-        # 访问 /go/baidu → 跳转到百度
+        # 访问 /go/baidu → 跳转到百度（必须 SetPath=/ 否则会把 /go/baidu 原样转发给百度）
         - id: baidu-route
           uri: https://www.baidu.com
           predicates:
             - Path=/go/baidu
+          filters:
+            - StripPrefix=2
 
         # 访问 /go/github → 跳转到 GitHub
         - id: github-route
           uri: https://github.com
           predicates:
             - Path=/go/github
+          filters:
+            - SetPath=/
 
         # 访问 /go/nacos → 跳转到 Nacos 控制台
         - id: nacos-console
           uri: http://127.0.0.1:8848
           predicates:
             - Path=/go/nacos, /go/nacos/**
+          filters:
+            - RewritePath=/go/nacos, /nacos
 
         # ---------- 3. 断言演示路由：各种 Predicate 用法 ----------
         # 仅 GET 请求可访问
@@ -165,6 +168,7 @@ spring:
             - AddResponseHeader=X-Demo, rewrite-route
 
       # ==================== 全局 CORS 配置 ====================
+      # 其他应用就无需再配置跨域了，不然会重叠
       globalcors:
         cors-configurations:
           '[/**]':

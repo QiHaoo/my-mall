@@ -4,6 +4,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
+import org.springframework.cloud.gateway.route.Route;
+import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.core.Ordered;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
@@ -48,9 +50,11 @@ public class RequestLogFilter implements GlobalFilter, Ordered {
                 int statusCode = exchange.getResponse().getStatusCode() != null
                         ? exchange.getResponse().getStatusCode().value()
                         : 0;
-                String routeId = exchange.getAttribute("org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ROUTE_ID_ATTR");
-                log.info("<<< [Gateway] {} {}{} -> {} ({}ms) route={}",
-                        method, path, logQuery, statusCode, duration, routeId);
+                Route route = exchange.getAttribute(ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR);
+                String routeId = route != null ? route.getId() : "null";
+                String routeUri = route != null ? route.getUri().toString() : "-";
+                log.info("<<< [Gateway] {} {}{} -> {} ({}ms) route={} uri={}",
+                        method, path, logQuery, statusCode, duration, routeId, routeUri);
             }
         }));
     }
