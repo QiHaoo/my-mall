@@ -1,0 +1,119 @@
+### 商品分类管理接口
+### 服务: mall-product (端口 7200)
+### 通过网关: http://localhost:1000/api/product/category/*
+
+### ========== 1. 分类树查询 ==========
+
+### 查询完整三级分类树
+GET http://localhost:1000/api/product/category/tree
+
+### ========== 2. 新增分类 ==========
+
+### 新增一级分类
+POST http://localhost:1000/api/product/category
+Content-Type: application/json
+
+{
+    "name": "图书、音像、电子书刊",
+    "parentCid": 0,
+    "sort": 1,
+    "icon": "https://example.com/book.png",
+    "productUnit": "件"
+}
+
+### 新增二级分类（parentCid 替换为实际的一级分类 ID）
+POST http://localhost:1000/api/product/category
+Content-Type: application/json
+
+{
+    "name": "电子书刊",
+    "parentCid": 1,
+    "sort": 1,
+    "productUnit": "本"
+}
+
+### 新增三级分类
+POST http://localhost:1000/api/product/category
+Content-Type: application/json
+
+{
+    "name": "电子书",
+    "parentCid": 2,
+    "sort": 1
+}
+
+### 参数校验失败 - 名称为空
+POST http://localhost:1000/api/product/category
+Content-Type: application/json
+
+{
+    "name": "",
+    "parentCid": 0
+}
+
+### ========== 3. 修改分类 ==========
+
+### 修改分类名称和排序
+PUT http://localhost:1000/api/product/category
+Content-Type: application/json
+
+{
+    "catId": 1,
+    "name": "图书音像",
+    "sort": 2
+}
+
+### 只修改图标
+PUT http://localhost:1000/api/product/category
+Content-Type: application/json
+
+{
+    "catId": 1,
+    "icon": "https://example.com/new-icon.png"
+}
+
+### ========== 4. 拖拽排序 ==========
+
+### 将分类从一个父节点拖到另一个父节点
+PUT http://localhost:1000/api/product/category/sort
+Content-Type: application/json
+
+{
+    "categories": [
+        {
+            "catId": 5,
+            "parentCid": 2,
+            "catLevel": 2,
+            "sort": 1
+        },
+        {
+            "catId": 6,
+            "parentCid": 2,
+            "catLevel": 2,
+            "sort": 2
+        }
+    ]
+}
+
+### ========== 5. 批量删除 ==========
+
+### 删除三级分类（无引用，应成功）
+POST http://localhost:1000/api/product/category/batch-delete
+Content-Type: application/json
+
+{
+    "ids": [3]
+}
+
+### 删除一级分类（应被拒绝）
+POST http://localhost:1000/api/product/category/batch-delete
+Content-Type: application/json
+
+{
+    "ids": [1]
+}
+
+### ========== 6. Actuator ==========
+
+### 健康检查
+GET http://localhost:7200/actuator/health

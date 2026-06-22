@@ -1,0 +1,289 @@
+package com.mymall.product.service;
+
+import com.mymall.common.exception.BizException;
+import com.mymall.common.exception.ResultCode;
+import com.mymall.product.dto.category.*;
+import com.mymall.product.entity.Category;
+import com.mymall.product.mapper.CategoryBrandRelationMapper;
+import com.mymall.product.mapper.CategoryMapper;
+import com.mymall.product.service.impl.CategoryServiceImpl;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.Collections;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+
+/**
+ * CategoryService 纯单元测试
+ * <p>
+ * 不加载 Spring 上下文，Mock 所有依赖，速度极快。
+ */
+@ExtendWith(MockitoExtension.class)
+@DisplayName("商品分类服务")
+class CategoryServiceTest {
+
+    @Mock
+    private CategoryMapper categoryMapper;
+
+    @Mock
+    private CategoryBrandRelationMapper categoryBrandRelationMapper;
+
+    @InjectMocks
+    private CategoryServiceImpl categoryService;
+
+    // ==================== 分类树查询 ====================
+
+    @Nested
+    @DisplayName("查询分类树")
+    class ListTree {
+
+        @Test
+        @DisplayName("空数据时应返回空列表")
+        void shouldReturnEmptyWhenNoData() {
+            // Given
+            lenient().when(categoryMapper.selectList(any())).thenReturn(Collections.emptyList());
+
+            // When
+            List<CategoryVO> result = categoryService.listTree();
+
+            // Then
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        @DisplayName("应正确组装一级分类")
+        void shouldBuildLevelOneCategories() {
+            // Given
+            Category cat1 = buildCategory(1L, "图书", 0L, 1, 0);
+            Category cat2 = buildCategory(2L, "手机", 0L, 1, 1);
+            when(categoryMapper.selectList(any())).thenReturn(List.of(cat1, cat2));
+
+            // When
+            List<CategoryVO> result = categoryService.listTree();
+
+            // Then
+            assertThat(result).hasSize(2);
+            assertThat(result).extracting("name").containsExactly("图书", "手机");
+        }
+
+        @Test
+        @DisplayName("应正确组装嵌套子分类")
+        void shouldBuildNestedTree() {
+            // Given
+            Category parent = buildCategory(1L, "图书", 0L, 1, 0);
+            Category child = buildCategory(2L, "电子书刊", 1L, 2, 0);
+            Category grandChild = buildCategory(3L, "电子书", 2L, 3, 0);
+            when(categoryMapper.selectList(any())).thenReturn(List.of(parent, child, grandChild));
+
+            // When
+            List<CategoryVO> result = categoryService.listTree();
+
+            // Then
+            assertThat(result).hasSize(1);
+            assertThat(result.get(0).getChildren()).hasSize(1);
+            assertThat(result.get(0).getChildren().get(0).getChildren()).hasSize(1);
+            assertThat(result.get(0).getChildren().get(0).getChildren().get(0).getName()).isEqualTo("电子书");
+        }
+    }
+
+    // ==================== 新增分类 ====================
+
+    @Nested
+    @DisplayName("新增分类")
+    class SaveCategory {
+
+        @Test
+        @DisplayName("新增一级分类应成功")
+        void shouldSaveLevelOneCategory() {
+            // Given
+            CategorySaveDTO dto = new CategorySaveDTO();
+            dto.setName("新分类");
+            dto.setParentCid(0L);
+            dto.setSort(1);
+
+            // Mock count 返回 0（无重复名称）
+            lenient().when(categoryMapper.selectCount(any())).thenReturn(0L);
+            lenient().when(categoryMapper.insert(any(Category.class))).thenReturn(1);
+
+            // When & Then
+            assertThatCode(() -> categoryService.saveCategory(dto))
+                    .doesNotThrowAnyException();
+        }
+
+        @Test
+        @DisplayName("父分类不存在时应抛异常")
+        void shouldThrowWhenParentNotFound() {
+            // Given
+            CategorySaveDTO dto = new CategorySaveDTO();
+            dto.setName("子分类");
+            dto.setParentCid(999L);
+
+            when(categoryMapper.selectById(999L)).thenReturn(null);
+
+            // When & Then
+            assertThatThrownBy(() -> categoryService.saveCategory(dto))
+                    .isInstanceOf(BizException.class)
+                    .extracting(e -> ((BizException) e).getCode())
+                    .isEqualTo(ResultCode.CATEGORY_NOT_FOUND.getCode());
+        }
+
+        @Test
+        @DisplayName("超过三级时应抛异常")
+        void shouldThrowWhenLevelExceeded() {
+            // Given: 父分类已经是第三级
+            Category parent = buildCategory(1L, "三级分类", 2L, 3, 0);
+            when(categoryMapper.selectById(1L)).thenReturn(parent);
+
+            CategorySaveDTO dto = new CategorySaveDTO();
+            dto.setName("四级分类");
+            dto.setParentCid(1L);
+
+            // When & Then
+            assertThatThrownBy(() -> categoryService.saveCategory(dto))
+                    .isInstanceOf(BizException.class)
+                    .extracting(e -> ((BizException) e).getCode())
+                    .isEqualTo(ResultCode.CATEGORY_LEVEL_EXCEEDED.getCode());
+        }
+    }
+
+    // ==================== 修改分类 ====================
+
+    @Nested
+    @DisplayName("修改分类")
+    class UpdateCategory {
+
+        @Test
+        @DisplayName("分类不存在时应抛异常")
+        void shouldThrowWhenCategoryNotFound() {
+            // Given
+            CategoryUpdateDTO dto = new CategoryUpdateDTO();
+            dto.setCatId(999L);
+            dto.setName("新名称");
+
+            when(categoryMapper.selectById(999L)).thenReturn(null);
+
+            // When & Then
+            assertThatThrownBy(() -> categoryService.updateCategory(dto))
+                    .isInstanceOf(BizException.class)
+                    .extracting(e -> ((BizException) e).getCode())
+                    .isEqualTo(ResultCode.CATEGORY_NOT_FOUND.getCode());
+        }
+    }
+
+    // ==================== 批量删除 ====================
+
+    @Nested
+    @DisplayName("批量删除")
+    class BatchDelete {
+
+        @Test
+        @DisplayName("删除一级分类应被拒绝")
+        void shouldRejectRootCategoryDeletion() {
+            // Given
+            Category root = buildCategory(1L, "一级分类", 0L, 1, 0);
+            when(categoryMapper.selectBatchIds(anyList())).thenReturn(List.of(root));
+
+            // When & Then
+            assertThatThrownBy(() -> categoryService.batchDelete(List.of(1L)))
+                    .isInstanceOf(BizException.class)
+                    .extracting(e -> ((BizException) e).getCode())
+                    .isEqualTo(ResultCode.CATEGORY_ROOT_DELETE.getCode());
+        }
+
+        @Test
+        @DisplayName("空ID列表应直接返回")
+        void shouldReturnWhenEmptyIds() {
+            // Given
+            when(categoryMapper.selectBatchIds(anyList())).thenReturn(Collections.emptyList());
+
+            // When & Then
+            assertThatCode(() -> categoryService.batchDelete(Collections.emptyList()))
+                    .doesNotThrowAnyException();
+        }
+
+        @Test
+        @DisplayName("分类下存在品牌关联时应拒绝删除")
+        void shouldRejectWhenBrandRelationExists() {
+            // Given: 二级分类 ID=2（父为一级 ID=1）
+            Category child = buildCategory(2L, "电子书刊", 1L, 2, 0);
+            when(categoryMapper.selectBatchIds(anyList())).thenReturn(List.of(child));
+
+            // Mock allCategories（用于收集子孙）
+            Category root = buildCategory(1L, "图书", 0L, 1, 0);
+            when(categoryMapper.selectList(any())).thenReturn(List.of(root, child));
+
+            // Mock 品牌关联检查：ID=2 存在品牌关联
+            when(categoryBrandRelationMapper.selectCount(any())).thenReturn(1L);
+
+            // When & Then
+            assertThatThrownBy(() -> categoryService.batchDelete(List.of(2L)))
+                    .isInstanceOf(BizException.class)
+                    .extracting(e -> ((BizException) e).getCode())
+                    .isEqualTo(ResultCode.CATEGORY_HAS_BRANDS.getCode());
+        }
+    }
+
+    // ==================== 拖拽排序 ====================
+
+    @Nested
+    @DisplayName("拖拽排序")
+    class SortCategories {
+
+        @Test
+        @DisplayName("批量操作形成隐式循环时应抛异常")
+        void shouldThrowWhenBatchCreatesCircularRef() {
+            // Given: 当前树结构 A(1)->B(2)->C(3), A(1)->D(4)
+            Category a = buildCategory(1L, "A", 0L, 1, 0);
+            Category b = buildCategory(2L, "B", 1L, 2, 1);
+            Category c = buildCategory(3L, "C", 2L, 3, 2);
+            Category d = buildCategory(4L, "D", 1L, 2, 3);
+            when(categoryMapper.selectList(any())).thenReturn(List.of(a, b, c, d));
+
+            // 批量拖拽：D 移到 C 下，B 移到 D 下
+            // 结果会形成 B->D->C->B 循环
+            CategorySortDTO.SortItem item1 = new CategorySortDTO.SortItem();
+            item1.setCatId(4L);   // D
+            item1.setParentCid(3L); // 移到 C 下
+            item1.setCatLevel(4);
+            item1.setSort(0);
+
+            CategorySortDTO.SortItem item2 = new CategorySortDTO.SortItem();
+            item2.setCatId(2L);   // B
+            item2.setParentCid(4L); // 移到 D 下
+            item2.setCatLevel(3);
+            item2.setSort(1);
+
+            CategorySortDTO dto = new CategorySortDTO();
+            dto.setCategories(List.of(item1, item2));
+
+            // When & Then
+            assertThatThrownBy(() -> categoryService.sortCategories(dto))
+                    .isInstanceOf(BizException.class)
+                    .extracting(e -> ((BizException) e).getCode())
+                    .isEqualTo(ResultCode.CATEGORY_CIRCULAR_REF.getCode());
+        }
+    }
+
+    // ==================== 辅助方法 ====================
+
+    private Category buildCategory(Long catId, String name, Long parentCid, int catLevel, int sort) {
+        Category category = new Category();
+        category.setCatId(catId);
+        category.setName(name);
+        category.setParentCid(parentCid);
+        category.setCatLevel(catLevel);
+        category.setSort(sort);
+        category.setShowStatus((byte) 1);
+        category.setProductCount(0);
+        return category;
+    }
+}

@@ -28,7 +28,8 @@
 | 2026-06-21 | 编码 & 测试规范文档 | `681bc60` | controller-specification.md 生产级增强（校验分组、分页、幂等性）、coding-standards.md 新建（8章节）、testing-specification.md 新建（10章节） |
 | 2026-06-21 | common 模块缺失项分析 | `b295e14` | `docs/common-module-gap-analysis.md`（P0/P1/P2/P3 四档，共 17 项缺失） |
 | 2026-06-21 | 网关模块搭建 + 文档 | `12445db` | mall-gateway 模块骨架、Spring Cloud Gateway 配置、gateway-config-guide.md、api-gateway 学习笔记 |
-| 2026-06-21 | common 模块 P0+P1 补齐 | ⏳ 待提交 | 修复包扫描 Bug + 补齐异常体系/全局异常处理/分页基类/BaseEntity 修复/SpringDoc 配置/hutool 版本统一 |
+| 2026-06-21 | common 模块 P0+P1 补齐 | `1621db2` | 修复包扫描 Bug（AutoConfiguration.imports + @ComponentScan）、BizException + ResultCode + GlobalExceptionHandler、PageQuery、BaseEntity @TableLogic、SpringDocConfig、hutool 版本统一 |
+| 2026-06-22 | 商品分类 CRUD 实现 | ⏳ 待提交 | product 模块：CategoryController/Service（树查询、新增、修改、批量删除、拖拽排序）、DTO/VO、@WebMvcTest 单元测试、category-management.md 文档 |
 
 ---
 
@@ -37,7 +38,7 @@
 | 事项 | 模块 | 状态说明 |
 |------|------|---------|
 | common 模块 P2 补齐 | mall-common | CORS 配置、CommonConstants、UserContext、BaseEntity @Version 待补 |
-| 商品模块开发 | mall-product | 待启动，是电商核心数据模型（SPU/SKU/分类/品牌/属性） |
+| 网关路由配置修复 | mall-gateway | RequestLogFilter + application.yml 路由过滤器修正，待提交 |
 
 ---
 
