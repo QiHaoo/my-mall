@@ -4,7 +4,6 @@ import io.minio.*;
 import io.minio.http.Method;
 import io.minio.messages.DeleteError;
 import io.minio.messages.DeleteObject;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.InputStream;
@@ -18,10 +17,15 @@ import java.util.concurrent.TimeUnit;
  * 无需直接接触 {@link MinioClient}，从而实现存储引擎的可替换。
  */
 @Slf4j
-@RequiredArgsConstructor
 public class OssTemplate {
 
     private final MinioClient minioClient;
+    private final OssProperties properties;
+
+    public OssTemplate(MinioClient minioClient, OssProperties properties) {
+        this.minioClient = minioClient;
+        this.properties = properties;
+    }
 
     /**
      * 上传 InputStream 到指定 Bucket
@@ -29,15 +33,17 @@ public class OssTemplate {
      * @param bucket      Bucket 名称
      * @param objectName  对象路径（如 {@code spu/2026/06/23/xxx.jpg}）
      * @param stream      文件输入流
+     * @param size        已知文件大小（字节），未知传 -1（走分片上传）
      * @param contentType MIME 类型
      * @return 对象路径
      */
-    public String upload(String bucket, String objectName, InputStream stream, String contentType) {
+    public String upload(String bucket, String objectName, InputStream stream, long size, String contentType) {
         try {
+            // size 未知时 partSize 传 -1，MinIO SDK 内部按 5MB 分片
             minioClient.putObject(PutObjectArgs.builder()
                     .bucket(bucket)
                     .object(objectName)
-                    .stream(stream, stream.available(), -1)
+                    .stream(stream, size, -1)
                     .contentType(contentType)
                     .build());
             log.debug("文件上传成功: bucket={}, object={}", bucket, objectName);
@@ -107,6 +113,14 @@ public class OssTemplate {
                     .object(objectName)
                     .build());
             log.debug("文件删除成功: bucket={}, object={}", bucket, objectName);
+        } catch (io.minio.errors.ErrorResponseException e) {
+            // 对象不存在视为删除成功（幂等删除），常用于清理未完成上传的 PENDING 记录
+            if ("NoSuchKey".equals(e.errorResponse().code())) {
+                log.debug("对象不存在，视为删除成功: bucket={}, object={}", bucket, objectName);
+                return;
+            }
+            log.error("文件删除失败: bucket={}, object={}", bucket, objectName, e);
+            throw new RuntimeException("文件删除失败: " + e.getMessage(), e);
         } catch (Exception e) {
             log.error("文件删除失败: bucket={}, object={}", bucket, objectName, e);
             throw new RuntimeException("文件删除失败: " + e.getMessage(), e);
@@ -124,7 +138,7 @@ public class OssTemplate {
                 RemoveObjectsArgs.builder()
                         .bucket(bucket)
                         .objects(objectNames.stream()
-                                .map(name -> new DeleteObject(name))
+                                .map(DeleteObject::new)
                                 .toList())
                         .build());
         for (Result<DeleteError> result : results) {
@@ -138,7 +152,7 @@ public class OssTemplate {
     }
 
     /**
-     * 检查文件是否存在（statObject）
+     * 检查文件是否存在并返回元信息（statObject）
      *
      * @param bucket     Bucket 名称
      * @param objectName 对象路径
@@ -160,5 +174,21 @@ public class OssTemplate {
             log.error("statObject 失败: bucket={}, object={}", bucket, objectName, e);
             throw new RuntimeException("文件检查失败: " + e.getMessage(), e);
         }
+    }
+
+    /**
+     * 构建 public bucket 文件的对外访问 URL。
+     * <p>优先使用 {@link OssProperties#getPublicBaseUrl()}（CDN/公网域名），
+     * 留空时回退到 {@link OssProperties#getEndpoint()}，避免暴露内网地址由调用方按需配置。
+     *
+     * @param bucket     Bucket 名称
+     * @param objectName 对象路径
+     * @return 完整访问 URL
+     */
+    public String buildPublicUrl(String bucket, String objectName) {
+        String base = (properties.getPublicBaseUrl() != null && !properties.getPublicBaseUrl().isBlank())
+                ? properties.getPublicBaseUrl()
+                : properties.getEndpoint();
+        return base + "/" + bucket + "/" + objectName;
     }
 }

@@ -60,6 +60,11 @@ spring:
           filters:
             - StripPrefix=1
 
+        # ---------- OSS 路由 ----------
+        # 安全要求（待 mall-auth / 网关鉴权过滤器落地后对接）：
+        #   1. /api/oss/** 必须经过鉴权，禁止匿名刷 Presigned URL（未登录即可把 MinIO 当免费存储）
+        #   2. 网关解析 JWT 后通过 X-User-Id 请求头透传登录用户 ID，mall-oss 侧由 UserContextFilter 读取
+        #   3. 对 /api/oss/policy 接口配置限流（Sentinel / RequestRateLimiter），防止单用户高频刷签名
         - id: oss-route
           uri: lb://mall-oss
           predicates:

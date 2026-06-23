@@ -2,7 +2,7 @@
 
 > 模块：`mall-oss`  
 > 存储引擎：MinIO（S3 兼容协议）  
-> 版本：v1.0  
+> 版本：v1.1（v1.0 基础方案；v1.1 安全闭环增强：Content-Type 回调校验、回调幂等、上传者身份透传、删除越权校验、PENDING 清理、publicBaseUrl/region 配置）  
 > 更新时间：2026-06-23
 
 ---
@@ -131,14 +131,16 @@ minio:
 
 ### 4.2 Bucket 规划
 
-| Bucket 名称 | 用途 | 访问权限 | 说明 |
-|------------|------|---------|------|
-| `mall-product` | 商品图片（SPU/SKU/分类/品牌） | **public-read** | 商品详情页、列表页直接展示 |
-| `mall-member` | 用户头像 | **public-read** | 前端直接展示 |
-| `mall-comment` | 评论图片/视频 | **public-read** | 前端直接展示 |
-| `mall-private` | 导入文件、报表、备份 | **private** | 仅服务端读写 |
+| Bucket 名称 | 用途 | 访问权限 | 公网访问域名（生产） | 说明 |
+|------------|------|---------|---------|------|
+| `mall-product` | 商品图片（SPU/SKU/分类/品牌） | **public-read** | `https://img.mall.com` | 商品详情页、列表页直接展示 |
+| `mall-member` | 用户头像 | **public-read** | `https://avatar.mall.com` | 前端直接展示 |
+| `mall-comment` | 评论图片/视频 | **public-read** | `https://comment.mall.com` | 前端直接展示 |
+| `mall-private` | 导入文件、报表、备份 | **private** | —（仅 Presigned GET） | 仅服务端读写 |
 
 > 使用多 Bucket 而非单 Bucket + 前缀，便于独立设置生命周期策略、访问权限、容量统计。
+>
+> **公网访问域名**：public bucket 的 `fileUrl` 必须走 CDN / 独立公网域名（`oss.minio.public-base-url`），**绝不暴露 MinIO 内网地址**。CDN 回源到 MinIO，前端只感知公网域名。
 
 ### 4.3 对象命名规范
 
@@ -177,20 +179,26 @@ mall-private/import/2026/06/23/m3n4o5p6.xlsx
 mall-oss/
 ├── pom.xml
 ├── src/main/java/com/mymall/oss/
-│   ├── OssApplication.java                    # 启动类
+│   ├── OssApplication.java                    # 启动类（@EnableScheduling，驱动 PENDING 清理）
 │   ├── controller/
 │   │   └── OssController.java                 # REST 接口
 │   ├── service/
 │   │   ├── IOssService.java                   # 业务接口
-│   │   └── impl/OssServiceImpl.java           # 业务实现
+│   │   └── impl/OssServiceImpl.java           # 业务实现（含 PENDING 定时清理）
 │   ├── entity/
 │   │   └── OssFileMeta.java                   # 文件元数据实体
 │   ├── mapper/
 │   │   └── OssFileMetaMapper.java             # MyBatis-Plus Mapper
-│   └── dto/
-│       ├── UploadPolicyDTO.java               # 上传策略请求
+│   ├── config/
+│   │   ├── MyBatisConfig.java                 # @MapperScan（独立，避免切片测试启动失败）
+│   │   └── UserContextFilter.java             # 解析 X-User-Id 写入 UserContext
+│   ├── dto/
+│   │   ├── UploadPolicyDTO.java               # 上传策略请求
+│   │   └── CallbackDTO.java                   # 上传回调请求
+│   └── vo/
 │       ├── PresignedUrlVO.java                # Presigned URL 响应
-│       └── FileMetaVO.java                    # 文件元数据响应
+│       ├── FileMetaVO.java                    # 文件元数据响应
+│       └── DownloadUrlVO.java                # 下载 URL 响应
 └── src/main/resources/
     └── application.yml                        # Nacos + MinIO 配置
 ```
@@ -218,7 +226,12 @@ mall-common/
 @ConfigurationProperties(prefix = "oss.minio")
 @Data
 public class OssProperties {
+    /** MinIO 服务端地址（内部/服务端访问） */
     private String endpoint = "http://127.0.0.1:9000";
+    /** 公网访问基础地址（CDN/独立域名），留空回退到 endpoint */
+    private String publicBaseUrl;
+    /** Region：MinIO 本地可不填；迁移 AWS S3 / OSS S3 兼容模式必填 */
+    private String region;
     private String accessKey = "minioadmin";
     private String secretKey = "minioadmin123";
 }
@@ -227,14 +240,14 @@ public class OssProperties {
 **OssTemplate**（操作模板）：
 
 ```java
-@RequiredArgsConstructor
 public class OssTemplate {
 
     private final MinioClient minioClient;
+    private final OssProperties properties;
 
-    /** 上传 InputStream */
+    /** 上传 InputStream（size 已知传字节数，未知传 -1 走分片，避免用 stream.available() 误判） */
     public String upload(String bucket, String objectName,
-                         InputStream stream, String contentType) { ... }
+                         InputStream stream, long size, String contentType) { ... }
 
     /** 生成 Presigned PUT URL（前端直传） */
     public String getPresignedPutUrl(String bucket, String objectName,
@@ -244,13 +257,21 @@ public class OssTemplate {
     public String getPresignedGetUrl(String bucket, String objectName,
                                      int expirySeconds) { ... }
 
-    /** 删除文件 */
+    /** 删除文件（NoSuchKey 视为成功，幂等删除） */
     public void delete(String bucket, String objectName) { ... }
 
     /** 批量删除 */
     public void batchDelete(String bucket, List<String> objectNames) { ... }
+
+    /** statObject：文件不存在返回 null */
+    public StatObjectResponse statObject(String bucket, String objectName) { ... }
+
+    /** 拼 public bucket 访问 URL：优先 publicBaseUrl，回退 endpoint */
+    public String buildPublicUrl(String bucket, String objectName) { ... }
 }
 ```
+
+**OssAutoConfiguration**：构建 `MinioClient` 时，仅当配置了 `region` 才设置（MinIO 本地无需 region；AWS S3 / OSS S3 兼容模式必填，否则签名失败）。
 
 **AutoConfiguration.imports 注册**：
 
@@ -265,6 +286,8 @@ com.mymall.common.oss.OssAutoConfiguration
 oss:
   minio:
     endpoint: http://mall-minio:9000
+    public-base-url: https://img.mall.com
+    region:
     access-key: ${MINIO_ACCESS_KEY}
     secret-key: ${MINIO_SECRET_KEY}
 ```
@@ -275,9 +298,10 @@ oss:
 private OssTemplate ossTemplate;
 
 public void importProducts(MultipartFile file) {
-    String url = ossTemplate.upload("mall-private",
+    ossTemplate.upload("mall-private",
         "import/" + UUID.randomUUID() + ".xlsx",
         file.getInputStream(),
+        file.getSize(),                        // 已知大小
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
 }
 ```
@@ -320,11 +344,11 @@ POST /api/oss/policy
 {
     "code": 200,
     "data": {
-        "uploadId": "a1b2c3d4e5f6",
-        "uploadUrl": "http://127.0.0.1:9000/mall-product/spu/2026/06/23/a1b2.jpg?X-Amz-Algorithm=...",
-        "objectName": "spu/2026/06/23/a1b2c3d4e5f6.jpg",
+        "uploadId": "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4",
+        "uploadUrl": "http://127.0.0.1:9000/mall-product/spu/2026/06/23/a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4.jpg?X-Amz-Algorithm=...",
+        "objectName": "spu/2026/06/23/a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4.jpg",
         "bucket": "mall-product",
-        "fileUrl": "http://127.0.0.1:9000/mall-product/spu/2026/06/23/a1b2c3d4e5f6.jpg",
+        "fileUrl": "https://img.mall.com/mall-product/spu/2026/06/23/a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4.jpg",
         "expiresIn": 300
     }
 }
@@ -332,12 +356,14 @@ POST /api/oss/policy
 
 | 字段 | 说明 |
 |------|------|
-| uploadId | 上传记录 ID（回调时使用） |
-| uploadUrl | Presigned PUT URL（前端用此 URL 直传） |
+| uploadId | 上传记录 ID（32 位无横线 UUID，回调时使用） |
+| uploadUrl | Presigned PUT URL（前端用此 URL 直传，PUT 时 Content-Type 必须与本接口声明的 contentType 完全一致） |
 | objectName | MinIO 中的对象路径 |
 | bucket | Bucket 名称 |
-| fileUrl | 上传完成后的访问 URL（public bucket） |
+| fileUrl | 上传完成后的访问 URL（基于 `public-base-url`，public bucket 可直接访问） |
 | expiresIn | URL 有效期（秒），默认 300 |
+
+> **Content-Type 一致性**：前端 PUT 直传时携带的 `Content-Type` 必须与 `/policy` 请求中声明的 `contentType` 完全一致。回调阶段后端通过 `statObject` 读取 MinIO 实际存储的 Content-Type 二次校验，不一致则拒绝（弥补 Presigned PUT URL 未把 Content-Type 钉入签名的安全缺口）。
 
 **校验规则**：
 
@@ -381,10 +407,15 @@ POST /api/oss/callback
 ```
 
 **逻辑**：
-1. 校验 uploadId 是否存在且未过期
-2. 调用 MinIO `statObject` 确认文件已上传
-3. 写入 `oss_file_meta` 表
-4. 返回文件信息
+1. 按 `uploadId` 查记录（uploadId 全局唯一）
+2. 记录不存在 → `OSS_UPLOAD_ID_NOT_FOUND`；状态非 PENDING/ACTIVE → `OSS_UPLOAD_ID_EXPIRED`
+3. **幂等**：记录已 ACTIVE 直接返回（前端重试安全，不重复校验 MinIO）
+4. 校验回调的 bucket/objectName 与签发记录一致，防伪造回调
+5. `statObject` 确认文件已上传，并校验实际 Content-Type 与声明一致（不一致 → `OSS_UPLOAD_VERIFY_FAILED`）
+6. 更新状态为 ACTIVE，用 MinIO 实际大小覆盖声明的 fileSize
+7. 返回文件信息
+
+> **回调必须幂等**：前端网络抖动重试回调是常态，重复回调已 ACTIVE 的记录应直接返回，不能报错。
 
 ### 6.3 文件删除
 
@@ -393,9 +424,11 @@ DELETE /api/oss/file?bucket=mall-product&objectName=spu/2026/06/23/a1b2.jpg
 ```
 
 **逻辑**：
-1. 删除 MinIO 中的对象
-2. 更新 `oss_file_meta` 表状态为已删除
-3. 返回成功
+1. 按 bucket + objectName 查未删除记录
+2. **越权校验**：普通用户只能删自己上传的文件（`uploader_id` 与当前登录用户比对）；后台/服务账号（无登录态）放行，由网关侧 RBAC 控制
+3. 删除 MinIO 中的对象（NoSuchKey 视为成功）
+4. 更新 `oss_file_meta` 表状态为已删除
+5. 返回成功
 
 ### 6.4 获取下载 URL（私有文件）
 
@@ -439,7 +472,7 @@ CREATE TABLE oss_file_meta (
     business_type   VARCHAR(32)  NOT NULL COMMENT '业务类型',
     file_url        VARCHAR(1024) NOT NULL COMMENT '访问 URL',
     uploader_id     BIGINT       DEFAULT NULL COMMENT '上传者用户 ID',
-    status          TINYINT      NOT NULL DEFAULT 1 COMMENT '状态：1-正常 0-已删除',
+    status          TINYINT       NOT NULL DEFAULT 1 COMMENT '状态：1-正常 0-已删除 2-待确认(PENDING)',
     create_time     DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     update_time     DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX idx_bucket_object (bucket, object_name(100)),
@@ -506,12 +539,15 @@ export function useOssUpload() {
             originalFilename: file.name
         });
 
-        // 2. 直传到 MinIO（PUT 请求，Content-Type 必须匹配）
-        await fetch(policy.uploadUrl, {
+        // 2. 直传到 MinIO（PUT 请求，Content-Type 必须与 /policy 声明完全一致，否则回调校验失败）
+        const putResp = await fetch(policy.uploadUrl, {
             method: 'PUT',
             headers: { 'Content-Type': file.type },
             body: file
         });
+        if (!putResp.ok) {
+            throw new Error('上传到 MinIO 失败: ' + putResp.status);
+        }
 
         // 3. 回调通知后端
         const { data: meta } = await request.post('/api/oss/callback', {
@@ -539,7 +575,7 @@ export function useOssUpload() {
 5. 将 N 个 fileUrl 组装到 SPU/SKU 提交请求中
 ```
 
-> 也可提供批量接口 `POST /api/oss/policy/batch` 一次签发多个 URL，减少请求数。
+> 可选：提供批量接口 `POST /api/oss/policy/batch` 一次签发多个 URL，减少请求数（P2 演进，非 v1.1 范围）。
 
 ---
 
@@ -552,11 +588,37 @@ export function useOssUpload() {
 | **Bucket 白名单** | 后端只允许签发预定义 Bucket 的 URL |
 | **文件大小校验** | 后端校验 fileSize，超限直接拒绝 |
 | **ContentType 白名单** | 只允许指定 MIME 类型，防止可执行文件 |
+| **Content-Type 一致性校验** | 回调时 `statObject` 读取 MinIO 实际存储类型，与声明不一致则拒绝（防止客户端用其它类型直传绕过白名单） |
+| **回调对象一致性** | 回调的 bucket/objectName 必须与签发记录一致，防伪造回调 |
 | **URL 有效期** | Presigned URL 默认 5 分钟过期 |
-| **上传 ID 时效** | uploadId 关联 Redis 记录，30 分钟未回调自动清理 |
+| **PENDING 清理** | 超时未回调的 PENDING 记录由定时任务（`@Scheduled`，默认 1h）清理，并删除 MinIO 孤儿对象 |
 | **MinIO Policy** | public bucket 设为只读（匿名 GET），写入仅通过 Presigned URL |
 
-### 9.2 MinIO Bucket Policy 配置
+> **关于 Content-Type 钉签名**：minio-java 的 `getPresignedObjectUrl` 不直接支持把 `Content-Type` 纳入签名头，因此采用**回调阶段 statObject 二次校验**达成同等安全目标——客户端若用其它类型直传，回调时被拒绝，文件不会被标记为 ACTIVE，且会被清理任务删除。
+
+### 9.2 上传者身份传递
+
+```
+Gateway（解析 JWT）──X-User-Id 请求头──> mall-oss
+                                              │
+                                  UserContextFilter（读 X-User-Id）
+                                              │
+                                  UserContext（ThreadLocal）
+                                              │
+                              OssServiceImpl.createUploadPolicy 写入 uploader_id
+```
+
+- 网关解析 JWT 后通过 `X-User-Id` 请求头透传登录用户 ID（待 mall-auth / 网关鉴权过滤器落地后对接）
+- `UserContextFilter`（mall-oss/config）解析请求头写入 `com.mymall.common.util.UserContext`，请求结束清理 ThreadLocal
+- Service 层 `UserContext.getUserId()` 获取上传者，写入 `oss_file_meta.uploader_id`
+- 删除接口据此做越权校验
+
+### 9.3 删除越权校验
+
+- 普通用户只能删除 `uploader_id` 等于自己的文件，否则返回 `FORBIDDEN(403)`
+- 后台/服务账号（无登录态，`UserContext.getUserId()` 为 null）放行，由网关侧 RBAC 控制权限
+
+### 9.4 MinIO Bucket Policy 配置
 
 ```json
 {
@@ -578,7 +640,7 @@ export function useOssUpload() {
 
 > `mall-private` bucket 不配置匿名读取策略，仅通过 Presigned GET URL 或 MinIO 凭据访问。
 
-### 9.3 Gateway 路由
+### 9.5 Gateway 路由与鉴权限流
 
 ```yaml
 - id: oss-route
@@ -588,6 +650,15 @@ export function useOssUpload() {
   filters:
     - StripPrefix=1
 ```
+
+**安全要求**（待 mall-auth / 网关鉴权过滤器落地后对接）：
+1. `/api/oss/**` 必须经过鉴权，禁止匿名刷 Presigned URL（否则未登录即可把 MinIO 当免费存储）
+2. 网关解析 JWT 后通过 `X-User-Id` 透传登录用户 ID
+3. 对 `/api/oss/policy` 配置限流（Sentinel / RequestRateLimiter），防止单用户高频刷签名
+
+### 9.6 事务边界
+
+MinIO 网络调用（签发 / 删除 / statObject）一律放在 `@Transactional` 事务外，避免长时间持有 DB 连接。方法内 DB 操作均为单条 insert/update，天然原子，无需声明事务。
 
 ---
 
@@ -606,14 +677,18 @@ spring:
 oss:
   minio:
     endpoint: http://127.0.0.1:9000
+    public-base-url: https://img.mall.com   # 生产环境 CDN/公网域名；本地留空回退 endpoint
+    region:                                   # MinIO 本地可不填；迁移 S3 兼容存储必填
     access-key: minioadmin
     secret-key: minioadmin123
   upload:
     max-image-size: 10485760      # 图片 10MB
     max-video-size: 524288000     # 视频 500MB
     max-other-size: 52428800      # 其他 50MB
-    url-expiry: 300               # Presigned URL 有效期（秒）
-    callback-expiry: 1800         # uploadId 回调有效期（秒）
+    url-expiry: 300               # Presigned PUT URL 有效期（秒）
+    download-expiry: 600          # Presigned GET URL 有效期（秒）
+    callback-expiry: 1800         # PENDING 记录回调有效期（秒）：超时由定时任务清理
+    cleanup-interval: 3600000     # PENDING 清理任务执行间隔（毫秒，默认 1h）
     allowed-buckets:
       - mall-product
       - mall-member
@@ -721,124 +796,66 @@ oss:
 
 ---
 
-## 十四、与谷粒商城方案对比
+## 十四、选型与迁移
 
-### 14.1 总体对比
+**核心原则**（与谷粒商城等业界方案一致）：后端只负责签名鉴权，前端直接上传到对象存储，文件不经过后端。后端带宽压力为零、内存占用极低、大文件不受超时限制。
 
-| 维度 | 谷粒商城（阿里云 OSS） | my-mall（自建 MinIO） |
-|------|---------------------|---------------------|
-| 存储引擎 | 阿里云 OSS | MinIO（S3 兼容） |
-| 上传模式 | 前端获取 Policy 签名 → 直传 OSS | 前端获取 Presigned URL → 直传 MinIO |
-| SDK | aliyun-oss-java-sdk | minio-java 8.5.14 |
-| 签名方式 | OSS PostPolicy（表单上传） | S3 Presigned PUT URL |
-| 文件 URL | `https://{bucket}.oss-cn-{region}.aliyuncs.com/{key}` | `http://{minio-host}:9000/{bucket}/{key}` |
-| 私有文件 | OSS 签名 URL | MinIO Presigned GET URL |
-| 依赖外部服务 | 需要阿里云账号 + 付费 | 完全自建，零费用 |
-| SDK 兼容性 | 阿里云专有 API | S3 标准协议（可无缝迁移到 AWS S3 / 腾讯云 COS） |
+**选择 S3 Presigned PUT URL（而非阿里云 OSS PostPolicy）的原因**：
+1. 前端更简单 —— 一个 `PUT` 请求 vs 构造多字段 FormData
+2. S3 标准协议 —— 迁移到 AWS S3 / 腾讯云 COS / Cloudflare R2 / 阿里云 OSS S3 兼容模式零代码改动
+3. Presigned URL 可精确限定对象名、原生支持大文件分片上传
 
-### 14.2 两种方案都是最佳实践吗？
+**架构隔离**：所有 MinIO 特有代码隔离在 `OssTemplate` + `OssAutoConfiguration`，业务服务永不直接引用 `io.minio.*`。迁移时：
 
-**是的，两者都符合最佳实践**。核心原则完全一致：
+| 目标存储 | 改动范围 |
+|---------|---------|
+| AWS S3 / 腾讯云 COS / Cloudflare R2 / 阿里云 OSS(S3 模式) | 仅改 Nacos 配置的 endpoint + region + 凭据 |
+| 阿里云 OSS(原生 SDK) | 替换 `OssTemplate` 内部实现，方法签名不变，业务无感知 |
 
-> **后端只负责签名鉴权，前端直接上传到对象存储，文件不经过后端。**
-
-```
-谷粒商城：前端 → 后端(获取 Policy+签名) → OSS(POST form-data) → 回调后端
-my-mall：  前端 → 后端(获取 Presigned URL) → MinIO(PUT binary) → 回调后端
-```
-
-两者都避免了文件流经后端服务器，后端带宽压力为零，内存占用极低，大文件不受超时限制。
-
-差异仅在于**签名机制**：
-
-| 维度 | OSS PostPolicy（谷粒商城） | S3 Presigned URL（my-mall） |
-|------|-------------------------|--------------------------|
-| 上传方式 | `POST` + `multipart/form-data` | `PUT` + 原始二进制 |
-| 签名载体 | Policy JSON + HMAC-SHA256 放在表单字段中 | AWS Signature V4 放在 URL 查询参数中 |
-| 前端复杂度 | 需构造 FormData（约 8 个字段） | 一行 `fetch(url, { method: 'PUT', body: file })` |
-| 可移植性 | 阿里云专有 API | S3 标准协议（全球通用） |
-| 分片上传 | PostPolicy 不原生支持 | Presigned URL 原生支持 chunked multipart |
-| 业界采用 | 国内云生态（阿里云、腾讯云有类似方案） | 全球标准（AWS、Google、Cloudflare、DigitalOcean） |
-
-**我们选择 Presigned URL 的原因**：
-
-1. **前端更简单** — 一个 `PUT` 请求 vs 构造包含 `key`、`policy`、`signature`、`OSSAccessKeyId`、`success_action_status` 等字段的 FormData
-2. **S3 标准** — 如果未来从 MinIO 迁移到 AWS S3 或任何 S3 兼容存储，零代码改动
-3. **更灵活** — Presigned URL 可精确限定对象名、支持大文件分片上传、兼容任意 HTTP 客户端
-
----
-
-## 十五、存储服务商迁移评估
-
-### 15.1 架构隔离设计
-
-所有 MinIO 特有代码被隔离在 `OssTemplate` 和 `OssAutoConfiguration` 中，业务服务**永不直接引用** `io.minio.*`：
-
-```
-业务服务（mall-product、mall-member 等）
-    │
-    │ 仅依赖 OssTemplate（我们的抽象层）
-    ▼
-OssTemplate（mall-common-oss）
-    │
-    │ 内部使用 MinioClient
-    ▼
-MinIO (:9000)
-```
-
-### 15.2 迁移场景评估
-
-| 目标存储 | 难度 | 改动范围 | 说明 |
-|---------|------|---------|------|
-| **AWS S3** | 零改动 | 仅修改 Nacos 配置的 endpoint + 凭据 | MinIO 本身就是 S3 协议的开源实现，完全兼容 |
-| **腾讯云 COS** | 零改动 | 仅修改 Nacos 配置的 endpoint + 凭据 | COS 支持 S3 兼容模式 |
-| **Cloudflare R2** | 零改动 | 仅修改 Nacos 配置的 endpoint + 凭据 | R2 完全兼容 S3 协议 |
-| **阿里云 OSS**（S3 模式） | 零改动 | 仅修改 Nacos 配置的 endpoint + 凭据 | OSS 提供 S3 兼容端点 |
-| **阿里云 OSS**（原生 SDK） | 中等 | 替换 `OssTemplate` 内部实现（约 1 个文件） | 将 `MinioClient` 调用替换为 `OSSClient`，方法签名不变，业务服务无感知 |
-| **Google Cloud Storage** | 低 | 使用 GCS 的 S3 兼容 HMAC API，或替换模板内部实现 | |
-
-### 15.3 迁移示例：切换到阿里云 OSS（S3 兼容模式）
-
-仅修改 Nacos 配置：
+迁移示例（MinIO → 阿里云 OSS S3 兼容模式），仅改配置：
 
 ```yaml
-# 迁移前（MinIO）
-oss:
-  minio:
-    endpoint: http://127.0.0.1:9000
-    access-key: minioadmin
-    secret-key: minioadmin123
-
-# 迁移后（阿里云 OSS S3 兼容模式）
 oss:
   minio:
     endpoint: https://oss-cn-hangzhou.aliyuncs.com
+    region: oss-cn-hangzhou
     access-key: LTAI5t...
     secret-key: xxx...
 ```
 
-MinIO Java Client 说的是 S3 协议，OSS S3 兼容模式理解相同的 `PutObject`、`GetObject`、`PresignedURL` 操作。配置一改即可。
+> 谷粒商城直接引入 `com.aliyun.oss.*` 专有 SDK，切换存储需重写所有 OSS 代码；本方案基于 S3 标准协议，从源头避免厂商锁定。
 
-### 15.4 谷粒商城方案的迁移劣势
+> 详细的对比分析（OSS PostPolicy vs S3 Presigned URL 的签名载体、前端复杂度等）见 `docs/other/` 归档文档。
 
-谷粒商城直接引入 `com.aliyun.oss.*`（阿里云专有 SDK），切换到 MinIO 或 AWS S3 需要**重写所有 OSS 相关代码**。我们的 S3 方案从一开始就避免了这种厂商锁定。
+---
+
+## 十五、大文件分片上传（后续演进）
+
+当前实现为单次 PUT 直传，视频上限 500MB。Presigned URL 协议原生支持分片上传（`CreateMultipartUpload` + 分片 Presigned URL + `CompleteMultipartUpload`），可应对超大文件 / 弱网场景。
+
+**取舍**：5 分钟 URL 有效期内单次 PUT 大视频可能超时。短期可通过调长 `url-expiry` 缓解；超大文件场景再补分片上传接口（属 P2 演进，不在 v1.1 范围）。
 
 ---
 
 ## 十六、实现清单
 
-| 序号 | 任务 | 优先级 |
-|------|------|--------|
-| 1 | 启动 MinIO 容器，创建 4 个 Bucket，配置 Policy | P0 |
-| 2 | 创建 `mall_oss` 数据库 + `oss_file_meta` 表 | P0 |
-| 3 | 在 mall-common 中新增 `oss` 包（OssProperties + OssAutoConfiguration + OssTemplate） | P0 |
-| 4 | 创建 mall-oss 服务骨架（启动类 + application.yml + Nacos 注册） | P0 |
-| 5 | 实现 OssController：签发 Presigned URL | P0 |
-| 6 | 实现 OssController：上传回调 + 元数据入库 | P0 |
-| 7 | 实现 OssController：文件删除 | P1 |
-| 8 | 实现 OssController：私有文件下载 URL | P1 |
-| 9 | Gateway 添加 `/api/oss/**` 路由 | P1 |
-| 10 | 编写 HTTP 调试文件（http/oss-demo.http） | P1 |
-| 11 | 编写 Service 纯单元测试 + Controller 切片测试 | P1 |
-| 12 | ResultCode 新增 OSS 错误码 | P1 |
-| 13 | 前端 useOssUpload composable 封装 | P2 |
+| 序号 | 任务 | 优先级 | 状态 |
+|------|------|--------|------|
+| 1 | 启动 MinIO 容器，创建 4 个 Bucket，配置 Policy | P0 | 待执行 |
+| 2 | 创建 `mall_oss` 数据库 + `oss_file_meta` 表 | P0 | ✅ |
+| 3 | mall-common 新增 `oss` 包（OssProperties + OssAutoConfiguration + OssTemplate） | P0 | ✅ |
+| 4 | 创建 mall-oss 服务骨架（启动类 + application.yml + Nacos 注册） | P0 | ✅ |
+| 5 | 实现 OssController：签发 Presigned URL | P0 | ✅ |
+| 6 | 实现 OssController：上传回调 + 元数据入库（含幂等、Content-Type 校验） | P0 | ✅ |
+| 7 | 实现 OssController：文件删除（含越权校验） | P1 | ✅ |
+| 8 | 实现 OssController：私有文件下载 URL | P1 | ✅ |
+| 9 | Gateway 添加 `/api/oss/**` 路由 | P1 | ✅ |
+| 10 | 编写 HTTP 调试文件（http/oss-demo.http） | P1 | ✅ |
+| 11 | 编写 Service 纯单元测试 + Controller 切片测试 | P1 | ✅ |
+| 12 | ResultCode 新增 OSS 错误码 | P1 | ✅ |
+| 13 | 上传者身份透传（UserContext + UserContextFilter + uploader_id） | P1 | ✅ |
+| 14 | 超时 PENDING 记录定时清理 | P1 | ✅ |
+| 15 | publicBaseUrl / region 配置，fileUrl 走公网域名 | P1 | ✅ |
+| 16 | 网关鉴权 + 限流（对接 mall-auth） | P1 | ⏳待 mall-auth |
+| 17 | 大文件分片上传接口 | P2 | 待排期 |
+| 18 | 前端 useOssUpload composable 封装 | P2 | 待排期 |

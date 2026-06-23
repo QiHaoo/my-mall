@@ -21,14 +21,18 @@ public class OssAutoConfiguration {
 
     @Bean
     public MinioClient minioClient(OssProperties properties) {
-        return MinioClient.builder()
+        MinioClient.Builder builder = MinioClient.builder()
                 .endpoint(properties.getEndpoint())
-                .credentials(properties.getAccessKey(), properties.getSecretKey())
-                .build();
+                .credentials(properties.getAccessKey(), properties.getSecretKey());
+        // region 仅在配置时设置：MinIO 本地无需 region，AWS S3 / OSS S3 兼容模式必填
+        if (properties.getRegion() != null && !properties.getRegion().isBlank()) {
+            builder.region(properties.getRegion());
+        }
+        return builder.build();
     }
 
     @Bean
-    public OssTemplate ossTemplate(MinioClient minioClient) {
-        return new OssTemplate(minioClient);
+    public OssTemplate ossTemplate(MinioClient minioClient, OssProperties properties) {
+        return new OssTemplate(minioClient, properties);
     }
 }

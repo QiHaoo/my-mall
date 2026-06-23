@@ -2,6 +2,7 @@ package com.mymall.oss.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mymall.common.exception.BizException;
+import com.mymall.common.exception.GlobalExceptionHandler;
 import com.mymall.common.exception.ResultCode;
 import com.mymall.oss.dto.CallbackDTO;
 import com.mymall.oss.dto.UploadPolicyDTO;
@@ -14,6 +15,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -26,8 +28,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * OssController 切片测试
  * <p>
  * 验证 HTTP 层行为：路由、参数校验、响应序列化、异常处理。
+ * <p>
+ * 显式 @Import GlobalExceptionHandler：@WebMvcTest 仅装载指定 Controller，不会扫描
+ * @RestControllerAdvice，需手动引入才能验证 BizException → 统一错误码的转换。
  */
 @WebMvcTest(OssController.class)
+@Import(GlobalExceptionHandler.class)
 @DisplayName("对象存储 Controller")
 class OssControllerTest {
 

@@ -3,6 +3,7 @@ package com.mymall.oss.service;
 import com.mymall.common.exception.BizException;
 import com.mymall.common.exception.ResultCode;
 import com.mymall.common.oss.OssTemplate;
+import com.mymall.common.util.UserContext;
 import com.mymall.oss.dto.CallbackDTO;
 import com.mymall.oss.dto.UploadPolicyDTO;
 import com.mymall.oss.entity.OssFileMeta;
@@ -12,6 +13,7 @@ import com.mymall.oss.vo.DownloadUrlVO;
 import com.mymall.oss.vo.FileMetaVO;
 import com.mymall.oss.vo.PresignedUrlVO;
 import io.minio.StatObjectResponse;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -21,6 +23,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.*;
@@ -64,6 +67,17 @@ class OssServiceTest {
         ReflectionTestUtils.setField(ossService, "maxOtherSize", 52_428_800L);
         ReflectionTestUtils.setField(ossService, "urlExpiry", 300);
         ReflectionTestUtils.setField(ossService, "downloadExpiry", 600);
+        ReflectionTestUtils.setField(ossService, "callbackExpiry", 1800);
+
+        // buildPublicUrl 默认返回一个可用值（createUploadPolicy 内部会调用）
+        lenient().when(ossTemplate.buildPublicUrl(anyString(), anyString()))
+                .thenReturn("http://127.0.0.1:9000/mall-product/spu/2026/06/19/abc.jpg");
+    }
+
+    @AfterEach
+    void tearDown() {
+        // 清理 UserContext，防止 ThreadLocal 串号影响其它测试
+        UserContext.clear();
     }
 
     // ==================== 签发上传凭证 ====================
@@ -94,6 +108,27 @@ class OssServiceTest {
             assertThat(result.getObjectName()).endsWith(".jpg");
             assertThat(result.getExpiresIn()).isEqualTo(300);
             verify(ossTemplate).getPresignedPutUrl(eq("mall-product"), anyString(), eq(300));
+        }
+
+        @Test
+        @DisplayName("登录用户上传时 uploader_id 应写入记录")
+        void shouldWriteUploaderIdWhenLoggedIn() {
+            // Given
+            UploadPolicyDTO dto = buildValidPolicy();
+            UserContext.setUserId(123L);
+            when(ossTemplate.getPresignedPutUrl(anyString(), anyString(), anyInt()))
+                    .thenReturn("http://mock/url");
+
+            // 用 ArgumentCaptor 捕获写入的实体
+            org.mockito.ArgumentCaptor<OssFileMeta> captor =
+                    org.mockito.ArgumentCaptor.forClass(OssFileMeta.class);
+            when(ossFileMetaMapper.insert(captor.capture())).thenReturn(1);
+
+            // When
+            ossService.createUploadPolicy(dto);
+
+            // Then
+            assertThat(captor.getValue().getUploaderId()).isEqualTo(123L);
         }
 
         @Test
@@ -144,7 +179,7 @@ class OssServiceTest {
             dto.setFileSize(104_857_600L); // 100MB
             lenient().when(ossTemplate.getPresignedPutUrl(anyString(), anyString(), anyInt()))
                     .thenReturn("http://mock/url");
-            lenient().when(ossFileMetaMapper.insert(any())).thenReturn(1);
+            lenient().when(ossFileMetaMapper.insert(any(OssFileMeta.class))).thenReturn(1);
 
             // When
             PresignedUrlVO result = ossService.createUploadPolicy(dto);
@@ -173,7 +208,7 @@ class OssServiceTest {
             UploadPolicyDTO dto = buildValidPolicy();
             lenient().when(ossTemplate.getPresignedPutUrl(anyString(), anyString(), anyInt()))
                     .thenReturn("http://mock/url");
-            lenient().when(ossFileMetaMapper.insert(any())).thenReturn(1);
+            lenient().when(ossFileMetaMapper.insert(any(OssFileMeta.class))).thenReturn(1);
 
             // When
             PresignedUrlVO result = ossService.createUploadPolicy(dto);
@@ -201,8 +236,8 @@ class OssServiceTest {
             dto.setBucket("mall-product");
             dto.setObjectName("spu/2026/06/19/abc.jpg");
 
-            // ServiceImpl.getOne delegates to selectOne -> selectList
-            lenient().when(ossFileMetaMapper.selectList(any())).thenReturn(java.util.Collections.emptyList());
+            // ServiceImpl.getOne(wrapper) 内部调用 baseMapper.selectOne
+            lenient().when(ossFileMetaMapper.selectOne(any(), anyBoolean())).thenReturn(null);
 
             // When & Then
             assertThatThrownBy(() -> ossService.handleCallback(dto))
@@ -217,10 +252,31 @@ class OssServiceTest {
             CallbackDTO dto = buildValidCallback();
             OssFileMeta pendingMeta = buildPendingMeta();
 
-            // Mock getOne (selectOne -> selectList with LIMIT 1)
-            when(ossFileMetaMapper.selectList(any())).thenReturn(List.of(pendingMeta));
+            // Mock getOne (getOne(wrapper) -> baseMapper.selectOne)
+            when(ossFileMetaMapper.selectOne(any(), anyBoolean())).thenReturn(pendingMeta);
             when(ossTemplate.statObject("mall-product", "spu/2026/06/19/abc.jpg"))
                     .thenReturn(null);
+
+            // When & Then
+            assertThatThrownBy(() -> ossService.handleCallback(dto))
+                    .isInstanceOf(BizException.class)
+                    .hasFieldOrPropertyWithValue("code", ResultCode.OSS_UPLOAD_VERIFY_FAILED.getCode());
+        }
+
+        @Test
+        @DisplayName("实际 Content-Type 与声明不一致时应抛验证失败异常")
+        void shouldThrowWhenContentTypeMismatch() {
+            // Given
+            CallbackDTO dto = buildValidCallback();
+            OssFileMeta pendingMeta = buildPendingMeta(); // contentType=image/jpeg
+
+            when(ossFileMetaMapper.selectOne(any(), anyBoolean())).thenReturn(pendingMeta);
+            StatObjectResponse mockStat = mock(StatObjectResponse.class);
+            lenient().when(mockStat.size()).thenReturn(1048576L);
+            // 客户端用 application/octet-stream 直传，与声明的 image/jpeg 不符
+            when(mockStat.contentType()).thenReturn("application/octet-stream");
+            when(ossTemplate.statObject("mall-product", "spu/2026/06/19/abc.jpg"))
+                    .thenReturn(mockStat);
 
             // When & Then
             assertThatThrownBy(() -> ossService.handleCallback(dto))
@@ -235,12 +291,13 @@ class OssServiceTest {
             CallbackDTO dto = buildValidCallback();
             OssFileMeta pendingMeta = buildPendingMeta();
 
-            when(ossFileMetaMapper.selectList(any())).thenReturn(List.of(pendingMeta));
+            when(ossFileMetaMapper.selectOne(any(), anyBoolean())).thenReturn(pendingMeta);
             StatObjectResponse mockStat = mock(StatObjectResponse.class);
             lenient().when(mockStat.size()).thenReturn(1048576L);
+            when(mockStat.contentType()).thenReturn("image/jpeg"); // 与声明一致
             when(ossTemplate.statObject("mall-product", "spu/2026/06/19/abc.jpg"))
                     .thenReturn(mockStat);
-            lenient().when(ossFileMetaMapper.updateById(any())).thenReturn(1);
+            lenient().when(ossFileMetaMapper.updateById(any(OssFileMeta.class))).thenReturn(1);
 
             // When
             FileMetaVO result = ossService.handleCallback(dto);
@@ -251,6 +308,42 @@ class OssServiceTest {
             assertThat(result.getObjectName()).isEqualTo("spu/2026/06/19/abc.jpg");
             assertThat(pendingMeta.getStatus()).isEqualTo(OssFileMeta.STATUS_ACTIVE);
             verify(ossFileMetaMapper).updateById(pendingMeta);
+        }
+
+        @Test
+        @DisplayName("对已 ACTIVE 的记录重复回调应幂等返回，不重复校验 MinIO")
+        void shouldBeIdempotentWhenAlreadyActive() {
+            // Given
+            CallbackDTO dto = buildValidCallback();
+            OssFileMeta activeMeta = buildActiveMeta();
+
+            when(ossFileMetaMapper.selectOne(any(), anyBoolean())).thenReturn(activeMeta);
+
+            // When
+            FileMetaVO result = ossService.handleCallback(dto);
+
+            // Then
+            assertThat(result).isNotNull();
+            assertThat(result.getObjectName()).isEqualTo("spu/2026/06/19/abc.jpg");
+            // 幂等：不应再调用 MinIO statObject / updateById
+            verify(ossTemplate, never()).statObject(anyString(), anyString());
+            verify(ossFileMetaMapper, never()).updateById(any(OssFileMeta.class));
+        }
+
+        @Test
+        @DisplayName("回调的 bucket/objectName 与签发记录不一致时应拒绝")
+        void shouldRejectWhenCallbackObjectMismatch() {
+            // Given
+            CallbackDTO dto = buildValidCallback();
+            dto.setObjectName("spu/2026/06/19/tampered.jpg"); // 篡改
+            OssFileMeta pendingMeta = buildPendingMeta();
+
+            when(ossFileMetaMapper.selectOne(any(), anyBoolean())).thenReturn(pendingMeta);
+
+            // When & Then
+            assertThatThrownBy(() -> ossService.handleCallback(dto))
+                    .isInstanceOf(BizException.class)
+                    .hasFieldOrPropertyWithValue("code", ResultCode.OSS_UPLOAD_VERIFY_FAILED.getCode());
         }
     }
 
@@ -265,8 +358,8 @@ class OssServiceTest {
         void shouldDeleteFromMinioAndUpdateDb() {
             // Given
             OssFileMeta activeMeta = buildActiveMeta();
-            when(ossFileMetaMapper.selectList(any())).thenReturn(List.of(activeMeta));
-            lenient().when(ossFileMetaMapper.updateById(any())).thenReturn(1);
+            when(ossFileMetaMapper.selectOne(any(), anyBoolean())).thenReturn(activeMeta);
+            lenient().when(ossFileMetaMapper.updateById(any(OssFileMeta.class))).thenReturn(1);
 
             // When
             ossService.deleteFile("mall-product", "spu/2026/06/19/abc.jpg");
@@ -281,14 +374,31 @@ class OssServiceTest {
         @DisplayName("DB 中无记录时应仅删除 MinIO 对象不报错")
         void shouldDeleteMinioOnlyWhenNoDbRecord() {
             // Given
-            when(ossFileMetaMapper.selectList(any())).thenReturn(java.util.Collections.emptyList());
+            when(ossFileMetaMapper.selectOne(any(), anyBoolean())).thenReturn(null);
 
             // When
             ossService.deleteFile("mall-product", "spu/nonexistent.jpg");
 
             // Then
             verify(ossTemplate).delete("mall-product", "spu/nonexistent.jpg");
-            verify(ossFileMetaMapper, never()).updateById(any());
+            verify(ossFileMetaMapper, never()).updateById(any(OssFileMeta.class));
+        }
+
+        @Test
+        @DisplayName("非上传者删除他人文件时应抛 FORBIDDEN")
+        void shouldRejectWhenDeleteOthersFile() {
+            // Given
+            OssFileMeta meta = buildActiveMeta();
+            meta.setUploaderId(1L);       // 文件归属用户 1
+            UserContext.setUserId(2L);    // 当前登录用户 2
+            when(ossFileMetaMapper.selectOne(any(), anyBoolean())).thenReturn(meta);
+
+            // When & Then
+            assertThatThrownBy(() -> ossService.deleteFile("mall-product", "spu/2026/06/19/abc.jpg"))
+                    .isInstanceOf(BizException.class)
+                    .hasFieldOrPropertyWithValue("code", ResultCode.FORBIDDEN.getCode());
+            // 被拒绝时不应删除 MinIO 对象
+            verify(ossTemplate, never()).delete(anyString(), anyString());
         }
     }
 
@@ -328,6 +438,69 @@ class OssServiceTest {
         }
     }
 
+    // ==================== 定时清理超时 PENDING 记录 ====================
+
+    @Nested
+    @DisplayName("清理超时 PENDING 记录")
+    class CleanupExpiredPending {
+
+        @Test
+        @DisplayName("无超时记录时应直接返回不操作")
+        void shouldDoNothingWhenNoExpired() {
+            // Given
+            when(ossFileMetaMapper.selectList(any())).thenReturn(java.util.Collections.emptyList());
+
+            // When
+            ossService.cleanupExpiredPendingRecords();
+
+            // Then
+            verify(ossTemplate, never()).delete(anyString(), anyString());
+            verify(ossFileMetaMapper, never()).updateById(any(OssFileMeta.class));
+        }
+
+        @Test
+        @DisplayName("存在超时 PENDING 记录时应删除孤儿对象并更新状态")
+        void shouldDeleteObjectAndMarkDeletedWhenExpired() {
+            // Given
+            OssFileMeta pendingMeta = buildPendingMeta();
+            pendingMeta.setCreateTime(LocalDateTime.now().minusHours(2)); // 超过 30 分钟阈值
+            when(ossFileMetaMapper.selectList(any())).thenReturn(List.of(pendingMeta));
+            lenient().when(ossFileMetaMapper.updateById(any(OssFileMeta.class))).thenReturn(1);
+
+            // When
+            ossService.cleanupExpiredPendingRecords();
+
+            // Then
+            verify(ossTemplate).delete("mall-product", "spu/2026/06/19/abc.jpg");
+            assertThat(pendingMeta.getStatus()).isEqualTo(OssFileMeta.STATUS_DELETED);
+        }
+
+        @Test
+        @DisplayName("单条清理失败不应中断其余记录清理")
+        void shouldContinueWhenOneFails() {
+            // Given
+            OssFileMeta failed = buildPendingMeta();
+            failed.setObjectName("spu/2026/06/19/fail.jpg");
+            failed.setCreateTime(LocalDateTime.now().minusHours(2));
+            OssFileMeta ok = buildPendingMeta();
+            ok.setObjectName("spu/2026/06/19/ok.jpg");
+            ok.setCreateTime(LocalDateTime.now().minusHours(2));
+
+            when(ossFileMetaMapper.selectList(any())).thenReturn(List.of(failed, ok));
+            // 第一条删除抛异常（delete 是 void 方法，用 doThrow stub）
+            doThrow(new RuntimeException("minio error"))
+                    .when(ossTemplate).delete("mall-product", "spu/2026/06/19/fail.jpg");
+            lenient().when(ossFileMetaMapper.updateById(any(OssFileMeta.class))).thenReturn(1);
+
+            // When — 不应抛异常
+            assertThatCode(() -> ossService.cleanupExpiredPendingRecords()).doesNotThrowAnyException();
+
+            // Then — 第二条仍被处理
+            verify(ossTemplate).delete("mall-product", "spu/2026/06/19/ok.jpg");
+            assertThat(ok.getStatus()).isEqualTo(OssFileMeta.STATUS_DELETED);
+        }
+    }
+
     // ==================== 辅助方法 ====================
 
     private UploadPolicyDTO buildValidPolicy() {
@@ -358,7 +531,7 @@ class OssServiceTest {
         meta.setFileSize(1_048_576L);
         meta.setContentType("image/jpeg");
         meta.setBusinessType("spu");
-        meta.setFileUrl("/mall-product/spu/2026/06/19/abc.jpg");
+        meta.setFileUrl("http://127.0.0.1:9000/mall-product/spu/2026/06/19/abc.jpg");
         meta.setStatus(OssFileMeta.STATUS_PENDING);
         return meta;
     }
