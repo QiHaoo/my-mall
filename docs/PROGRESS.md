@@ -31,7 +31,7 @@
 | 2026-06-21 | common 模块 P0+P1 补齐 | `1621db2` | 修复包扫描 Bug（AutoConfiguration.imports + @ComponentScan）、BizException + ResultCode + GlobalExceptionHandler、PageQuery、BaseEntity @TableLogic、SpringDocConfig、hutool 版本统一 |
 | 2026-06-22 | 商品分类 CRUD 实现 | `699f1b7` | product 模块：CategoryController/Service（树查询、新增、修改、批量删除、拖拽排序）、DTO/VO、@WebMvcTest 单元测试、category-management.md 文档 |
 | 2026-06-23 | OSS 对象存储服务实现 | `1cc33c4` | mall-oss 独立服务 + mall-common-oss SDK（MinIO Presigned URL 签发、文件元数据管理、前端直传）、object-storage-design.md 设计文档、oss-demo.http 测试文件、mall_oss.sql 初始化脚本 |
-| 2026-06-23 | OSS 安全闭环增强（v1.1） | 待提交 | Content-Type 回调校验、回调幂等、上传者身份透传（UserContext + UserContextFilter + uploader_id）、删除越权校验、超时 PENDING 定时清理、publicBaseUrl/region 配置（fileUrl 走公网域名、迁移 S3 必填 region）、MinIO 调用移出事务、设计文档同步修订与精简 |
+| 2026-06-23 | OSS 安全闭环增强（v1.1） | `7adcace` | Content-Type 回调校验、回调幂等、上传者身份透传（UserContext + UserContextFilter + uploader_id）、删除越权校验、超时 PENDING 定时清理、publicBaseUrl/region 配置（fileUrl 走公网域名、迁移 S3 必填 region）、MinIO 调用移出事务、设计文档同步修订与精简 |
 
 ---
 
