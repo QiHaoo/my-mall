@@ -2,7 +2,6 @@ package com.mymall.product.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mymall.common.exception.BizException;
-import com.mymall.common.exception.GlobalExceptionHandler;
 import com.mymall.common.exception.ResultCode;
 import com.mymall.product.dto.category.CategoryVO;
 import com.mymall.product.service.ICategoryService;

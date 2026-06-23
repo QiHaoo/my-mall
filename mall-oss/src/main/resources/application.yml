@@ -1,0 +1,48 @@
+server:
+  port: 7300
+
+spring:
+  application:
+    name: mall-oss
+  config:
+    import:
+      - "nacos:mall-oss.yaml?refreshEnabled=true"
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
+      - io.seata.spring.boot.autoconfigure.SeataAutoConfiguration
+  cloud:
+    nacos:
+      config:
+        server-addr: 127.0.0.1:8848
+        namespace: my-mall
+        group: DEFAULT_GROUP
+        username: nacos
+        password: nacos
+      discovery:
+        server-addr: 127.0.0.1:8848
+        namespace: my-mall
+        username: nacos
+        password: nacos
+  datasource:
+    url: jdbc:mysql://127.0.0.1:3306/mall_oss?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai
+    username: root
+    password: root123
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+mybatis-plus:
+  mapper-locations: classpath:mapper/oss/*.xml
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+# MinIO 配置（默认值，生产环境放 Nacos）
+oss:
+  minio:
+    endpoint: http://127.0.0.1:9000
+    access-key: minioadmin
+    secret-key: minioadmin123
+
+logging:
+  level:
+    com.mymall.oss: debug

@@ -7,13 +7,14 @@ import com.mymall.product.entity.Category;
 import com.mymall.product.mapper.CategoryBrandRelationMapper;
 import com.mymall.product.mapper.CategoryMapper;
 import com.mymall.product.service.impl.CategoryServiceImpl;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Collections;
 import java.util.List;
@@ -37,8 +38,16 @@ class CategoryServiceTest {
     @Mock
     private CategoryBrandRelationMapper categoryBrandRelationMapper;
 
-    @InjectMocks
     private CategoryServiceImpl categoryService;
+
+    @BeforeEach
+    void setUp() {
+        // ServiceImpl.baseMapper is set by Spring @Autowired field injection.
+        // Mockito @InjectMocks only uses the @RequiredArgsConstructor constructor,
+        // so the parent class field stays null. Set it manually via reflection.
+        categoryService = new CategoryServiceImpl(categoryBrandRelationMapper);
+        ReflectionTestUtils.setField(categoryService, "baseMapper", categoryMapper);
+    }
 
     // ==================== 分类树查询 ====================
 
@@ -202,10 +211,7 @@ class CategoryServiceTest {
         @Test
         @DisplayName("空ID列表应直接返回")
         void shouldReturnWhenEmptyIds() {
-            // Given
-            when(categoryMapper.selectBatchIds(anyList())).thenReturn(Collections.emptyList());
-
-            // When & Then
+            // When & Then: ServiceImpl.listByIds() 对空集合直接返回，不调用 mapper
             assertThatCode(() -> categoryService.batchDelete(Collections.emptyList()))
                     .doesNotThrowAnyException();
         }

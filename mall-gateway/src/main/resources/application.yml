@@ -60,6 +60,13 @@ spring:
           filters:
             - StripPrefix=1
 
+        - id: oss-route
+          uri: lb://mall-oss
+          predicates:
+            - Path=/api/oss/**
+          filters:
+            - StripPrefix=1
+
         # ---------- 2. 外部 URL 路由：转发到外部网站 ----------
         # 访问 /go/baidu → 跳转到百度（必须 SetPath=/ 否则会把 /go/baidu 原样转发给百度）
         - id: baidu-route

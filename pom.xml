@@ -32,6 +32,7 @@
         <module>mall-seckill</module>
         <module>mall-third</module>
         <module>mall-admin</module>
+        <module>mall-oss</module>
     </modules>
 
     <properties>

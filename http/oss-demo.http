@@ -1,0 +1,106 @@
+### OSS 对象存储接口调试
+### 使用方式：IDEA HTTP Client 中点击左侧绿色箭头运行
+
+### 基础地址（Gateway）
+@baseUrl = http://localhost:1000/api/oss
+
+### ========== 1. 签发上传凭证 ==========
+### POST /api/oss/policy
+### 前端上传前先调用此接口获取 Presigned PUT URL
+
+POST {{baseUrl}}/policy
+Content-Type: application/json
+
+{
+    "bucket": "mall-product",
+    "businessType": "spu",
+    "contentType": "image/jpeg",
+    "fileSize": 1048576,
+    "originalFilename": "product-photo.jpg"
+}
+
+> {%
+    client.global.set("uploadId", response.body.data.uploadId);
+    client.global.set("uploadUrl", response.body.data.uploadUrl);
+    client.global.set("objectName", response.body.data.objectName);
+    client.global.set("bucket", response.body.data.bucket);
+    client.log("uploadId: " + response.body.data.uploadId);
+    client.log("uploadUrl: " + response.body.data.uploadUrl);
+%}
+
+### ========== 2. 前端直传（模拟） ==========
+### PUT uploadUrl（文件二进制直接传到 MinIO）
+### 注意：此请求需要 MinIO 运行才能成功，手动在浏览器/Postman 中测试
+###
+### curl -X PUT "{{uploadUrl}}" \
+###   -H "Content-Type: image/jpeg" \
+###   --data-binary @product-photo.jpg
+
+### ========== 3. 上传完成回调 ==========
+### POST /api/oss/callback
+### 前端上传到 MinIO 成功后调用，写入元数据到 DB
+
+POST {{baseUrl}}/callback
+Content-Type: application/json
+
+{
+    "uploadId": "{{uploadId}}",
+    "bucket": "{{bucket}}",
+    "objectName": "{{objectName}}"
+}
+
+### ========== 4. 获取下载 URL（私有文件） ==========
+### GET /api/oss/download-url
+
+GET {{baseUrl}}/download-url?bucket=mall-private&objectName=import/2026/06/23/test.xlsx
+
+### ========== 5. 删除文件 ==========
+### DELETE /api/oss/file
+
+DELETE {{baseUrl}}/file?bucket={{bucket}}&objectName={{objectName}}
+
+### ========== 6. 参数校验测试 ==========
+
+### 6.1 Bucket 不在白名单
+POST {{baseUrl}}/policy
+Content-Type: application/json
+
+{
+    "bucket": "evil-bucket",
+    "businessType": "spu",
+    "contentType": "image/jpeg",
+    "fileSize": 1048576,
+    "originalFilename": "hack.exe"
+}
+
+### 6.2 文件类型不允许
+POST {{baseUrl}}/policy
+Content-Type: application/json
+
+{
+    "bucket": "mall-product",
+    "businessType": "spu",
+    "contentType": "application/x-msdownload",
+    "fileSize": 1048576,
+    "originalFilename": "virus.exe"
+}
+
+### 6.3 文件超过大小限制（> 10MB 图片）
+POST {{baseUrl}}/policy
+Content-Type: application/json
+
+{
+    "bucket": "mall-product",
+    "businessType": "spu",
+    "contentType": "image/jpeg",
+    "fileSize": 20971520,
+    "originalFilename": "huge-photo.jpg"
+}
+
+### 6.4 缺少必填字段
+POST {{baseUrl}}/policy
+Content-Type: application/json
+
+{
+    "bucket": "mall-product"
+}
