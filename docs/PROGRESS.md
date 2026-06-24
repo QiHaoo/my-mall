@@ -36,7 +36,8 @@
 | 2026-06-24 | 表设计规范 + init SQL 改造 + 实体对齐 | `3b41038` | 新增 table-design-specification.md；pms/sms/ums/wms/oms 53 表生产级改造（PK 统一 id 雪花/去 AUTO_INCREMENT/补审计列/utf8mb4/类型修正/索引）；53 实体统一继承 BaseEntity + Mapper XML 同步；Category 链路 catId→id、逻辑删除改 @TableLogic、showStatus Byte→Integer；修复 Category Service 测试 MP 版本脱节（selectBatchIds→selectByIds） |
 | 2026-06-24 | common 模块设计文档 + 规范对齐 | `9eb974d` | 新增 docs/common/common-module-design.md；coding-standards §4 与实现对齐（BizException 签名/异常处理器清单/错误码段/HTTP 200 策略）；gap-analysis 归档至 docs/other/；CLAUDE.md 文档索引更新 |
 | 2026-06-24 | 品牌管理实现 | `e53fe25` | product 模块：BrandController/Service（分页查询/详情/新增/修改/状态更新/删除/分类下品牌）+ DTO/VO；mall-common 新增校验分组 Create/Update + 品牌错误码 53001-53005；Brand.showStatus Byte→Integer；product 补 MyBatisConfig(@MapperScan)；BrandServiceTest + BrandControllerTest 全绿（mvn test 58 通过）；brand-management.md 设计文档 + product-brand-demo.http；CLAUDE.md 补 JDK21 路径约定 |
-| 2026-06-24 | 文档站搭建 + 文档分层规范 | `c7fb019` | MkDocs Material 文档站（mkdocs.yml + GitHub Actions 自动部署到 Pages + serve-docs.bat 本地启动脚本）+ docs/docs-site-deployment.md 部署指南 + docs/documentation-layering-guide.md 三层文档分层规范（全局设计+规范 / 模块设计 / 学习文档）+ docs/index.md 首页 + 修复 2 处跨文档死链；SPU/SKU 属性设计文档（product/spu-sku-attr-design.md）+ 接口设计补充 |
+| 2026-06-24 | 文档站搭建 + 文档分层规范 | `ce62329` | MkDocs Material 文档站（mkdocs.yml + GitHub Actions 自动部署到 Pages + serve-docs.bat 本地启动脚本）+ docs/docs-site-deployment.md 部署指南 + docs/documentation-layering-guide.md 三层文档分层规范（全局设计+规范 / 模块设计 / 学习文档）+ docs/index.md 首页 + 修复 2 处跨文档死链；SPU/SKU 属性设计文档（product/spu-sku-attr-design.md）+ 接口设计补充。部署过程修复 workflow setup-python 失败（关 pip cache）、strict 构建死链（docs/ 外文件改 GitHub 绝对链接），站点已上线 https://qihao0o.github.io/my-mall/ |
+| 2026-06-21 | 网关路由配置修复 | `5bb4e9a` | RequestLogFilter + application.yml 路由过滤器修正 |
 
 ---
 
@@ -44,7 +45,7 @@
 
 | 事项 | 模块 | 状态说明 |
 |------|------|---------|
-| 网关路由配置修复 | mall-gateway | RequestLogFilter + application.yml 路由过滤器修正，待提交 |
+| SPU/SKU/属性体系实现 | mall-product | 设计文档已完成（product/spu-sku-attr-design.md），Attr/Spu/Sku 相关 Service 仍为代码生成骨架，实现未开始 |
 
 ---
 
@@ -54,7 +55,7 @@
 
 | 服务 | 进度文档 | 状态 |
 |------|---------|------|
-| mall-product | `docs/mall-product/PROGRESS.md` | 骨架 ✅ / 代码生成 ✅ / 分类 CRUD ✅ / 品牌 CRUD ✅ / 服务注册待验证 |
+| mall-product | `docs/mall-product/PROGRESS.md` | 骨架 ✅ / 代码生成 ✅ / 分类 CRUD ✅ / 品牌 CRUD ✅ / SPU·SKU·属性 设计✅ 实现中 / 服务注册待验证 |
 | mall-member | `docs/mall-member/PROGRESS.md` | 骨架 ✅ / 代码生成 ✅ / Feign Consumer ✅ / 双测 ✅ |
 | mall-order | `docs/mall-order/PROGRESS.md` | 骨架 ✅ / 代码生成 ✅ |
 | mall-ware | `docs/mall-ware/PROGRESS.md` | 骨架 ✅ / 代码生成 ✅ |
