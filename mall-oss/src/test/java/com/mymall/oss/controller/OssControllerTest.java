@@ -89,7 +89,8 @@ class OssControllerTest {
             mockMvc.perform(post("/oss/policy")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(dto)))
-                    .andExpect(status().isBadRequest());
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.code").value(400));
         }
 
         @Test
@@ -103,7 +104,8 @@ class OssControllerTest {
             mockMvc.perform(post("/oss/policy")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(dto)))
-                    .andExpect(status().isBadRequest());
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.code").value(400));
         }
 
         @Test
@@ -192,7 +194,8 @@ class OssControllerTest {
             mockMvc.perform(post("/oss/callback")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(dto)))
-                    .andExpect(status().isBadRequest());
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.code").value(400));
         }
     }
 
@@ -221,7 +224,8 @@ class OssControllerTest {
             // When & Then
             mockMvc.perform(delete("/oss/file")
                             .param("objectName", "spu/2026/06/19/abc.jpg"))
-                    .andExpect(status().isBadRequest());
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.code").value(400));
         }
     }
 

@@ -2,6 +2,7 @@ package com.mymall.product.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mymall.common.exception.BizException;
+import com.mymall.common.exception.GlobalExceptionHandler;
 import com.mymall.common.exception.ResultCode;
 import com.mymall.product.dto.category.CategoryVO;
 import com.mymall.product.service.ICategoryService;
@@ -10,6 +11,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -25,8 +27,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * CategoryController 切片测试
  * <p>
  * 验证 HTTP 层行为：路由、参数校验、响应序列化、异常处理。
+ * <p>
+ * 显式 @Import GlobalExceptionHandler：统一 200 + R.code 策略下，校验异常须由
+ * GlobalExceptionHandler 转换为 R 响应体，切片测试需手动引入该 advice。
  */
 @WebMvcTest(CategoryController.class)
+@Import(GlobalExceptionHandler.class)
 @DisplayName("商品分类 Controller")
 class CategoryControllerTest {
 
@@ -64,7 +70,7 @@ class CategoryControllerTest {
         void shouldReturnTreeData() throws Exception {
             // Given
             CategoryVO vo = new CategoryVO();
-            vo.setCatId(1L);
+            vo.setId(1L);
             vo.setName("图书");
             vo.setParentCid(0L);
             vo.setCatLevel(1);
@@ -77,7 +83,7 @@ class CategoryControllerTest {
             mockMvc.perform(get("/product/category/tree"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.code").value(200))
-                    .andExpect(jsonPath("$.data[0].catId").value(1))
+                    .andExpect(jsonPath("$.data[0].id").value(1))
                     .andExpect(jsonPath("$.data[0].name").value("图书"));
         }
     }
@@ -125,7 +131,7 @@ class CategoryControllerTest {
             mockMvc.perform(post("/product/category")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(body))
-                    .andExpect(status().isBadRequest())
+                    .andExpect(status().isOk())
                     .andExpect(jsonPath("$.code").value(400));
         }
 
@@ -143,7 +149,8 @@ class CategoryControllerTest {
             mockMvc.perform(post("/product/category")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(body))
-                    .andExpect(status().isBadRequest());
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.code").value(400));
         }
     }
 
@@ -159,7 +166,7 @@ class CategoryControllerTest {
             // Given
             String body = """
                     {
-                        "catId": 1,
+                        "id": 1,
                         "name": "新名称"
                     }
                     """;
@@ -175,7 +182,7 @@ class CategoryControllerTest {
         }
 
         @Test
-        @DisplayName("catId 为 null 时应返回参数错误")
+        @DisplayName("id 为 null 时应返回参数错误")
         void shouldReturn400WhenCatIdNull() throws Exception {
             // Given
             String body = """
@@ -188,7 +195,8 @@ class CategoryControllerTest {
             mockMvc.perform(put("/product/category")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(body))
-                    .andExpect(status().isBadRequest());
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.code").value(400));
         }
     }
 
@@ -232,7 +240,8 @@ class CategoryControllerTest {
             mockMvc.perform(post("/product/category/batch-delete")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(body))
-                    .andExpect(status().isBadRequest());
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.code").value(400));
         }
 
         @Test
@@ -269,8 +278,8 @@ class CategoryControllerTest {
             String body = """
                     {
                         "categories": [
-                            {"catId": 5, "parentCid": 2, "catLevel": 2, "sort": 1},
-                            {"catId": 6, "parentCid": 2, "catLevel": 2, "sort": 2}
+                            {"id": 5, "parentCid": 2, "catLevel": 2, "sort": 1},
+                            {"id": 6, "parentCid": 2, "catLevel": 2, "sort": 2}
                         ]
                     }
                     """;
@@ -299,7 +308,8 @@ class CategoryControllerTest {
             mockMvc.perform(put("/product/category/sort")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(body))
-                    .andExpect(status().isBadRequest());
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.code").value(400));
         }
     }
 }

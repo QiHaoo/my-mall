@@ -1,3 +1,4 @@
 com.mymall.common.config.MybatisPlusConfig
 com.mymall.common.config.SpringDocConfig
+com.mymall.common.config.JacksonConfig
 com.mymall.common.oss.OssAutoConfiguration

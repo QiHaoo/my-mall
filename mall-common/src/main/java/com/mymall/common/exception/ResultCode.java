@@ -8,9 +8,9 @@ import lombok.Getter;
  * <p>
  * 码段规划：
  * <ul>
- *   <li>0 - 成功</li>
- *   <li>400~499 - 客户端错误</li>
- *   <li>500~599 - 服务端错误</li>
+ *   <li>200 - 成功（与 HTTP 200 对齐，R.code=200 即成功）</li>
+ *   <li>400~499 - 通用客户端错误（参数/认证/权限/路由）</li>
+ *   <li>500~599 - 通用服务端错误</li>
  *   <li>40001~49999 - 优惠券服务</li>
  *   <li>50001~59999 - 商品服务</li>
  *   <li>51001~51999 - 商品分类</li>
@@ -25,7 +25,7 @@ import lombok.Getter;
 public enum ResultCode {
 
     // ==================== 通用 ====================
-    SUCCESS(0, "成功"),
+    SUCCESS(200, "success"),
     PARAM_ERROR(400, "参数错误"),
     UNAUTHORIZED(401, "未登录或 token 已过期"),
     FORBIDDEN(403, "无权限"),
