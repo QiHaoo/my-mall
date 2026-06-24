@@ -1,36 +1,27 @@
 package com.mymall.order.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import java.io.Serializable;
+import com.mymall.common.entity.BaseEntity;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.experimental.Accessors;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
 
 /**
- * <p>
  * 支付信息表
- * </p>
+ * <p>
+ * 继承 {@link BaseEntity} 复用 id / 审计字段 / 逻辑删除（is_deleted）/ 乐观锁（version）。
  *
  * @author mymall
  * @since 2026-06-20
  */
-@Getter
-@Setter
-@ToString
+@Data
+@EqualsAndHashCode(callSuper = true)
+@Accessors(chain = true)
 @TableName("oms_payment_info")
-public class PaymentInfo implements Serializable {
-
-    private static final long serialVersionUID = 1L;
-
-    /**
-     * id
-     */
-    @TableId(value = "id", type = IdType.AUTO)
-    private Long id;
+public class PaymentInfo extends BaseEntity {
 
     /**
      * 订单号（对外业务号）
@@ -38,7 +29,7 @@ public class PaymentInfo implements Serializable {
     private String orderSn;
 
     /**
-     * 订单id
+     * 订单ID
      */
     private Long orderId;
 
@@ -58,14 +49,9 @@ public class PaymentInfo implements Serializable {
     private String subject;
 
     /**
-     * 支付状态
+     * 支付状态[0-待支付 1-支付中 2-支付成功 3-支付失败 4-已关闭]
      */
-    private String paymentStatus;
-
-    /**
-     * 创建时间
-     */
-    private LocalDateTime createTime;
+    private Integer paymentStatus;
 
     /**
      * 确认时间

@@ -4,7 +4,6 @@
 
     <!-- 通用查询映射结果 -->
     <resultMap id="BaseResultMap" type="com.mymall.member.entity.Member">
-        <id column="id" property="id" />
         <result column="level_id" property="levelId" />
         <result column="username" property="username" />
         <result column="password" property="password" />
@@ -21,7 +20,6 @@
         <result column="integration" property="integration" />
         <result column="growth" property="growth" />
         <result column="status" property="status" />
-        <result column="create_time" property="createTime" />
     </resultMap>
 
 </mapper>

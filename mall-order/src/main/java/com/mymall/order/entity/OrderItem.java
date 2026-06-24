@@ -1,58 +1,49 @@
 package com.mymall.order.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import java.io.Serializable;
+import com.mymall.common.entity.BaseEntity;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.experimental.Accessors;
+
 import java.math.BigDecimal;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
 
 /**
- * <p>
  * 订单项信息
- * </p>
+ * <p>
+ * 继承 {@link BaseEntity} 复用 id / 审计字段 / 逻辑删除（is_deleted）/ 乐观锁（version）。
  *
  * @author mymall
  * @since 2026-06-20
  */
-@Getter
-@Setter
-@ToString
+@Data
+@EqualsAndHashCode(callSuper = true)
+@Accessors(chain = true)
 @TableName("oms_order_item")
-public class OrderItem implements Serializable {
-
-    private static final long serialVersionUID = 1L;
+public class OrderItem extends BaseEntity {
 
     /**
-     * id
-     */
-    @TableId(value = "id", type = IdType.AUTO)
-    private Long id;
-
-    /**
-     * order_id
+     * 订单ID
      */
     private Long orderId;
 
     /**
-     * order_sn
+     * 订单号
      */
     private String orderSn;
 
     /**
-     * spu_id
+     * SPU ID
      */
     private Long spuId;
 
     /**
-     * spu_name
+     * SPU 名称
      */
     private String spuName;
 
     /**
-     * spu_pic
+     * SPU 图片
      */
     private String spuPic;
 
@@ -62,32 +53,32 @@ public class OrderItem implements Serializable {
     private String spuBrand;
 
     /**
-     * 商品分类id
+     * 商品分类ID
      */
     private Long categoryId;
 
     /**
-     * 商品sku编号
+     * 商品SKU编号
      */
     private Long skuId;
 
     /**
-     * 商品sku名字
+     * 商品SKU名称
      */
     private String skuName;
 
     /**
-     * 商品sku图片
+     * 商品SKU图片
      */
     private String skuPic;
 
     /**
-     * 商品sku价格
+     * 商品SKU价格
      */
     private BigDecimal skuPrice;
 
     /**
-     * 商品购买的数量
+     * 商品购买数量
      */
     private Integer skuQuantity;
 

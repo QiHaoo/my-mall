@@ -4,7 +4,6 @@
 
     <!-- 通用查询映射结果 -->
     <resultMap id="BaseResultMap" type="com.mymall.product.entity.Brand">
-        <id column="brand_id" property="brandId" />
         <result column="name" property="name" />
         <result column="logo" property="logo" />
         <result column="descript" property="descript" />

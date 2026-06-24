@@ -1,38 +1,29 @@
 package com.mymall.order.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import java.io.Serializable;
+import com.mymall.common.entity.BaseEntity;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.experimental.Accessors;
+
 import java.math.BigDecimal;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
 
 /**
- * <p>
  * 退款信息
- * </p>
+ * <p>
+ * 继承 {@link BaseEntity} 复用 id / 审计字段 / 逻辑删除（is_deleted）/ 乐观锁（version）。
  *
  * @author mymall
  * @since 2026-06-20
  */
-@Getter
-@Setter
-@ToString
+@Data
+@EqualsAndHashCode(callSuper = true)
+@Accessors(chain = true)
 @TableName("oms_refund_info")
-public class RefundInfo implements Serializable {
-
-    private static final long serialVersionUID = 1L;
+public class RefundInfo extends BaseEntity {
 
     /**
-     * id
-     */
-    @TableId(value = "id", type = IdType.AUTO)
-    private Long id;
-
-    /**
-     * 退款的订单
+     * 退货申请ID
      */
     private Long orderReturnId;
 
@@ -47,14 +38,17 @@ public class RefundInfo implements Serializable {
     private String refundSn;
 
     /**
-     * 退款状态
+     * 退款状态[0-待退款 1-退款中 2-退款成功 3-退款失败]
      */
-    private Boolean refundStatus;
+    private Integer refundStatus;
 
     /**
-     * 退款渠道[1-支付宝，2-微信，3-银联，4-汇款]
+     * 退款渠道[1-支付宝 2-微信 3-银联 4-汇款]
      */
-    private Byte refundChannel;
+    private Integer refundChannel;
 
+    /**
+     * 退款回调内容
+     */
     private String refundContent;
 }

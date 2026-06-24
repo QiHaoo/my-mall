@@ -4,7 +4,6 @@
 
     <!-- 通用查询映射结果 -->
     <resultMap id="BaseResultMap" type="com.mymall.coupon.entity.HomeSubjectSpu">
-        <id column="id" property="id" />
         <result column="name" property="name" />
         <result column="subject_id" property="subjectId" />
         <result column="spu_id" property="spuId" />

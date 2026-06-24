@@ -4,12 +4,10 @@
 
     <!-- 通用查询映射结果 -->
     <resultMap id="BaseResultMap" type="com.mymall.coupon.entity.CouponHistory">
-        <id column="id" property="id" />
         <result column="coupon_id" property="couponId" />
         <result column="member_id" property="memberId" />
         <result column="member_nick_name" property="memberNickName" />
         <result column="get_type" property="getType" />
-        <result column="create_time" property="createTime" />
         <result column="use_type" property="useType" />
         <result column="use_time" property="useTime" />
         <result column="order_id" property="orderId" />

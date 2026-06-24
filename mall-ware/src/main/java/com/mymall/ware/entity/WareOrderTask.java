@@ -1,43 +1,32 @@
 package com.mymall.ware.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import java.io.Serializable;
-import java.time.LocalDateTime;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import com.mymall.common.entity.BaseEntity;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.experimental.Accessors;
 
 /**
- * <p>
  * 库存工作单
- * </p>
+ * <p>
+ * 继承 {@link BaseEntity} 复用 id / 审计字段 / 逻辑删除（is_deleted）/ 乐观锁（version）。
  *
  * @author mymall
  * @since 2026-06-20
  */
-@Getter
-@Setter
-@ToString
+@Data
+@EqualsAndHashCode(callSuper = true)
+@Accessors(chain = true)
 @TableName("wms_ware_order_task")
-public class WareOrderTask implements Serializable {
-
-    private static final long serialVersionUID = 1L;
+public class WareOrderTask extends BaseEntity {
 
     /**
-     * id
-     */
-    @TableId(value = "id", type = IdType.AUTO)
-    private Long id;
-
-    /**
-     * order_id
+     * 订单ID
      */
     private Long orderId;
 
     /**
-     * order_sn
+     * 订单号
      */
     private String orderSn;
 
@@ -62,14 +51,14 @@ public class WareOrderTask implements Serializable {
     private String orderComment;
 
     /**
-     * 付款方式【 1:在线付款 2:货到付款】
+     * 付款方式[1-在线付款 2-货到付款]
      */
-    private Boolean paymentWay;
+    private Integer paymentWay;
 
     /**
-     * 任务状态
+     * 任务状态[0-待处理 1-已分配 2-正在出库 3-已发货 4-已完成 5-已取消]
      */
-    private Byte taskStatus;
+    private Integer taskStatus;
 
     /**
      * 订单描述
@@ -82,12 +71,7 @@ public class WareOrderTask implements Serializable {
     private String trackingNo;
 
     /**
-     * create_time
-     */
-    private LocalDateTime createTime;
-
-    /**
-     * 仓库id
+     * 仓库ID
      */
     private Long wareId;
 

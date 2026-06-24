@@ -1,40 +1,34 @@
 package com.mymall.ware.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import java.io.Serializable;
+import com.mymall.common.entity.BaseEntity;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.experimental.Accessors;
+
 import java.math.BigDecimal;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
 
 /**
+ * 采购单明细
  * <p>
- * 
- * </p>
+ * 继承 {@link BaseEntity} 复用 id / 审计字段 / 逻辑删除（is_deleted）/ 乐观锁（version）。
  *
  * @author mymall
  * @since 2026-06-20
  */
-@Getter
-@Setter
-@ToString
+@Data
+@EqualsAndHashCode(callSuper = true)
+@Accessors(chain = true)
 @TableName("wms_purchase_detail")
-public class PurchaseDetail implements Serializable {
-
-    private static final long serialVersionUID = 1L;
-
-    @TableId(value = "id", type = IdType.AUTO)
-    private Long id;
+public class PurchaseDetail extends BaseEntity {
 
     /**
-     * 采购单id
+     * 采购单ID
      */
     private Long purchaseId;
 
     /**
-     * 采购商品id
+     * 采购商品SKU ID
      */
     private Long skuId;
 
@@ -49,12 +43,12 @@ public class PurchaseDetail implements Serializable {
     private BigDecimal skuPrice;
 
     /**
-     * 仓库id
+     * 仓库ID
      */
     private Long wareId;
 
     /**
-     * 状态[0新建，1已分配，2正在采购，3已完成，4采购失败]
+     * 状态[0-新建 1-已分配 2-正在采购 3-已完成 4-采购失败]
      */
     private Integer status;
 }

@@ -4,7 +4,6 @@
 
     <!-- 通用查询映射结果 -->
     <resultMap id="BaseResultMap" type="com.mymall.member.entity.MemberCollectSubject">
-        <id column="id" property="id" />
         <result column="subject_id" property="subjectId" />
         <result column="subject_name" property="subjectName" />
         <result column="subject_img" property="subjectImg" />

@@ -1,35 +1,19 @@
 package com.mymall.product.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import java.io.Serializable;
-import java.time.LocalDateTime;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import com.mymall.common.entity.BaseEntity;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 /**
- * <p>
  * 商品评价
- * </p>
  *
- * @author mymall
- * @since 2026-06-20
+ * <p>继承 {@link BaseEntity} 复用 id / 审计字段 / 逻辑删除（is_deleted）/ 乐观锁（version）。
  */
-@Getter
-@Setter
-@ToString
+@Data
+@EqualsAndHashCode(callSuper = true)
 @TableName("pms_spu_comment")
-public class SpuComment implements Serializable {
-
-    private static final long serialVersionUID = 1L;
-
-    /**
-     * id
-     */
-    @TableId(value = "id", type = IdType.AUTO)
-    private Long id;
+public class SpuComment extends BaseEntity {
 
     /**
      * sku_id
@@ -60,11 +44,6 @@ public class SpuComment implements Serializable {
      * 会员ip
      */
     private String memberIp;
-
-    /**
-     * 创建时间
-     */
-    private LocalDateTime createTime;
 
     /**
      * 显示状态[0-不显示，1-显示]

@@ -4,7 +4,6 @@
 
     <!-- 通用查询映射结果 -->
     <resultMap id="BaseResultMap" type="com.mymall.coupon.entity.SkuFullReduction">
-        <id column="id" property="id" />
         <result column="sku_id" property="skuId" />
         <result column="full_price" property="fullPrice" />
         <result column="reduce_price" property="reducePrice" />

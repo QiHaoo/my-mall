@@ -15,7 +15,7 @@ import java.util.List;
 public class CategoryVO {
 
     @Schema(description = "分类ID")
-    private Long catId;
+    private Long id;
 
     @Schema(description = "分类名称")
     private String name;

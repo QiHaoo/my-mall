@@ -4,7 +4,6 @@
 
     <!-- 通用查询映射结果 -->
     <resultMap id="BaseResultMap" type="com.mymall.product.entity.SkuInfo">
-        <id column="sku_id" property="skuId" />
         <result column="spu_id" property="spuId" />
         <result column="sku_name" property="skuName" />
         <result column="sku_desc" property="skuDesc" />

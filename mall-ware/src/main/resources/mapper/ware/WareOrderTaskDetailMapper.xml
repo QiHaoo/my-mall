@@ -4,7 +4,6 @@
 
     <!-- 通用查询映射结果 -->
     <resultMap id="BaseResultMap" type="com.mymall.ware.entity.WareOrderTaskDetail">
-        <id column="id" property="id" />
         <result column="sku_id" property="skuId" />
         <result column="sku_name" property="skuName" />
         <result column="sku_num" property="skuNum" />

@@ -1,34 +1,19 @@
 package com.mymall.product.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import java.io.Serializable;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import com.mymall.common.entity.BaseEntity;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 /**
- * <p>
  * 属性分组
- * </p>
  *
- * @author mymall
- * @since 2026-06-20
+ * <p>继承 {@link BaseEntity} 复用 id / 审计字段 / 逻辑删除（is_deleted）/ 乐观锁（version）。
  */
-@Getter
-@Setter
-@ToString
+@Data
+@EqualsAndHashCode(callSuper = true)
 @TableName("pms_attr_group")
-public class AttrGroup implements Serializable {
-
-    private static final long serialVersionUID = 1L;
-
-    /**
-     * 分组id
-     */
-    @TableId(value = "attr_group_id", type = IdType.AUTO)
-    private Long attrGroupId;
+public class AttrGroup extends BaseEntity {
 
     /**
      * 组名

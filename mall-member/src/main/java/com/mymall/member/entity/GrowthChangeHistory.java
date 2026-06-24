@@ -1,10 +1,8 @@
 package com.mymall.member.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import java.io.Serializable;
-import java.time.LocalDateTime;
+import com.mymall.common.entity.BaseEntity;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -20,26 +18,14 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
+@EqualsAndHashCode(callSuper = true)
 @TableName("ums_growth_change_history")
-public class GrowthChangeHistory implements Serializable {
-
-    private static final long serialVersionUID = 1L;
-
-    /**
-     * id
-     */
-    @TableId(value = "id", type = IdType.AUTO)
-    private Long id;
+public class GrowthChangeHistory extends BaseEntity {
 
     /**
      * member_id
      */
     private Long memberId;
-
-    /**
-     * create_time
-     */
-    private LocalDateTime createTime;
 
     /**
      * 改变的值（正负计数）

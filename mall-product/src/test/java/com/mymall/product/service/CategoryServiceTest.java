@@ -175,7 +175,7 @@ class CategoryServiceTest {
         void shouldThrowWhenCategoryNotFound() {
             // Given
             CategoryUpdateDTO dto = new CategoryUpdateDTO();
-            dto.setCatId(999L);
+            dto.setId(999L);
             dto.setName("新名称");
 
             when(categoryMapper.selectById(999L)).thenReturn(null);
@@ -199,7 +199,7 @@ class CategoryServiceTest {
         void shouldRejectRootCategoryDeletion() {
             // Given
             Category root = buildCategory(1L, "一级分类", 0L, 1, 0);
-            when(categoryMapper.selectBatchIds(anyList())).thenReturn(List.of(root));
+            when(categoryMapper.selectByIds(anyList())).thenReturn(List.of(root));
 
             // When & Then
             assertThatThrownBy(() -> categoryService.batchDelete(List.of(1L)))
@@ -221,7 +221,7 @@ class CategoryServiceTest {
         void shouldRejectWhenBrandRelationExists() {
             // Given: 二级分类 ID=2（父为一级 ID=1）
             Category child = buildCategory(2L, "电子书刊", 1L, 2, 0);
-            when(categoryMapper.selectBatchIds(anyList())).thenReturn(List.of(child));
+            when(categoryMapper.selectByIds(anyList())).thenReturn(List.of(child));
 
             // Mock allCategories（用于收集子孙）
             Category root = buildCategory(1L, "图书", 0L, 1, 0);
@@ -257,13 +257,13 @@ class CategoryServiceTest {
             // 批量拖拽：D 移到 C 下，B 移到 D 下
             // 结果会形成 B->D->C->B 循环
             CategorySortDTO.SortItem item1 = new CategorySortDTO.SortItem();
-            item1.setCatId(4L);   // D
+            item1.setId(4L);   // D
             item1.setParentCid(3L); // 移到 C 下
             item1.setCatLevel(4);
             item1.setSort(0);
 
             CategorySortDTO.SortItem item2 = new CategorySortDTO.SortItem();
-            item2.setCatId(2L);   // B
+            item2.setId(2L);   // B
             item2.setParentCid(4L); // 移到 D 下
             item2.setCatLevel(3);
             item2.setSort(1);
@@ -281,14 +281,14 @@ class CategoryServiceTest {
 
     // ==================== 辅助方法 ====================
 
-    private Category buildCategory(Long catId, String name, Long parentCid, int catLevel, int sort) {
+    private Category buildCategory(Long id, String name, Long parentCid, int catLevel, int sort) {
         Category category = new Category();
-        category.setCatId(catId);
+        category.setId(id);
         category.setName(name);
         category.setParentCid(parentCid);
         category.setCatLevel(catLevel);
         category.setSort(sort);
-        category.setShowStatus((byte) 1);
+        category.setShowStatus(1);
         category.setProductCount(0);
         return category;
     }

@@ -4,10 +4,8 @@
 
     <!-- 通用查询映射结果 -->
     <resultMap id="BaseResultMap" type="com.mymall.order.entity.OrderOperateHistory">
-        <id column="id" property="id" />
         <result column="order_id" property="orderId" />
         <result column="operate_man" property="operateMan" />
-        <result column="create_time" property="createTime" />
         <result column="order_status" property="orderStatus" />
         <result column="note" property="note" />
     </resultMap>

@@ -1,34 +1,24 @@
 package com.mymall.order.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import java.io.Serializable;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import com.mymall.common.entity.BaseEntity;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.experimental.Accessors;
 
 /**
- * <p>
  * 订单配置信息
- * </p>
+ * <p>
+ * 继承 {@link BaseEntity} 复用 id / 审计字段 / 逻辑删除（is_deleted）/ 乐观锁（version）。
  *
  * @author mymall
  * @since 2026-06-20
  */
-@Getter
-@Setter
-@ToString
+@Data
+@EqualsAndHashCode(callSuper = true)
+@Accessors(chain = true)
 @TableName("oms_order_setting")
-public class OrderSetting implements Serializable {
-
-    private static final long serialVersionUID = 1L;
-
-    /**
-     * id
-     */
-    @TableId(value = "id", type = IdType.AUTO)
-    private Long id;
+public class OrderSetting extends BaseEntity {
 
     /**
      * 秒杀订单超时关闭时间(分)
@@ -56,7 +46,7 @@ public class OrderSetting implements Serializable {
     private Integer commentOvertime;
 
     /**
-     * 会员等级【0-不限会员等级，全部通用；其他-对应的其他会员等级】
+     * 会员等级[0-不限会员等级，全部通用；其他-对应的会员等级]
      */
-    private Byte memberLevel;
+    private Integer memberLevel;
 }

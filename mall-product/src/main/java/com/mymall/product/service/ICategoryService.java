@@ -30,7 +30,7 @@ public interface ICategoryService extends IService<Category> {
     /**
      * 修改分类基础信息
      *
-     * @param dto 修改参数（catId 必填，其余非 null 字段更新）
+     * @param dto 修改参数（id 必填，其余非 null 字段更新）
      */
     void updateCategory(CategoryUpdateDTO dto);
 

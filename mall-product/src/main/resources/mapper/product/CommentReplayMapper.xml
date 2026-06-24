@@ -4,7 +4,6 @@
 
     <!-- 通用查询映射结果 -->
     <resultMap id="BaseResultMap" type="com.mymall.product.entity.CommentReplay">
-        <id column="id" property="id" />
         <result column="comment_id" property="commentId" />
         <result column="reply_id" property="replyId" />
     </resultMap>

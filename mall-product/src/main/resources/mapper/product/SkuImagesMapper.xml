@@ -4,7 +4,6 @@
 
     <!-- 通用查询映射结果 -->
     <resultMap id="BaseResultMap" type="com.mymall.product.entity.SkuImages">
-        <id column="id" property="id" />
         <result column="sku_id" property="skuId" />
         <result column="img_url" property="imgUrl" />
         <result column="img_sort" property="imgSort" />

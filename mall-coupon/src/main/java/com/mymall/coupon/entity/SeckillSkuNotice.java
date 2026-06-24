@@ -1,35 +1,21 @@
 package com.mymall.coupon.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import java.io.Serializable;
+import com.mymall.common.entity.BaseEntity;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
 import java.time.LocalDateTime;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
 
 /**
- * <p>
  * 秒杀商品通知订阅
- * </p>
  *
- * @author mymall
- * @since 2026-06-20
+ * <p>继承 {@link BaseEntity} 复用 id / 审计字段 / 逻辑删除（is_deleted）/ 乐观锁（version）。
  */
-@Getter
-@Setter
-@ToString
+@Data
+@EqualsAndHashCode(callSuper = true)
 @TableName("sms_seckill_sku_notice")
-public class SeckillSkuNotice implements Serializable {
-
-    private static final long serialVersionUID = 1L;
-
-    /**
-     * id
-     */
-    @TableId(value = "id", type = IdType.AUTO)
-    private Long id;
+public class SeckillSkuNotice extends BaseEntity {
 
     /**
      * member_id

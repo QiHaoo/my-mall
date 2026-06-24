@@ -34,7 +34,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category> i
         List<Category> allCategories = list(new LambdaQueryWrapper<Category>()
                 .eq(Category::getShowStatus, 1)
                 .orderByAsc(Category::getSort)
-                .orderByAsc(Category::getCatId));
+                .orderByAsc(Category::getId));
 
         // 2. 转换为 VO
         List<CategoryVO> allVOs = allCategories.stream()
@@ -82,7 +82,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category> i
         category.setSort(dto.getSort() != null ? dto.getSort() : 0);
         category.setIcon(dto.getIcon());
         category.setProductUnit(dto.getProductUnit());
-        category.setShowStatus((byte) 1);
+        category.setShowStatus(1);
         category.setProductCount(0);
 
         save(category);
@@ -93,14 +93,14 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category> i
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void updateCategory(CategoryUpdateDTO dto) {
-        Category existing = getById(dto.getCatId());
+        Category existing = getById(dto.getId());
         if (existing == null) {
             throw new BizException(ResultCode.CATEGORY_NOT_FOUND);
         }
 
         // 如果名称有变化，检查同级唯一
         if (dto.getName() != null && !dto.getName().equals(existing.getName())) {
-            checkNameUnique(existing.getParentCid(), dto.getName(), dto.getCatId());
+            checkNameUnique(existing.getParentCid(), dto.getName(), dto.getId());
         }
 
         // 只更新非 null 字段
@@ -153,15 +153,8 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category> i
             }
         }
 
-        // 6. 逻辑删除：show_status 置 0
-        List<Category> toUpdate = new ArrayList<>();
-        for (Long id : allIdsToDelete) {
-            Category cat = new Category();
-            cat.setCatId(id);
-            cat.setShowStatus((byte) 0);
-            toUpdate.add(cat);
-        }
-        updateBatchById(toUpdate);
+        // 6. 逻辑删除：BaseEntity 的 is_deleted 由 @TableLogic 自动置 1
+        removeByIds(allIdsToDelete);
     }
 
     // ==================== 拖拽排序 ====================
@@ -172,33 +165,33 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category> i
         // 查出所有分类（用于循环引用检测）
         List<Category> allCategories = list();
         Map<Long, Category> categoryMap = allCategories.stream()
-                .collect(Collectors.toMap(Category::getCatId, c -> c));
+                .collect(Collectors.toMap(Category::getId, c -> c));
 
         // 构建全局 parentMap，再叠加本次批次中所有待变更的父节点，检测批量内的隐式循环
         Map<Long, Long> parentMap = allCategories.stream()
-                .collect(Collectors.toMap(Category::getCatId, Category::getParentCid));
+                .collect(Collectors.toMap(Category::getId, Category::getParentCid));
         Map<Long, Long> workingParentMap = new HashMap<>(parentMap);
         for (CategorySortDTO.SortItem item : dto.getCategories()) {
-            workingParentMap.put(item.getCatId(), item.getParentCid());
+            workingParentMap.put(item.getId(), item.getParentCid());
         }
 
         List<Category> toUpdate = new ArrayList<>();
 
         for (CategorySortDTO.SortItem item : dto.getCategories()) {
-            Category existing = categoryMap.get(item.getCatId());
+            Category existing = categoryMap.get(item.getId());
             if (existing == null) {
                 throw new BizException(ResultCode.CATEGORY_NOT_FOUND,
-                        "分类ID [" + item.getCatId() + "] 不存在");
+                        "分类ID [" + item.getId() + "] 不存在");
             }
 
             // 检查循环引用：新父节点不能是自己的子孙（基于叠加后的 workingParentMap）
             if (item.getParentCid() != 0L) {
-                checkCircularReference(item.getCatId(), item.getParentCid(), workingParentMap);
+                checkCircularReference(item.getId(), item.getParentCid(), workingParentMap);
             }
 
             // 构建更新对象
             Category update = new Category();
-            update.setCatId(item.getCatId());
+            update.setId(item.getId());
             update.setParentCid(item.getParentCid());
             update.setCatLevel(item.getCatLevel());
             update.setSort(item.getSort());
@@ -222,7 +215,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category> i
                 .eq(Category::getParentCid, parentCid)
                 .eq(Category::getName, name);
         if (excludeId != null) {
-            wrapper.ne(Category::getCatId, excludeId);
+            wrapper.ne(Category::getId, excludeId);
         }
         if (count(wrapper) > 0) {
             throw new BizException(ResultCode.CATEGORY_NAME_DUPLICATE);
@@ -238,8 +231,8 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category> i
             return;
         }
         for (Category child : children) {
-            result.add(child.getCatId());
-            collectDescendantIds(child.getCatId(), childrenMap, result);
+            result.add(child.getId());
+            collectDescendantIds(child.getId(), childrenMap, result);
         }
     }
 
@@ -266,7 +259,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category> i
     private List<CategoryVO> buildTree(Map<Long, List<CategoryVO>> parentMap, Long parentId) {
         List<CategoryVO> children = parentMap.getOrDefault(parentId, Collections.emptyList());
         for (CategoryVO child : children) {
-            child.setChildren(buildTree(parentMap, child.getCatId()));
+            child.setChildren(buildTree(parentMap, child.getId()));
         }
         return children;
     }
@@ -276,7 +269,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category> i
      */
     private CategoryVO toVO(Category entity) {
         CategoryVO vo = new CategoryVO();
-        vo.setCatId(entity.getCatId());
+        vo.setId(entity.getId());
         vo.setName(entity.getName());
         vo.setParentCid(entity.getParentCid());
         vo.setCatLevel(entity.getCatLevel());

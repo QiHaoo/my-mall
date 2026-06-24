@@ -1,79 +1,59 @@
 package com.mymall.ware.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import java.io.Serializable;
+import com.mymall.common.entity.BaseEntity;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.experimental.Accessors;
+
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
 
 /**
- * <p>
  * 采购信息
- * </p>
+ * <p>
+ * 继承 {@link BaseEntity} 复用 id / 审计字段 / 逻辑删除（is_deleted）/ 乐观锁（version）。
  *
  * @author mymall
  * @since 2026-06-20
  */
-@Getter
-@Setter
-@ToString
+@Data
+@EqualsAndHashCode(callSuper = true)
+@Accessors(chain = true)
 @TableName("wms_purchase")
-public class Purchase implements Serializable {
-
-    private static final long serialVersionUID = 1L;
+public class Purchase extends BaseEntity {
 
     /**
-     * 采购单id
-     */
-    @TableId(value = "id", type = IdType.AUTO)
-    private Long id;
-
-    /**
-     * 采购人id
+     * 采购人用户ID
      */
     private Long assigneeId;
 
     /**
-     * 采购人名
+     * 采购人姓名
      */
     private String assigneeName;
 
     /**
-     * 联系方式
+     * 采购人联系方式
      */
     private String phone;
 
     /**
-     * 优先级
+     * 优先级[0-低 1-中 2-高]
      */
     private Integer priority;
 
     /**
-     * 状态
+     * 状态[0-新建 1-已分配 2-正在采购 3-已完成 4-采购失败]
      */
     private Integer status;
 
     /**
-     * 仓库id
+     * 仓库ID
      */
     private Long wareId;
 
     /**
-     * 总金额
+     * 采购总金额
      */
     private BigDecimal amount;
-
-    /**
-     * 创建日期
-     */
-    private LocalDateTime createTime;
-
-    /**
-     * 更新日期
-     */
-    private LocalDateTime updateTime;
 }

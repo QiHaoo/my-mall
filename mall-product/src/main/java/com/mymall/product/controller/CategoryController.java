@@ -43,7 +43,7 @@ public class CategoryController {
     @Operation(summary = "修改分类")
     @PutMapping
     public R<Void> update(@Validated @RequestBody CategoryUpdateDTO dto) {
-        log.info("修改分类: catId={}", dto.getCatId());
+        log.info("修改分类: id={}", dto.getId());
         categoryService.updateCategory(dto);
         return R.ok(null);
     }

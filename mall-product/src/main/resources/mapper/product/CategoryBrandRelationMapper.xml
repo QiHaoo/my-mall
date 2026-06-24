@@ -4,7 +4,6 @@
 
     <!-- 通用查询映射结果 -->
     <resultMap id="BaseResultMap" type="com.mymall.product.entity.CategoryBrandRelation">
-        <id column="id" property="id" />
         <result column="brand_id" property="brandId" />
         <result column="catelog_id" property="catelogId" />
         <result column="brand_name" property="brandName" />

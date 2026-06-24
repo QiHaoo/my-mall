@@ -4,12 +4,10 @@
 
     <!-- 通用查询映射结果 -->
     <resultMap id="BaseResultMap" type="com.mymall.member.entity.MemberCollectSpu">
-        <id column="id" property="id" />
         <result column="member_id" property="memberId" />
         <result column="spu_id" property="spuId" />
         <result column="spu_name" property="spuName" />
         <result column="spu_img" property="spuImg" />
-        <result column="create_time" property="createTime" />
     </resultMap>
 
 </mapper>

@@ -1,35 +1,24 @@
 package com.mymall.order.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import java.io.Serializable;
-import java.time.LocalDateTime;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import com.mymall.common.entity.BaseEntity;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.experimental.Accessors;
 
 /**
- * <p>
  * 退货原因
- * </p>
+ * <p>
+ * 继承 {@link BaseEntity} 复用 id / 审计字段 / 逻辑删除（is_deleted）/ 乐观锁（version）。
  *
  * @author mymall
  * @since 2026-06-20
  */
-@Getter
-@Setter
-@ToString
+@Data
+@EqualsAndHashCode(callSuper = true)
+@Accessors(chain = true)
 @TableName("oms_order_return_reason")
-public class OrderReturnReason implements Serializable {
-
-    private static final long serialVersionUID = 1L;
-
-    /**
-     * id
-     */
-    @TableId(value = "id", type = IdType.AUTO)
-    private Long id;
+public class OrderReturnReason extends BaseEntity {
 
     /**
      * 退货原因名
@@ -42,12 +31,7 @@ public class OrderReturnReason implements Serializable {
     private Integer sort;
 
     /**
-     * 启用状态
+     * 启用状态[0-禁用 1-启用]
      */
-    private Boolean status;
-
-    /**
-     * create_time
-     */
-    private LocalDateTime createTime;
+    private Integer status;
 }

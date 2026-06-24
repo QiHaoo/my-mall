@@ -4,15 +4,12 @@
 
     <!-- 通用查询映射结果 -->
     <resultMap id="BaseResultMap" type="com.mymall.product.entity.SpuInfo">
-        <id column="id" property="id" />
         <result column="spu_name" property="spuName" />
         <result column="spu_description" property="spuDescription" />
         <result column="catalog_id" property="catalogId" />
         <result column="brand_id" property="brandId" />
         <result column="weight" property="weight" />
         <result column="publish_status" property="publishStatus" />
-        <result column="create_time" property="createTime" />
-        <result column="update_time" property="updateTime" />
     </resultMap>
 
 </mapper>

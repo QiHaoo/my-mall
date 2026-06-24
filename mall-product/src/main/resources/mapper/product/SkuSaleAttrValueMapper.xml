@@ -4,7 +4,6 @@
 
     <!-- 通用查询映射结果 -->
     <resultMap id="BaseResultMap" type="com.mymall.product.entity.SkuSaleAttrValue">
-        <id column="id" property="id" />
         <result column="sku_id" property="skuId" />
         <result column="attr_id" property="attrId" />
         <result column="attr_name" property="attrName" />

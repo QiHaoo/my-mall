@@ -1,42 +1,32 @@
 package com.mymall.ware.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import java.io.Serializable;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import com.mymall.common.entity.BaseEntity;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.experimental.Accessors;
 
 /**
- * <p>
  * 商品库存
- * </p>
+ * <p>
+ * 继承 {@link BaseEntity} 复用 id / 审计字段 / 逻辑删除（is_deleted）/ 乐观锁（version）。
  *
  * @author mymall
  * @since 2026-06-20
  */
-@Getter
-@Setter
-@ToString
+@Data
+@EqualsAndHashCode(callSuper = true)
+@Accessors(chain = true)
 @TableName("wms_ware_sku")
-public class WareSku implements Serializable {
-
-    private static final long serialVersionUID = 1L;
+public class WareSku extends BaseEntity {
 
     /**
-     * id
-     */
-    @TableId(value = "id", type = IdType.AUTO)
-    private Long id;
-
-    /**
-     * sku_id
+     * SKU ID
      */
     private Long skuId;
 
     /**
-     * 仓库id
+     * 仓库ID
      */
     private Long wareId;
 
@@ -46,7 +36,7 @@ public class WareSku implements Serializable {
     private Integer stock;
 
     /**
-     * sku_name
+     * SKU名称
      */
     private String skuName;
 

@@ -4,7 +4,6 @@
 
     <!-- 通用查询映射结果 -->
     <resultMap id="BaseResultMap" type="com.mymall.coupon.entity.SeckillSkuRelation">
-        <id column="id" property="id" />
         <result column="promotion_id" property="promotionId" />
         <result column="promotion_session_id" property="promotionSessionId" />
         <result column="sku_id" property="skuId" />

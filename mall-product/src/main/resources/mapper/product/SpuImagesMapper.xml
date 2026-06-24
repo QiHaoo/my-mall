@@ -4,7 +4,6 @@
 
     <!-- 通用查询映射结果 -->
     <resultMap id="BaseResultMap" type="com.mymall.product.entity.SpuImages">
-        <id column="id" property="id" />
         <result column="spu_id" property="spuId" />
         <result column="img_name" property="imgName" />
         <result column="img_url" property="imgUrl" />

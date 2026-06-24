@@ -4,7 +4,6 @@
 
     <!-- 通用查询映射结果 -->
     <resultMap id="BaseResultMap" type="com.mymall.member.entity.MemberReceiveAddress">
-        <id column="id" property="id" />
         <result column="member_id" property="memberId" />
         <result column="name" property="name" />
         <result column="phone" property="phone" />

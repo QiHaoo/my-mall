@@ -4,7 +4,6 @@
 
     <!-- 通用查询映射结果 -->
     <resultMap id="BaseResultMap" type="com.mymall.member.entity.MemberStatisticsInfo">
-        <id column="id" property="id" />
         <result column="member_id" property="memberId" />
         <result column="consume_amount" property="consumeAmount" />
         <result column="coupon_amount" property="couponAmount" />

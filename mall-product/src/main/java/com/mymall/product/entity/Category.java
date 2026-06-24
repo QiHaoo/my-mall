@@ -1,34 +1,23 @@
 package com.mymall.product.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import java.io.Serializable;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import com.mymall.common.entity.BaseEntity;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.experimental.Accessors;
 
 /**
- * <p>
  * 商品三级分类
- * </p>
- *
- * @author mymall
- * @since 2026-06-20
+ * <p>
+ * 继承 {@link BaseEntity} 复用 id / 审计字段 / 逻辑删除（is_deleted）/ 乐观锁（version）。
+ * 逻辑删除由 MyBatis-Plus {@code @TableLogic} 自动处理（removeByIds → is_deleted=1），
+ * show_status 仅作业务显示控制，不再承担删除语义。
  */
-@Getter
-@Setter
-@ToString
+@Data
+@EqualsAndHashCode(callSuper = true)
+@Accessors(chain = true)
 @TableName("pms_category")
-public class Category implements Serializable {
-
-    private static final long serialVersionUID = 1L;
-
-    /**
-     * 分类id
-     */
-    @TableId(value = "cat_id", type = IdType.AUTO)
-    private Long catId;
+public class Category extends BaseEntity {
 
     /**
      * 分类名称
@@ -36,19 +25,19 @@ public class Category implements Serializable {
     private String name;
 
     /**
-     * 父分类id
+     * 父分类id[0-一级分类]
      */
     private Long parentCid;
 
     /**
-     * 层级
+     * 层级[1/2/3]
      */
     private Integer catLevel;
 
     /**
-     * 是否显示[0-不显示，1显示]
+     * 是否显示[0-不显示 1-显示]
      */
-    private Byte showStatus;
+    private Integer showStatus;
 
     /**
      * 排序

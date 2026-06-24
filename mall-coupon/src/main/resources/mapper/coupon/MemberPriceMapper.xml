@@ -4,7 +4,6 @@
 
     <!-- 通用查询映射结果 -->
     <resultMap id="BaseResultMap" type="com.mymall.coupon.entity.MemberPrice">
-        <id column="id" property="id" />
         <result column="sku_id" property="skuId" />
         <result column="member_level_id" property="memberLevelId" />
         <result column="member_level_name" property="memberLevelName" />

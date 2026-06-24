@@ -1,56 +1,42 @@
 package com.mymall.order.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import java.io.Serializable;
+import com.mymall.common.entity.BaseEntity;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.experimental.Accessors;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
 
 /**
- * <p>
  * 订单
- * </p>
+ * <p>
+ * 继承 {@link BaseEntity} 复用 id / 审计字段 / 逻辑删除（is_deleted）/ 乐观锁（version）。
  *
  * @author mymall
  * @since 2026-06-20
  */
-@Getter
-@Setter
-@ToString
+@Data
+@EqualsAndHashCode(callSuper = true)
+@Accessors(chain = true)
 @TableName("oms_order")
-public class Order implements Serializable {
-
-    private static final long serialVersionUID = 1L;
+public class Order extends BaseEntity {
 
     /**
-     * id
-     */
-    @TableId(value = "id", type = IdType.AUTO)
-    private Long id;
-
-    /**
-     * member_id
+     * 会员ID
      */
     private Long memberId;
 
     /**
-     * 订单号
+     * 订单号（雪花ID字符串）
      */
     private String orderSn;
 
     /**
-     * 使用的优惠券
+     * 使用的优惠券ID
      */
     private Long couponId;
-
-    /**
-     * create_time
-     */
-    private LocalDateTime createTime;
 
     /**
      * 用户名
@@ -93,19 +79,19 @@ public class Order implements Serializable {
     private BigDecimal discountAmount;
 
     /**
-     * 支付方式【1->支付宝；2->微信；3->银联； 4->货到付款；】
+     * 支付方式[1-支付宝 2-微信 3-银联 4-货到付款]
      */
-    private Byte payType;
+    private Integer payType;
 
     /**
-     * 订单来源[0->PC订单；1->app订单]
+     * 订单来源[0-PC订单 1-app订单]
      */
-    private Byte sourceType;
+    private Integer sourceType;
 
     /**
-     * 订单状态【0->待付款；1->待发货；2->已发货；3->已完成；4->已关闭；5->无效订单】
+     * 订单状态[0-待付款 1-待发货 2-已发货 3-已完成 4-已关闭 5-无效订单]
      */
-    private Byte status;
+    private Integer status;
 
     /**
      * 物流公司(配送方式)
@@ -133,9 +119,9 @@ public class Order implements Serializable {
     private Integer growth;
 
     /**
-     * 发票类型[0->不开发票；1->电子发票；2->纸质发票]
+     * 发票类型[0-不开发票 1-电子发票 2-纸质发票]
      */
-    private Byte billType;
+    private Integer billType;
 
     /**
      * 发票抬头
@@ -198,14 +184,14 @@ public class Order implements Serializable {
     private String note;
 
     /**
-     * 确认收货状态[0->未确认；1->已确认]
+     * 确认收货状态[0-未确认 1-已确认]
      */
-    private Byte confirmStatus;
+    private Integer confirmStatus;
 
     /**
-     * 删除状态【0->未删除；1->已删除】
+     * 删除状态[0-未删除 1-已删除]
      */
-    private Byte deleteStatus;
+    private Integer deleteStatus;
 
     /**
      * 下单时使用的积分

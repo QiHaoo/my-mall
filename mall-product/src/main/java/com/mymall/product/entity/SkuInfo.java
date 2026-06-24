@@ -1,35 +1,21 @@
 package com.mymall.product.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import java.io.Serializable;
+import com.mymall.common.entity.BaseEntity;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
 import java.math.BigDecimal;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
 
 /**
- * <p>
  * sku信息
- * </p>
  *
- * @author mymall
- * @since 2026-06-20
+ * <p>继承 {@link BaseEntity} 复用 id / 审计字段 / 逻辑删除（is_deleted）/ 乐观锁（version）。
  */
-@Getter
-@Setter
-@ToString
+@Data
+@EqualsAndHashCode(callSuper = true)
 @TableName("pms_sku_info")
-public class SkuInfo implements Serializable {
-
-    private static final long serialVersionUID = 1L;
-
-    /**
-     * skuId
-     */
-    @TableId(value = "sku_id", type = IdType.AUTO)
-    private Long skuId;
+public class SkuInfo extends BaseEntity {
 
     /**
      * spuId

@@ -1,8 +1,8 @@
 package com.mymall.member.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
-import java.io.Serializable;
-import java.time.LocalDateTime;
+import com.mymall.common.entity.BaseEntity;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -18,15 +18,9 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
+@EqualsAndHashCode(callSuper = true)
 @TableName("ums_member_collect_spu")
-public class MemberCollectSpu implements Serializable {
-
-    private static final long serialVersionUID = 1L;
-
-    /**
-     * id
-     */
-    private Long id;
+public class MemberCollectSpu extends BaseEntity {
 
     /**
      * 会员id
@@ -47,9 +41,4 @@ public class MemberCollectSpu implements Serializable {
      * spu_img
      */
     private String spuImg;
-
-    /**
-     * create_time
-     */
-    private LocalDateTime createTime;
 }

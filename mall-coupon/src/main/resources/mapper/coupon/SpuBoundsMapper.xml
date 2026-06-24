@@ -4,7 +4,6 @@
 
     <!-- 通用查询映射结果 -->
     <resultMap id="BaseResultMap" type="com.mymall.coupon.entity.SpuBounds">
-        <id column="id" property="id" />
         <result column="spu_id" property="spuId" />
         <result column="grow_bounds" property="growBounds" />
         <result column="buy_bounds" property="buyBounds" />

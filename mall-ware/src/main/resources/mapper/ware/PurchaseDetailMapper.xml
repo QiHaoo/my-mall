@@ -4,7 +4,6 @@
 
     <!-- 通用查询映射结果 -->
     <resultMap id="BaseResultMap" type="com.mymall.ware.entity.PurchaseDetail">
-        <id column="id" property="id" />
         <result column="purchase_id" property="purchaseId" />
         <result column="sku_id" property="skuId" />
         <result column="sku_num" property="skuNum" />

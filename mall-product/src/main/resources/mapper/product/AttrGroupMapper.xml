@@ -4,7 +4,6 @@
 
     <!-- 通用查询映射结果 -->
     <resultMap id="BaseResultMap" type="com.mymall.product.entity.AttrGroup">
-        <id column="attr_group_id" property="attrGroupId" />
         <result column="attr_group_name" property="attrGroupName" />
         <result column="sort" property="sort" />
         <result column="descript" property="descript" />

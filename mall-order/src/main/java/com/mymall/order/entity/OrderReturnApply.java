@@ -1,44 +1,35 @@
 package com.mymall.order.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import java.io.Serializable;
+import com.mymall.common.entity.BaseEntity;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.experimental.Accessors;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
 
 /**
- * <p>
  * 订单退货申请
- * </p>
+ * <p>
+ * 继承 {@link BaseEntity} 复用 id / 审计字段 / 逻辑删除（is_deleted）/ 乐观锁（version）。
  *
  * @author mymall
  * @since 2026-06-20
  */
-@Getter
-@Setter
-@ToString
+@Data
+@EqualsAndHashCode(callSuper = true)
+@Accessors(chain = true)
 @TableName("oms_order_return_apply")
-public class OrderReturnApply implements Serializable {
-
-    private static final long serialVersionUID = 1L;
+public class OrderReturnApply extends BaseEntity {
 
     /**
-     * id
-     */
-    @TableId(value = "id", type = IdType.AUTO)
-    private Long id;
-
-    /**
-     * order_id
+     * 订单ID
      */
     private Long orderId;
 
     /**
-     * 退货商品id
+     * 退货商品ID
      */
     private Long skuId;
 
@@ -46,11 +37,6 @@ public class OrderReturnApply implements Serializable {
      * 订单编号
      */
     private String orderSn;
-
-    /**
-     * 申请时间
-     */
-    private LocalDateTime createTime;
 
     /**
      * 会员用户名
@@ -73,9 +59,9 @@ public class OrderReturnApply implements Serializable {
     private String returnPhone;
 
     /**
-     * 申请状态[0->待处理；1->退货中；2->已完成；3->已拒绝]
+     * 申请状态[0-待处理 1-退货中 2-已完成 3-已拒绝]
      */
-    private Boolean status;
+    private Integer status;
 
     /**
      * 处理时间
@@ -118,14 +104,14 @@ public class OrderReturnApply implements Serializable {
     private BigDecimal skuRealPrice;
 
     /**
-     * 原因
+     * 退货原因
      */
     private String reason;
 
     /**
      * 描述
      */
-    private String description述;
+    private String description;
 
     /**
      * 凭证图片，以逗号隔开

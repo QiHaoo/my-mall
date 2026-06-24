@@ -4,11 +4,9 @@
 
     <!-- 通用查询映射结果 -->
     <resultMap id="BaseResultMap" type="com.mymall.order.entity.OrderReturnApply">
-        <id column="id" property="id" />
         <result column="order_id" property="orderId" />
         <result column="sku_id" property="skuId" />
         <result column="order_sn" property="orderSn" />
-        <result column="create_time" property="createTime" />
         <result column="member_username" property="memberUsername" />
         <result column="return_amount" property="returnAmount" />
         <result column="return_name" property="returnName" />
@@ -23,7 +21,7 @@
         <result column="sku_price" property="skuPrice" />
         <result column="sku_real_price" property="skuRealPrice" />
         <result column="reason" property="reason" />
-        <result column="description述" property="description述" />
+        <result column="description" property="description" />
         <result column="desc_pics" property="descPics" />
         <result column="handle_note" property="handleNote" />
         <result column="handle_man" property="handleMan" />

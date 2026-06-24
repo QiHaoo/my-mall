@@ -4,7 +4,6 @@
 
     <!-- 通用查询映射结果 -->
     <resultMap id="BaseResultMap" type="com.mymall.ware.entity.WareInfo">
-        <id column="id" property="id" />
         <result column="name" property="name" />
         <result column="address" property="address" />
         <result column="areacode" property="areacode" />

@@ -4,7 +4,6 @@
 
     <!-- 通用查询映射结果 -->
     <resultMap id="BaseResultMap" type="com.mymall.member.entity.MemberLevel">
-        <id column="id" property="id" />
         <result column="name" property="name" />
         <result column="growth_point" property="growthPoint" />
         <result column="default_status" property="defaultStatus" />

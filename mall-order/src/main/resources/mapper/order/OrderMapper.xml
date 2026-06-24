@@ -4,11 +4,9 @@
 
     <!-- 通用查询映射结果 -->
     <resultMap id="BaseResultMap" type="com.mymall.order.entity.Order">
-        <id column="id" property="id" />
         <result column="member_id" property="memberId" />
         <result column="order_sn" property="orderSn" />
         <result column="coupon_id" property="couponId" />
-        <result column="create_time" property="createTime" />
         <result column="member_username" property="memberUsername" />
         <result column="total_amount" property="totalAmount" />
         <result column="pay_amount" property="payAmount" />

@@ -4,7 +4,6 @@
 
     <!-- 通用查询映射结果 -->
     <resultMap id="BaseResultMap" type="com.mymall.order.entity.OrderSetting">
-        <id column="id" property="id" />
         <result column="flash_order_overtime" property="flashOrderOvertime" />
         <result column="normal_order_overtime" property="normalOrderOvertime" />
         <result column="confirm_overtime" property="confirmOvertime" />

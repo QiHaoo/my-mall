@@ -4,7 +4,6 @@
 
     <!-- 通用查询映射结果 -->
     <resultMap id="BaseResultMap" type="com.mymall.coupon.entity.SkuLadder">
-        <id column="id" property="id" />
         <result column="sku_id" property="skuId" />
         <result column="full_count" property="fullCount" />
         <result column="discount" property="discount" />

@@ -4,7 +4,6 @@
 
     <!-- 通用查询映射结果 -->
     <resultMap id="BaseResultMap" type="com.mymall.coupon.entity.HomeSubject">
-        <id column="id" property="id" />
         <result column="name" property="name" />
         <result column="title" property="title" />
         <result column="sub_title" property="subTitle" />

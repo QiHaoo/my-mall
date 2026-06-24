@@ -4,9 +4,7 @@
 
     <!-- 通用查询映射结果 -->
     <resultMap id="BaseResultMap" type="com.mymall.member.entity.GrowthChangeHistory">
-        <id column="id" property="id" />
         <result column="member_id" property="memberId" />
-        <result column="create_time" property="createTime" />
         <result column="change_count" property="changeCount" />
         <result column="note" property="note" />
         <result column="source_type" property="sourceType" />

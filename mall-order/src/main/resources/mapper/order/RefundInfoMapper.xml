@@ -4,7 +4,6 @@
 
     <!-- 通用查询映射结果 -->
     <resultMap id="BaseResultMap" type="com.mymall.order.entity.RefundInfo">
-        <id column="id" property="id" />
         <result column="order_return_id" property="orderReturnId" />
         <result column="refund" property="refund" />
         <result column="refund_sn" property="refundSn" />
