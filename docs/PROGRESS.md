@@ -32,6 +32,9 @@
 | 2026-06-22 | 商品分类 CRUD 实现 | `699f1b7` | product 模块：CategoryController/Service（树查询、新增、修改、批量删除、拖拽排序）、DTO/VO、@WebMvcTest 单元测试、category-management.md 文档 |
 | 2026-06-23 | OSS 对象存储服务实现 | `1cc33c4` | mall-oss 独立服务 + mall-common-oss SDK（MinIO Presigned URL 签发、文件元数据管理、前端直传）、object-storage-design.md 设计文档、oss-demo.http 测试文件、mall_oss.sql 初始化脚本 |
 | 2026-06-23 | OSS 安全闭环增强（v1.1） | `7adcace` | Content-Type 回调校验、回调幂等、上传者身份透传（UserContext + UserContextFilter + uploader_id）、删除越权校验、超时 PENDING 定时清理、publicBaseUrl/region 配置（fileUrl 走公网域名、迁移 S3 必填 region）、MinIO 调用移出事务、设计文档同步修订与精简 |
+| 2026-06-24 | common 模块生产级闭环（v1.2） | `b60665e` | 统一 HTTP 200+R.code 策略（对齐规范文档）、GlobalExceptionHandler 补全 ConstraintViolation/Bind/HttpMessageNotReadable/MaxUploadSize 等处理器、ResultCode.SUCCESS 统一为 200、BaseEntity 增 @Version+审计字段 createBy/updateBy、MyMetaObjectHandler 补全填充、新增 JacksonConfig（Long→String 防 JS 精度丢失+LocalDateTime 格式化）、MybatisPlusConfig 分页 maxLimit+全局配置显式化、SpringDoc 文案修正、代码生成器依赖移出 runtime |
+| 2026-06-24 | 表设计规范 + init SQL 改造 + 实体对齐 | `3b41038` | 新增 table-design-specification.md；pms/sms/ums/wms/oms 53 表生产级改造（PK 统一 id 雪花/去 AUTO_INCREMENT/补审计列/utf8mb4/类型修正/索引）；53 实体统一继承 BaseEntity + Mapper XML 同步；Category 链路 catId→id、逻辑删除改 @TableLogic、showStatus Byte→Integer；修复 Category Service 测试 MP 版本脱节（selectBatchIds→selectByIds） |
+| 2026-06-24 | common 模块设计文档 + 规范对齐 | 待提交 | 新增 docs/common/common-module-design.md；coding-standards §4 与实现对齐（BizException 签名/异常处理器清单/错误码段/HTTP 200 策略）；gap-analysis 归档至 docs/other/；CLAUDE.md 文档索引更新 |
 
 ---
 
@@ -39,7 +42,6 @@
 
 | 事项 | 模块 | 状态说明 |
 |------|------|---------|
-| common 模块 P2 补齐 | mall-common | CORS 配置、CommonConstants、BaseEntity @Version 待补（UserContext ✅ 已随 OSS 增强落地） |
 | 网关路由配置修复 | mall-gateway | RequestLogFilter + application.yml 路由过滤器修正，待提交 |
 
 ---

@@ -1,8 +1,12 @@
-# mall-common 模块缺失项分析
+# mall-common 模块缺失项分析（已归档）
 
+> ⚠️ 本文档为历史分析记录，所有 P0/P1/P2 项已闭环。当前 common 模块设计文档见
+> [docs/common/common-module-design.md](../common/common-module-design.md)。
+>
 > 分析时间：2026-06-21  
 > 目的：梳理 common 模块在正式开发业务代码前需要补充的内容，按优先级分档  
 > P0/P1 实现完成时间：2026-06-22
+> P2 + 生产级闭环完成时间：2026-06-24（v1.2，详见 common-module-design.md 演进记录）
 
 ---
 

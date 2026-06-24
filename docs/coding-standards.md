@@ -173,15 +173,22 @@ public class OrderServiceImpl implements OrderService {
 RuntimeException
   └── BizException（业务异常，可预期）
         ├── code: 业务错误码
-        └── msg: 用户可见的错误消息
+        └── message: 用户可见的错误消息
 ```
 
-| 异常类型 | 说明 | HTTP 表现 | 是否记录 ERROR 日志 |
-|---------|------|-----------|-------------------|
-| `BizException` | 业务规则不满足（库存不足、优惠券过期） | 200 + R.code | 否（WARN） |
-| `MethodArgumentNotValidException` | 参数校验失败 | 200 + R.code(400) | 否（WARN） |
-| `ConstraintViolationException` | 路径参数/查询参数校验失败 | 200 + R.code(400) | 否（WARN） |
-| 其他 `Exception` | 未预期异常（NPE、DB 异常） | 200 + R.code(500) | 是（ERROR + 堆栈） |
+**HTTP 状态码策略**：本项目统一 HTTP 200 + `R.code` 表达业务状态（200=成功，4xx/5xx=错误）。
+理由：电商业务错误种类多，4xx/5xx 会被网关/CDN 拦截导致前端拿不到响应体；统一 200 + 业务码是国内主流电商通行做法。详见 [Controller 规范 §2](./controller-specification.md#二返回值与-http-状态码)。
+
+| 异常类型 | 说明 | HTTP | R.code | 日志级别 |
+|---------|------|------|--------|---------|
+| `BizException` | 业务规则不满足（库存不足、优惠券过期） | 200 | 业务码 | WARN |
+| `MethodArgumentNotValidException` | @RequestBody 校验失败 | 200 | 400 | WARN |
+| `BindException` | 表单参数校验失败 | 200 | 400 | WARN |
+| `ConstraintViolationException` | @PathVariable/@RequestParam 校验失败 | 200 | 400 | WARN |
+| `HttpMessageNotReadableException` | 请求体解析失败 | 200 | 400 | WARN |
+| `NoResourceFoundException` | 资源不存在 | 200 | 404 | WARN |
+| `HttpRequestMethodNotSupportedException` | 方法不支持 | 200 | 405 | WARN |
+| 其他 `Exception` | 未预期异常（NPE、DB 异常） | 200 | 500 | ERROR（带堆栈） |
 
 ### 4.2 BizException 实现
 
@@ -201,114 +208,136 @@ import lombok.Getter;
 @Getter
 public class BizException extends RuntimeException {
 
-    private final Integer code;
+    private final int code;
 
-    public BizException(String message) {
-        super(message);
-        this.code = 500;
-    }
-
-    public BizException(Integer code, String message) {
+    /** 自定义 code + message */
+    public BizException(int code, String message) {
         super(message);
         this.code = code;
+    }
+
+    /** 使用 ResultCode 枚举 */
+    public BizException(ResultCode resultCode) {
+        super(resultCode.getMessage());
+        this.code = resultCode.getCode();
+    }
+
+    /** 使用 ResultCode 枚举 + 自定义 message（覆盖默认 message） */
+    public BizException(ResultCode resultCode, String message) {
+        super(message);
+        this.code = resultCode.getCode();
     }
 }
 ```
 
 ### 4.3 GlobalExceptionHandler 实现
 
-放在 `mall-common` 的 `exception` 包下：
+放在 `mall-common` 的 `exception` 包下，统一 HTTP 200 + R.code：
 
 ```java
 package com.mymall.common.exception;
 
 import com.mymall.common.result.R;
 import jakarta.validation.ConstraintViolationException;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.stream.Collectors;
 
 /**
  * 全局异常处理器
  *
- * <p>所有 Controller 抛出的异常在此统一捕获，转换为 R 响应体。
- * Controller 不需要 try-catch。
+ * <p>统一 HTTP 200 + R.code 策略，Controller 不需要 try-catch。
  */
-@Slf4j
-@RestControllerAdvice
+@RestControllerAdvice(basePackages = "com.mymall")
 public class GlobalExceptionHandler {
 
-    /** 业务异常：可预期，不记录 ERROR 日志 */
+    /** 业务异常：可预期，WARN 日志 */
     @ExceptionHandler(BizException.class)
     public R<Void> handleBizException(BizException e) {
         log.warn("业务异常: code={}, msg={}", e.getCode(), e.getMessage());
         return R.error(e.getCode(), e.getMessage());
     }
 
-    /** @RequestBody 参数校验失败 */
+    /** @RequestBody 校验失败 */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public R<Void> handleValidation(MethodArgumentNotValidException e) {
         String msg = e.getBindingResult().getFieldErrors().stream()
                 .map(FieldError::getDefaultMessage)
                 .collect(Collectors.joining("; "));
-        log.warn("参数校验失败: {}", msg);
-        return R.error(400, msg);
+        return R.error(ResultCode.PARAM_ERROR.getCode(), msg);
     }
 
-    /** @ModelAttribute / @RequestParam 参数校验失败 */
+    /** 表单参数校验失败 */
     @ExceptionHandler(BindException.class)
-    public R<Void> handleBindException(BindException e) {
-        String msg = e.getFieldErrors().stream()
-                .map(FieldError::getDefaultMessage)
-                .collect(Collectors.joining("; "));
-        log.warn("参数绑定失败: {}", msg);
-        return R.error(400, msg);
-    }
+    public R<Void> handleBindException(BindException e) { ... }
 
-    /** @PathVariable / @RequestParam 校验失败 */
+    /** @PathVariable/@RequestParam 校验失败 */
     @ExceptionHandler(ConstraintViolationException.class)
-    public R<Void> handleConstraintViolation(ConstraintViolationException e) {
-        log.warn("约束校验失败: {}", e.getMessage());
-        return R.error(400, e.getMessage());
-    }
+    public R<Void> handleConstraintViolation(ConstraintViolationException e) { ... }
 
-    /** 兜底：未预期异常，记录完整堆栈 */
+    /** 请求体解析失败 */
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public R<Void> handleNotReadable(HttpMessageNotReadableException e) { ... }
+
+    /** 资源不存在 */
+    @ExceptionHandler(NoResourceFoundException.class)
+    public R<Void> handleNoResource(NoResourceFoundException e) { ... }
+
+    /** 兜底：未预期异常，记录完整堆栈，不向客户端泄露 */
     @ExceptionHandler(Exception.class)
     public R<Void> handleException(Exception e) {
-        log.error("系统异常", e);
-        return R.error(500, "系统繁忙，请稍后重试");
+        log.error("未处理异常", e);
+        return R.error(ResultCode.INTERNAL_ERROR.getCode(),
+                       ResultCode.INTERNAL_ERROR.getMessage());
     }
 }
 ```
 
+> 完整处理器清单（含 MaxUploadSizeExceededException、MethodArgumentTypeMismatchException 等）见
+> `mall-common/src/main/java/com/mymall/common/exception/GlobalExceptionHandler.java`。
+>
+> **切片测试**：`@WebMvcTest` 不扫描 `@RestControllerAdvice`，需 `@Import(GlobalExceptionHandler.class)`
+> 才能验证异常 → R.code 转换。
+
 ### 4.4 使用方式
 
 ```java
-// Service 中抛业务异常
+// Service 中抛业务异常（推荐用 ResultCode 枚举）
 public void deductStock(Long skuId, Integer count) {
     Integer stock = wareMapper.getStock(skuId);
     if (stock < count) {
-        throw new BizException(40001, "库存不足，剩余: " + stock);
+        throw new BizException(ResultCode.STOCK_NOT_ENOUGH, "SKU[" + skuId + "] 库存不足");
     }
-    // ...
 }
 ```
 
 ### 4.5 错误码规划
 
+错误码集中在 `ResultCode` 枚举管理，按模块划分码段（与实现一致）：
+
 | 码段 | 模块 | 示例 |
 |------|------|------|
-| 400 | 参数校验类（全局统一） | 400 |
-| 401 | 认证类 | 401001 未登录、401002 token 过期 |
-| 403 | 授权类 | 403001 无权限 |
-| 40001-40099 | 通用业务 | 40001 库存不足、40002 重复操作 |
-| 4xx00-4xx99 | 各模块独立分配 | coupon: 41001-41099, order: 42001-42099 |
-| 500 | 系统异常（全局统一） | 500 |
+| 200 | 成功 | — |
+| 400 | 参数错误（全局） | PARAM_ERROR |
+| 401 | 未登录 | UNAUTHORIZED |
+| 403 | 无权限 | FORBIDDEN |
+| 404 | 资源不存在 | NOT_FOUND |
+| 405 | 方法不允许 | METHOD_NOT_ALLOWED |
+| 500 | 服务器内部错误 | INTERNAL_ERROR |
+| 40001~49999 | 优惠券服务 | COUPON_NOT_FOUND |
+| 50001~51999 | 商品服务 | PRODUCT_NOT_FOUND |
+| 51001~51999 | 商品分类 | CATEGORY_NOT_FOUND |
+| 52001~52999 | 对象存储 | OSS_FILE_TOO_LARGE |
+| 60001~69999 | 订单服务 | ORDER_NOT_FOUND |
+| 70001~79999 | 会员服务 | MEMBER_NOT_FOUND |
+| 80001~89999 | 库存服务 | STOCK_NOT_ENOUGH |
+
+> 新增错误码在 `ResultCode` 枚举追加，按码段归属模块，不使用裸数字 `R.error(500, "xxx")`。
 
 ---
 
@@ -460,7 +489,7 @@ public class Coupon extends BaseEntity {
 }
 ```
 
-> **注意**：当前代码生成器生成的 Entity 未继承 BaseEntity，后续逐步改造统一。新写的 Entity 必须继承。
+> **注意**：所有实体统一继承 `BaseEntity`（含主键 id、审计字段 createBy/updateBy、逻辑删除 isDeleted、乐观锁 version）。建表 DDL 须有对应列，规范见 [表设计规范](./table-design-specification.md)。
 
 ### 6.5 Entity / DTO 转换
 
