@@ -36,7 +36,7 @@
 
 - 必须可执行：每条规范都要能直接落地，不写含糊的"建议尽量"
 - 必须给理由：规范后附"为什么"，便于团队理解和未来修订
-- 生产级标准：按 [CLAUDE.md](../CLAUDE.md) 核心原则，不允许简化或省略
+- 生产级标准：按 [CLAUDE.md](https://github.com/QiHaoo/my-mall/blob/main/CLAUDE.md) 核心原则，不允许简化或省略
 - 修订需谨慎：改动影响所有模块，应在 PR 描述中说明影响范围
 
 **当前属于本层的文档：**
@@ -128,12 +128,12 @@
 1. **它属于哪一层？** 按上面三层的定位对号入座，不确定时按"它是不是开发必须读的"判断——必须读的是第一/二层，可不读的是第三层。
 2. **目录放对了吗？** 第一层放 `docs/` 根，第二层放 `docs/{服务名}/`，第三层放 `docs/learn-docs/{主题}/`。
 3. **写作标准对齐了吗？** 第一/二层按生产级标准写且必须可执行；第三层可发散但需标明是学习笔记。
-4. **导航登记了吗？** 新文档需在 [`mkdocs.yml`](../mkdocs.yml) 的 `nav` 中登记，否则不出现在文档站导航（但仍可被搜索到）。
-5. **索引同步了吗？** 全局性文档（第一层）应在 [CLAUDE.md](../CLAUDE.md) 的文档索引表中登记一行。
+4. **导航登记了吗？** 新文档需在 [`mkdocs.yml`](https://github.com/QiHaoo/my-mall/blob/main/mkdocs.yml) 的 `nav` 中登记，否则不出现在文档站导航（但仍可被搜索到）。
+5. **索引同步了吗？** 全局性文档（第一层）应在 [CLAUDE.md](https://github.com/QiHaoo/my-mall/blob/main/CLAUDE.md) 的文档索引表中登记一行。
 
 ## 五、文档站导航中的体现
 
-当前 [`mkdocs.yml`](../mkdocs.yml) 的导航结构已隐含三层划分：
+当前 [`mkdocs.yml`](https://github.com/QiHaoo/my-mall/blob/main/mkdocs.yml) 的导航结构已隐含三层划分：
 
 | 导航分区 | 对应层次 |
 |---------|---------|

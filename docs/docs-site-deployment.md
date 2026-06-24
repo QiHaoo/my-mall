@@ -7,7 +7,7 @@
 | 项 | 选型 |
 |----|------|
 | 文档框架 | [MkDocs](https://www.mkdocs.org/) + [Material for MkDocs](https://squidfunk.github.io/mkdocs-material/) 主题 |
-| 配置文件 | [`mkdocs.yml`](../../mkdocs.yml)（项目根目录） |
+| 配置文件 | [`mkdocs.yml`](https://github.com/QiHaoo/my-mall/blob/main/mkdocs.yml)（项目根目录） |
 | 文档源 | [`docs/`](../../docs/) 目录 |
 | 本地预览 | `mkdocs serve`（实时热刷新） |
 | 公网部署 | GitHub Actions 自动构建 → GitHub Pages |
@@ -101,13 +101,13 @@ py -3 -m mkdocs build --strict --clean
 1. 进入仓库 **Settings → Pages**
 2. **Build and deployment → Source** 选择 **GitHub Actions**（不是 *Deploy from a branch*）
 
-   > 这一步是关键：选 GitHub Actions 后，部署由 workflow 触发，而不是从某个分支静态读文件。本项目 workflow 见 [`.github/workflows/mkdocs.yml`](../../.github/workflows/mkdocs.yml)。
+   > 这一步是关键：选 GitHub Actions 后，部署由 workflow 触发，而不是从某个分支静态读文件。本项目 workflow 见 [`.github/workflows/mkdocs.yml`](https://github.com/QiHaoo/my-mall/blob/main/.github/workflows/mkdocs.yml)。
 
 3. 保存。此时 Pages 还没有内容，等首次推送触发 workflow 后才会生成。
 
 ### 3.3 自动部署流程
 
-部署已由 [.github/workflows/mkdocs.yml](../../.github/workflows/mkdocs.yml) 配置好，逻辑如下：
+部署已由 [`.github/workflows/mkdocs.yml`](https://github.com/QiHaoo/my-mall/blob/main/.github/workflows/mkdocs.yml) 配置好，逻辑如下：
 
 - **触发条件**：推送到 `main` 分支，且改动涉及 `docs/**`、`mkdocs.yml` 或 workflow 本身；也支持手动触发（Actions 页面 → Run workflow）
 - **构建**：Ubuntu runner 装 Python 3.12 + mkdocs-material，执行 `mkdocs build --strict --clean`（死链会直接构建失败，保证文档质量）
