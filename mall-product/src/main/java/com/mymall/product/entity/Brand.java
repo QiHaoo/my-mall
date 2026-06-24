@@ -33,7 +33,7 @@ public class Brand extends BaseEntity {
     /**
      * 显示状态[0-不显示；1-显示]
      */
-    private Byte showStatus;
+    private Integer showStatus;
 
     /**
      * 检索首字母

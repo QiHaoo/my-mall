@@ -13,6 +13,15 @@
 
 目的：确保学到的东西能够直接应用于生产环境，避免“学的”和“用的”脱节。
 
+## 开发环境约定
+
+- **JDK 21 路径**：`D:\DeveloperUtil\JDK21`（OpenJDK 21.0.11 LTS）。项目 `java.version=21`，系统默认 `java` 可能指向 JDK 17，编译/运行前需显式指定：
+  ```bash
+  export JAVA_HOME="/d/DeveloperUtil/JDK21"
+  export PATH="$JAVA_HOME/bin:$PATH"
+  ```
+  或在 Maven 命令前加 `JAVA_HOME`：`JAVA_HOME=/d/DeveloperUtil/JDK21 mvn test`。
+
 ## 技术选型
 
 | 类别 | 选型 |

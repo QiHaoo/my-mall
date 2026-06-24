@@ -15,6 +15,7 @@ import lombok.Getter;
  *   <li>50001~59999 - 商品服务</li>
  *   <li>51001~51999 - 商品分类</li>
  *   <li>52001~52999 - 对象存储</li>
+ *   <li>53001~53999 - 商品品牌</li>
  *   <li>60001~69999 - 订单服务</li>
  *   <li>70001~79999 - 会员服务</li>
  *   <li>80001~89999 - 库存服务</li>
@@ -59,6 +60,13 @@ public enum ResultCode {
     OSS_UPLOAD_ID_NOT_FOUND(52005, "上传 ID 不存在"),
     OSS_FILE_NOT_FOUND(52006, "文件不存在"),
     OSS_UPLOAD_VERIFY_FAILED(52007, "文件上传验证失败"),
+
+    // ==================== 商品品牌 53001+ ====================
+    BRAND_NOT_FOUND(53001, "品牌不存在"),
+    BRAND_NAME_DUPLICATE(53002, "品牌名已存在"),
+    BRAND_HAS_PRODUCTS(53003, "品牌下存在关联商品，无法删除"),
+    BRAND_CATEGORY_INVALID(53004, "关联分类不存在或非三级分类"),
+    BRAND_SHOW_STATUS_INVALID(53005, "显示状态值非法"),
 
     // ==================== 订单服务 60001+ ====================
     ORDER_NOT_FOUND(60001, "订单不存在"),
