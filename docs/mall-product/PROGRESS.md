@@ -10,7 +10,7 @@
 | 时间 | 事项 | 关联提交 | 说明 |
 |------|------|---------|------|
 | 2026-06-22 | 商品分类 CRUD 实现 | `699f1b7` | CategoryController/Service（树查询、新增、修改、批量删除、拖拽排序）、DTO/VO、@WebMvcTest 单元测试、category-management.md 文档 |
-| 2026-06-24 | 品牌管理实现 | 待提交 | BrandController/Service（分页查询、详情、新增、修改、状态更新、删除、分类下品牌）；DTO/VO 5 个；mall-common 新增校验分组 Create/Update + 品牌错误码 53001-53005；Brand.showStatus Byte→Integer；product 补 MyBatisConfig(@MapperScan)；BrandServiceTest + BrandControllerTest 全绿（58 测试通过）；brand-management.md 设计文档 + product-brand-demo.http |
+| 2026-06-24 | 品牌管理实现 | `e53fe25` | BrandController/Service（分页查询、详情、新增、修改、状态更新、删除、分类下品牌）；DTO/VO 5 个；mall-common 新增校验分组 Create/Update + 品牌错误码 53001-53005；Brand.showStatus Byte→Integer；product 补 MyBatisConfig(@MapperScan)；BrandServiceTest + BrandControllerTest 全绿（58 测试通过）；brand-management.md 设计文档 + product-brand-demo.http |
 
 ---
 
