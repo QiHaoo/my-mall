@@ -140,6 +140,8 @@ com.mymall.common/
 | 文档 | 说明 |
 |------|------|
 | `docs/PROGRESS.md` | **项目总进度**（已完成 + 当前进行，不列计划） |
+| `docs/documentation-layering-guide.md` | 文档分层规范（三层划分：全局设计+规范 / 模块设计 / 学习文档，定义每层定位与写作要求） |
+| `docs/docs-site-deployment.md` | 文档站部署指南（MkDocs Material + GitHub Pages，本地预览与公网部署） |
 | `docs/_TEMPLATE-PROGRESS.md` | 服务进度文档模板（复制到各服务目录命名为 PROGRESS.md） |
 | `docs/{服务名}/` | 某服务的所有文档，含 `PROGRESS.md` 及该模块的设计、接口文档等 |
 | `docs/common/common-module-design.md` | mall-common 公共模块设计文档（包结构、自动装配、各组件职责、演进记录） |

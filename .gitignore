@@ -51,3 +51,6 @@ logs/
 
 # Qoder
 .workbuddy/
+
+# MkDocs 构建产物
+site/

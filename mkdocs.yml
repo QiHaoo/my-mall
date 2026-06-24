@@ -1,0 +1,154 @@
+# My-Mall 文档站
+site_name: My-Mall 文档站
+site_description: 商城系统（my-mall）项目文档 · 技术选型 / 架构设计 / 开发规范 / 模块设计 / 学习笔记
+site_url: https://qihao0o.github.io/my-mall/
+repo_url: https://github.com/QiHaoo/my-mall
+repo_name: QiHaoo/my-mall
+docs_dir: docs
+edit_uri: edit/main/docs/
+
+# 主题：Material（移动端自适应、侧边栏导航、全文搜索、代码复制）
+theme:
+  name: material
+  language: zh
+  features:
+    - navigation.tabs          # 顶部一级分类 Tab
+    - navigation.sections      # 侧边栏分组
+    - navigation.expand        # 默认展开子项
+    - navigation.indexes       # 分组首页
+    - navigation.top           # 返回顶部
+    - search.suggest           # 搜索联想
+    - search.highlight         # 搜索高亮
+    - content.code.copy        # 代码块一键复制
+    - content.code.annotate    # 代码注释
+    - content.tabs.link        # 内容 Tab
+    - toc.follow               # 目录跟随滚动
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: 切换深色模式
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: 切换浅色模式
+  font:
+    text: Noto Sans SC
+    code: JetBrains Mono
+  icon:
+    repo: fontawesome/brands/github
+
+# 插件：搜索（支持中文分词）
+plugins:
+  - search:
+      lang:
+        - zh
+        - en
+      # 中文需要按字符切分，否则整段被当成一个 token 无法检索
+      separator: '[\s\-\.·、，。：；！？「」『』（）()【】\[\]{}\|/\\]+'
+
+# Markdown 扩展
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+      toc_depth: 3
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.mark
+  - pymdownx.tilde
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+
+# 导航结构
+nav:
+  - 首页: index.md
+  - 项目进度: PROGRESS.md
+  - 文档分层规范: documentation-layering-guide.md
+  - 文档站部署指南: docs-site-deployment.md
+  - 技术与架构:
+      - 技术选型与架构设计: tech-stack-and-architecture-2026.md
+      - 本地开发环境手册: local-dev-reference.md
+      - 服务注册配置说明: service-registration-config.md
+      - Nacos 配置中心指南: nacos-config-guide.md
+      - API 网关配置指南: gateway-config-guide.md
+      - Feign 远程调用配置: feign-config.md
+  - 开发规范:
+      - 编码规范: coding-standards.md
+      - Controller 接口规范: controller-specification.md
+      - 后端测试规范: testing-specification.md
+      - 数据库表设计规范: table-design-specification.md
+      - Git 管理规范: git-workflow.md
+      - AI 辅助开发流程: development-workflow.md
+      - MyBatis-Plus 代码生成规范: mybatis-plus-codegen-guide.md
+      - MyBatis-Plus ORM 实践笔记: mybatis-plus-orm-notes.md
+  - 模块设计:
+      - common 公共模块设计: common/common-module-design.md
+      - 商品中心:
+          - 分类管理: product/category-management.md
+          - 品牌管理: product/brand-management.md
+          - 对象存储设计: product/object-storage-design.md
+          - SPU/SKU 属性设计: product/spu-sku-attr-design.md
+          - 接口设计: product/接口设计.md
+  - 学习笔记:
+      - 服务发现:
+          - 概述: learn-docs/service-discovery/README.md
+          - 服务发现基础: learn-docs/service-discovery/01-service-discovery-basics.md
+          - Nacos 架构: learn-docs/service-discovery/02-nacos-architecture.md
+          - Spring Cloud Alibaba Nacos: learn-docs/service-discovery/03-spring-cloud-alibaba-nacos.md
+          - 最佳实践: learn-docs/service-discovery/04-best-practices.md
+          - 项目实现: learn-docs/service-discovery/project-implementation.md
+      - Nacos 配置:
+          - 概述: learn-docs/nacos-config/README.md
+          - 配置中心基础: learn-docs/nacos-config/01-config-center-basics.md
+          - Nacos 配置架构: learn-docs/nacos-config/02-nacos-config-architecture.md
+          - Spring Cloud Nacos Config: learn-docs/nacos-config/03-spring-cloud-nacos-config.md
+          - 项目实现: learn-docs/nacos-config/project-implementation.md
+      - 远程调用:
+          - 概述: learn-docs/remote-call/README.md
+          - Feign 基础: learn-docs/remote-call/01-feign-basics.md
+          - Feign 核心: learn-docs/remote-call/02-feign-core.md
+          - LoadBalancer: learn-docs/remote-call/03-loadbalancer.md
+          - 最佳实践: learn-docs/remote-call/04-best-practices.md
+          - 项目实现: learn-docs/remote-call/project-implementation.md
+      - API 网关:
+          - 概述: learn-docs/api-gateway/README.md
+          - API 网关基础: learn-docs/api-gateway/01-api-gateway-basics.md
+          - Spring Cloud Gateway 架构: learn-docs/api-gateway/02-spring-cloud-gateway-architecture.md
+          - 路由谓词与过滤器: learn-docs/api-gateway/03-route-predicate-filter.md
+          - 生产实践: learn-docs/api-gateway/04-production-practices.md
+          - 项目实现: learn-docs/api-gateway/project-implementation.md
+      - 测试:
+          - 端到端测试策略: learn-docs/testing/e2e-testing-strategies.md
+  - 归档:
+      - 2020 vs 2026 架构分析: other/architecture-analysis-2020-vs-2026.md
+      - 架构分析与现代化: other/architecture-analysis-and-modernization.md
+      - 公共模块差距分析: other/common-module-gap-analysis.md
+      - 早期架构细节: other/legacy-architecture-details.md

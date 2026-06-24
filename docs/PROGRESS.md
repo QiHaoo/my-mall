@@ -34,8 +34,9 @@
 | 2026-06-23 | OSS 安全闭环增强（v1.1） | `7adcace` | Content-Type 回调校验、回调幂等、上传者身份透传（UserContext + UserContextFilter + uploader_id）、删除越权校验、超时 PENDING 定时清理、publicBaseUrl/region 配置（fileUrl 走公网域名、迁移 S3 必填 region）、MinIO 调用移出事务、设计文档同步修订与精简 |
 | 2026-06-24 | common 模块生产级闭环（v1.2） | `b60665e` | 统一 HTTP 200+R.code 策略（对齐规范文档）、GlobalExceptionHandler 补全 ConstraintViolation/Bind/HttpMessageNotReadable/MaxUploadSize 等处理器、ResultCode.SUCCESS 统一为 200、BaseEntity 增 @Version+审计字段 createBy/updateBy、MyMetaObjectHandler 补全填充、新增 JacksonConfig（Long→String 防 JS 精度丢失+LocalDateTime 格式化）、MybatisPlusConfig 分页 maxLimit+全局配置显式化、SpringDoc 文案修正、代码生成器依赖移出 runtime |
 | 2026-06-24 | 表设计规范 + init SQL 改造 + 实体对齐 | `3b41038` | 新增 table-design-specification.md；pms/sms/ums/wms/oms 53 表生产级改造（PK 统一 id 雪花/去 AUTO_INCREMENT/补审计列/utf8mb4/类型修正/索引）；53 实体统一继承 BaseEntity + Mapper XML 同步；Category 链路 catId→id、逻辑删除改 @TableLogic、showStatus Byte→Integer；修复 Category Service 测试 MP 版本脱节（selectBatchIds→selectByIds） |
-| 2026-06-24 | common 模块设计文档 + 规范对齐 | 待提交 | 新增 docs/common/common-module-design.md；coding-standards §4 与实现对齐（BizException 签名/异常处理器清单/错误码段/HTTP 200 策略）；gap-analysis 归档至 docs/other/；CLAUDE.md 文档索引更新 |
+| 2026-06-24 | common 模块设计文档 + 规范对齐 | `9eb974d` | 新增 docs/common/common-module-design.md；coding-standards §4 与实现对齐（BizException 签名/异常处理器清单/错误码段/HTTP 200 策略）；gap-analysis 归档至 docs/other/；CLAUDE.md 文档索引更新 |
 | 2026-06-24 | 品牌管理实现 | `e53fe25` | product 模块：BrandController/Service（分页查询/详情/新增/修改/状态更新/删除/分类下品牌）+ DTO/VO；mall-common 新增校验分组 Create/Update + 品牌错误码 53001-53005；Brand.showStatus Byte→Integer；product 补 MyBatisConfig(@MapperScan)；BrandServiceTest + BrandControllerTest 全绿（mvn test 58 通过）；brand-management.md 设计文档 + product-brand-demo.http；CLAUDE.md 补 JDK21 路径约定 |
+| 2026-06-24 | 文档站搭建 + 文档分层规范 | `c7fb019` | MkDocs Material 文档站（mkdocs.yml + GitHub Actions 自动部署到 Pages + serve-docs.bat 本地启动脚本）+ docs/docs-site-deployment.md 部署指南 + docs/documentation-layering-guide.md 三层文档分层规范（全局设计+规范 / 模块设计 / 学习文档）+ docs/index.md 首页 + 修复 2 处跨文档死链；SPU/SKU 属性设计文档（product/spu-sku-attr-design.md）+ 接口设计补充 |
 
 ---
 

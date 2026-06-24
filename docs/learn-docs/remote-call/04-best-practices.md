@@ -81,7 +81,7 @@ class CouponFeignClientFallback implements CouponFeignClient {
 | 集成测试 | `@SpringBootTest` + WireMock | Feign 序列化/HTTP/反序列化 |
 | E2E | Testcontainers 启动真实服务 | 全链路 |
 
-> 集成测试用 WireMock 在 HTTP 层拦截，是 Feign 测试的最佳实践。详见 [E2E 测试方案对比](../../testing/e2e-testing-strategies.md)。
+> 集成测试用 WireMock 在 HTTP 层拦截，是 Feign 测试的最佳实践。详见 [E2E 测试方案对比](../testing/e2e-testing-strategies.md)。
 
 ## 6. 不要在一个服务里定义另一个服务的 DTO
 
