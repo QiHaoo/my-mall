@@ -34,10 +34,11 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-          cache: pip
+          # 不开启 cache: pip 缓存需解析依赖清单，setup-python 阶段若清单缺失/网络受限会导致整步失败
+          cache: ''
 
       - name: Install MkDocs Material
-        run: pip install mkdocs-material mkdocs-material-extensions
+        run: pip install --upgrade pip && pip install mkdocs-material mkdocs-material-extensions
 
       - name: Build site
         run: mkdocs build --strict --clean
