@@ -166,6 +166,12 @@ com.mymall.common/
 >
 > **代码注释规范**：项目中的代码和配置文件要有适当的注释。难理解的逻辑、需要注意的坑、有学习价值的设计，注释要丰富；简单的 CRUD / 样板代码可以不写注释。
 
+> **文档图表规范（Mermaid vs 纯文本）**：
+> - **用 Mermaid 的场景**：流程图 / 架构图（flowchart）、时序图（sequenceDiagram）、状态图（stateDiagram）、ER 图（erDiagram）、类图（classDiagram）、Git 分支图（gitGraph）、甘特图（gantt）、思维导图（mindmap）—— 即有明确节点关系、流向、状态流转的图，一律用 Mermaid，禁用 ASCII 画线框图
+> - **用纯文本的场景**：目录树（`tree` 风格缩进）、层级嵌套结构（如包结构、DTO 列表）、配置项清单、简单的层级缩进说明 —— 这些用文本缩进更紧凑直观，不要硬套 Mermaid
+> - **Mermaid 语法要求**：使用 ` ```mermaid ` 代码块（注意语言名是 `mermaid` 全小写），Material 主题自动渲染，支持深浅色切换
+> - **选择原则**：能表达清楚的前提下，选更简洁的方式。简单层级用文本，复杂关系用 Mermaid
+
 ### 根目录配置文件
 
 | 文件 | 说明 |

@@ -196,14 +196,28 @@ SPU「iPhone 15」
 
 **④ 两张属性值表的对称结构**
 
-```
-pms_product_attr_value（SPU 层）        pms_sku_sale_attr_value（SKU 层）
-  spu_id  ──────────────────────────       sku_id
-  attr_id ─► pms_attr (基本属性)           attr_id ─► pms_attr (销售属性)
-  attr_name（冗余）                         attr_name（冗余）
-  attr_value                                attr_value
-  attr_sort                                 attr_sort
-  quick_show                                —
+```mermaid
+flowchart LR
+    subgraph SPU["pms_product_attr_value（SPU 层）"]
+        direction TB
+        S1["spu_id"]
+        S2["attr_id"] --> P1["pms_attr<br/>(基本属性)"]
+        S3["attr_name（冗余）"]
+        S4["attr_value"]
+        S5["attr_sort"]
+        S6["quick_show"]
+    end
+
+    subgraph SKU["pms_sku_sale_attr_value（SKU 层）"]
+        direction TB
+        K1["sku_id"]
+        K2["attr_id"] --> P2["pms_attr<br/>(销售属性)"]
+        K3["attr_name（冗余）"]
+        K4["attr_value"]
+        K5["attr_sort"]
+    end
+
+    S1 -.-> K1
 ```
 
 两者都引用 `pms_attr`，区别仅在 `attr_type` 与归属层级。这种对称设计使检索同步（Canal → ES）和详情页渲染逻辑可复用。

@@ -317,55 +317,59 @@ environment:
 
 把整条链路画出来：
 
-```
-┌────────────────────────────────────────────────────────────────────┐
-│  本地                                                                │
-│  ┌──────────────────────────────────────────┐                       │
-│  │ 编辑 docs/learn-docs/github/11-...md     │                       │
-│  │ py -3 -m mkdocs serve  ← 本地预览         │                       │
-│  └────────────────────┬─────────────────────┘                       │
-└───────────────────────┼────────────────────────────────────────────┘
-                        │ git add / commit / push
-                        ▼
-┌────────────────────────────────────────────────────────────────────┐
-│  GitHub 仓库（main 分支）                                            │
-│  接收 push，检测 .github/workflows/mkdocs.yml 的 on.push 触发条件   │
-│  改了 docs/** 吗？✅ 触发 workflow                                   │
-└───────────────────────┬────────────────────────────────────────────┘
-                        │
-                        ▼
-┌────────────────────────────────────────────────────────────────────┐
-│  GitHub Actions Runner（ubuntu-latest）                              │
-│  ┌────────────────────────────────────────────────────────┐         │
-│  │ build job                                              │         │
-│  │ 1. actions/checkout（fetch-depth: 0）                  │         │
-│  │ 2. actions/setup-python 3.12                           │         │
-│  │ 3. pip install mkdocs-material                         │         │
-│  │ 4. mkdocs build --strict --clean  →  site/             │         │
-│  │ 5. actions/upload-pages-artifact (path: site)          │         │
-│  └────────────────────┬───────────────────────────────────┘         │
-└───────────────────────┼────────────────────────────────────────────┘
-                        │ artifact github-pages
-                        ▼
-┌────────────────────────────────────────────────────────────────────┐
-│  GitHub Actions Runner                                              │
-│  ┌────────────────────────────────────────────────────────┐         │
-│  │ deploy job (needs: build, environment: github-pages)   │         │
-│  │ 1. actions/deploy-pages  (OIDC 鉴权)                   │         │
-│  │    输出 page_url = https://qihao0o.github.io/my-mall/  │         │
-│  └────────────────────┬───────────────────────────────────┘         │
-└───────────────────────┼────────────────────────────────────────────┘
-                        │
-                        ▼
-┌────────────────────────────────────────────────────────────────────┐
-│  GitHub Pages CDN                                                    │
-│  全球 Fastly CDN 缓存分发                                            │
-│  HTTPS 自动启用                                                       │
-└───────────────────────┬────────────────────────────────────────────┘
-                        │
-                        ▼
-            https://qihao0o.github.io/my-mall/
-            任何浏览器、平板、手机都能访问
+```mermaid
+flowchart TD
+    subgraph Local["本地"]
+        direction TB
+        Edit["编辑 docs/ 下的文档"]
+        Serve["py -3 -m mkdocs serve<br/>本地预览"]
+        Edit --> Serve
+    end
+
+    subgraph Repo["GitHub 仓库（main 分支）"]
+        direction TB
+        Push["接收 push"]
+        Check["检测 mkdocs.yml on.push 触发条件<br/>改了 docs/**？✅ 触发 workflow"]
+        Push --> Check
+    end
+
+    subgraph Build["GitHub Actions Runner（ubuntu-latest）"]
+        direction TB
+        subgraph BuildJob["build job"]
+            direction TB
+            B1["1. actions/checkout<br/>fetch-depth: 0"]
+            B2["2. actions/setup-python 3.12"]
+            B3["3. pip install mkdocs-material"]
+            B4["4. mkdocs build --strict --clean<br/>→ site/"]
+            B5["5. actions/upload-pages-artifact<br/>path: site"]
+            B1 --> B2 --> B3 --> B4 --> B5
+        end
+    end
+
+    subgraph Deploy["GitHub Actions Runner"]
+        direction TB
+        subgraph DeployJob["deploy job<br/>needs: build, environment: github-pages"]
+            direction TB
+            D1["actions/deploy-pages<br/>OIDC 鉴权"]
+            D2["输出 page_url =<br/>https://qihao0o.github.io/my-mall/"]
+            D1 --> D2
+        end
+    end
+
+    subgraph CDN["GitHub Pages CDN"]
+        direction TB
+        C1["全球 Fastly CDN 缓存分发"]
+        C2["HTTPS 自动启用"]
+        C1 --> C2
+    end
+
+    End["任何浏览器、平板、手机都能访问<br/>https://qihao0o.github.io/my-mall/"]
+
+    Local -- "git add / commit / push" --> Repo
+    Repo -- "触发" --> Build
+    Build -- "artifact: github-pages" --> Deploy
+    Deploy -- "部署" --> CDN
+    CDN -- "访问" --> End
 ```
 
 **时间线：** push 后 1-2 分钟内能看到新内容上线。CDN 缓存可能让某些边缘节点稍滞后。

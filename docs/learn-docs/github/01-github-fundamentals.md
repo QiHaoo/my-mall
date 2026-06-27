@@ -254,10 +254,17 @@ $ git commit -m "feat(cart): 购物车支持批量勾选"
 
 一条**独立的开发线**。可以从某个 commit 拉出新分支，在新分支上随便改，不影响主干。
 
-```
-main:     A ── B ── C ────────────── F (merge)
-                  \                 /
-feature:           D ── E ─────────
+```mermaid
+gitGraph
+    commit id: "A"
+    commit id: "B"
+    commit id: "C"
+    branch feature
+    checkout feature
+    commit id: "D"
+    commit id: "E"
+    checkout main
+    merge feature id: "F (merge)"
 ```
 
 ```bash

@@ -83,7 +83,13 @@ markdown_extensions:
   - pymdownx.inlinehilite
   - pymdownx.keys
   - pymdownx.snippets
-  - pymdownx.superfences
+  # Mermaid 图表渲染：启用后 ```mermaid 代码块自动渲染为流程图/ER图/时序图等
+  # Material 主题自动按需注入 Mermaid.js 运行时，支持深浅色主题切换，无需额外安装依赖
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
   - pymdownx.tabbed:
       alternate_style: true
 
