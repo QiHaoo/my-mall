@@ -122,6 +122,10 @@ nav:
   - 模块设计:
       - common 公共模块设计: common/common-module-design.md
       - common 文档规范: common/doc-convention.md
+      - 前端架构:
+          - 前端架构概述: frontend/overview.md
+          - 前端设计系统: frontend/design-system.md
+          - 前端开发进度: frontend/PROGRESS.md
       - 商品中心:
           - 分类管理: mall-product/category-management.md
           - 品牌管理: mall-product/brand-management.md

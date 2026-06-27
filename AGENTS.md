@@ -148,6 +148,9 @@ com.mymall.common/
 | `docs/mall-product/object-storage-design.md` | 对象存储服务设计文档（MinIO 自建、Presigned URL 前端直传、mall-oss 服务 + mall-common-oss SDK） |
 | `docs/common/common-module-design.md` | mall-common 公共模块设计（包结构、自动装配、各组件职责、组件速查表、演进记录） |
 | `docs/common/doc-convention.md` | common 模块文档组织规范（单文档+速查表模式、复杂组件独立文档判定、新增组件流程） |
+| `docs/frontend/overview.md` | 前端架构概述（项目结构、技术栈、路由设计、状态管理、API 层封装） |
+| `docs/frontend/design-system.md` | 前端设计系统（Element Plus 定制、主题色、通用组件规范、Figma 设计稿交付流程） |
+| `docs/frontend/PROGRESS.md` | 前端开发进度 |
 | `docs/git-workflow.md` | Git 管理规范（分支策略、Commit 规范、发布流程） |
 | `docs/tech-stack-and-architecture-2026.md` | 技术选型与架构设计（选型理由、架构图、服务划分） |
 | `docs/local-dev-reference.md` | 本地开发环境手册（服务连接信息、启停命令、IDEA 配置） |
