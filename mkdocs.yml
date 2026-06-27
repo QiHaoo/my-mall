@@ -117,6 +117,7 @@ nav:
       - MyBatis-Plus ORM 实践笔记: mybatis-plus-orm-notes.md
   - 模块设计:
       - common 公共模块设计: common/common-module-design.md
+      - common 文档规范: common/doc-convention.md
       - 商品中心:
           - 分类管理: mall-product/category-management.md
           - 品牌管理: mall-product/brand-management.md

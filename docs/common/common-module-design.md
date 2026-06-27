@@ -66,6 +66,21 @@ mall-common/src/main/resources/
 
 ## 三、各组件职责
 
+### 3.0 组件速查
+
+| 组件 | 包 | 一句话 | 详见 |
+|------|---|--------|------|
+| `R` | `result` | 统一响应体（HTTP 200 + 业务码） | §3.1 |
+| `ResultCode` | `exception` | 错误码枚举（按模块分段） | §3.2 |
+| `BizException` | `exception` | 业务异常，携带错误码 | §3.3 |
+| `GlobalExceptionHandler` | `exception` | 全局异常处理器，统一兜底 | §3.4 |
+| `BaseEntity` | `entity` | 实体基类（主键/审计/逻辑删除/乐观锁） | §3.5 |
+| `MyMetaObjectHandler` | `handler` | 审计字段自动填充 | §3.6 |
+| `PageQuery` | `query` | 分页查询基类 | §3.7 |
+| `UserContext` | `util` | 请求级用户上下文（ThreadLocal） | §3.8 |
+| `MybatisPlusConfig` / `SpringDocConfig` / `JacksonConfig` | `config` | 全局配置类 | §3.9 |
+| `OssTemplate` / `OssProperties` / `OssAutoConfiguration` | `oss` | 对象存储 SDK（MinIO 封装） | §3.10 |
+
 ### 3.1 R — 统一响应体
 
 ```java
