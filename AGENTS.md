@@ -44,6 +44,8 @@
 | ORM | MyBatis-Plus 3.5+ |
 | API 文档 | SpringDoc OpenAPI 3 |
 | 前端 | Vue 3 + TypeScript + Vite |
+| UI 组件库 | Element Plus |
+| 前端设计 | Figma（免费版） |
 
 ## 架构
 

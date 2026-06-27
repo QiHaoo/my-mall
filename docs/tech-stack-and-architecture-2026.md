@@ -39,6 +39,9 @@
 | 镜像仓库 | **Harbor 2.x** | 企业级，带安全扫描 |
 | ORM | **MyBatis-Plus 3.5+** | 增强 CRUD，代码生成 |
 | API 文档 | **SpringDoc OpenAPI 3** | 自动生成 Swagger UI |
+| 前端 | **Vue 3 + TypeScript + Vite** | Composition API，类型安全，极速 HMR |
+| UI 组件库 | **Element Plus** | Vue 3 生态最成熟的企业级 UI 库 |
+| 前端设计 | **Figma**（免费版） | 云端协作 UI 设计，Dev Mode 标注交付，Auto Layout 对齐组件化思路 |
 
 ---
 
