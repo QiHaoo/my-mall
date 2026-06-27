@@ -120,9 +120,10 @@ nav:
       - 商品中心:
           - 分类管理: product/category-management.md
           - 品牌管理: product/brand-management.md
+          - 属性管理: product/attr-management.md
+          - SPU 管理: product/spu-management.md
+          - SKU 管理: product/sku-management.md
           - 对象存储设计: product/object-storage-design.md
-          - SPU/SKU 属性设计: product/spu-sku-attr-design.md
-          - 接口设计: product/接口设计.md
   - 学习笔记:
       - 服务发现:
           - 概述: learn-docs/service-discovery/README.md

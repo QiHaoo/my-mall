@@ -139,7 +139,12 @@ com.mymall.common/
 | `docs/PROGRESS.md` | **项目总进度**（已完成 + 当前进行，不列计划） |
 | `docs/_TEMPLATE-PROGRESS.md` | 服务进度文档模板（复制到各服务目录命名为 PROGRESS.md） |
 | `docs/{服务名}/` | 某服务的所有文档，含 `PROGRESS.md` 及该模块的设计、接口文档等 |
+| `docs/product/overview.md` | 商品中心模块概述（职责、功能域划分、核心概念 SPU/SKU/属性、整体 ER 图、功能文档索引） |
 | `docs/product/category-management.md` | 商品分类管理需求与接口文档（三级分类树、批量删除、拖拽排序、DTO/错误码） |
+| `docs/product/brand-management.md` | 品牌管理需求与接口文档（品牌 CRUD、品牌-分类多对多关联、冗余字段同步） |
+| `docs/product/attr-management.md` | 属性管理需求与接口文档（属性元数据 CRUD、属性分组、分组-属性关联） |
+| `docs/product/spu-management.md` | SPU 管理需求与接口文档（SPU CRUD、上下架、多表事务写入） |
+| `docs/product/sku-management.md` | SKU 管理需求与接口文档（SKU CRUD、销售属性组合唯一性校验） |
 | `docs/product/object-storage-design.md` | 对象存储服务设计文档（MinIO 自建、Presigned URL 前端直传、mall-oss 服务 + mall-common-oss SDK） |
 | `docs/git-workflow.md` | Git 管理规范（分支策略、Commit 规范、发布流程） |
 | `docs/tech-stack-and-architecture-2026.md` | 技术选型与架构设计（选型理由、架构图、服务划分） |
@@ -165,6 +170,13 @@ com.mymall.common/
 > **进度文档记录范围**：只记录对项目实现有重要影响的事项（新功能、架构调整、关键 bug 修复等）。依赖版本调整、配置文件微调、文档格式修正等次要变更不记入进度文档。
 >
 > **代码注释规范**：项目中的代码和配置文件要有适当的注释。难理解的逻辑、需要注意的坑、有学习价值的设计，注释要丰富；简单的 CRUD / 样板代码可以不写注释。
+
+> **模块文档组织规范（按需演进 + 分层结构）**：
+> - **文档分层**：每个服务模块的文档分两层 —— 模块概述文档（`overview.md`）+ 功能域文档（每块独立功能一篇）。模块概述讲全局（职责、功能域划分、核心概念、整体数据模型、上下游关系），功能域文档讲具体（需求、接口、DTO、错误码）。功能域文档之间通过相对链接互相引用，不重复内容。
+> - **按需演进，不强制前置规划**：文档跟着开发节奏走，开发到哪写到哪。不要求一开始就写完整的 `overview.md`——可以先写功能域文档，模块内容积累到一定程度再抽取共性形成概述。概念性内容暂时无处安放时，先放当前功能域文档，等 `overview.md` 出现时再迁移。
+> - **粒度控制**：一个功能域一篇文档，不把多个功能域塞进同一篇。判断标准：如果一块功能有独立的表、独立的 Controller、独立的 Service，就值得单独一篇文档。参考 `docs/product/` 下的分类管理、品牌管理。
+> - **模板一致**：功能域文档统一遵循 `category-management.md` / `brand-management.md` 的章节结构（业务背景 → 功能需求 → 数据模型 → 接口设计 → DTO/VO → 错误码 → 网关路由 → HTTP 调试 → 非功能性要求 → 实现清单），保持风格统一。
+> - **overview.md 索引职责**：概述文档维护该模块所有功能域文档的链接索引，读者从概述入口能快速定位到任意功能域。
 
 > **文档图表规范（Mermaid vs 纯文本）**：
 > - **用 Mermaid 的场景**：流程图 / 架构图（flowchart）、时序图（sequenceDiagram）、状态图（stateDiagram）、ER 图（erDiagram）、类图（classDiagram）、Git 分支图（gitGraph）、甘特图（gantt）、思维导图（mindmap）—— 即有明确节点关系、流向、状态流转的图，一律用 Mermaid，禁用 ASCII 画线框图
