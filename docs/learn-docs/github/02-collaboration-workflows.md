@@ -77,7 +77,7 @@ gitGraph
 - 改完提 PR 合并回 `main`
 - `main` 上 `docs/` 的改动会自动触发 GitHub Actions 部署文档站（这是「合并即部署」的体现）
 
-详见项目 [git-workflow.md](../../git-workflow.md)。
+详见项目 [git-workflow.md](../../standards/git-workflow.md)。
 
 ## 2.3 GitFlow（经典重型，2010）
 
@@ -327,7 +327,7 @@ $ git push origin main
 | `chore/` | 杂项（依赖升级、配置） | `chore/upgrade-spring-boot` |
 | `test/` | 测试相关 | `test/order-e2e` |
 
-本项目规范见 [git-workflow.md](../../git-workflow.md)。
+本项目规范见 [git-workflow.md](../../standards/git-workflow.md)。
 
 ## 小结
 

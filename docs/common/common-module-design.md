@@ -89,7 +89,7 @@ R.ok().put("k", v)            // R<Map> 链式多键值
 R.error(code, msg)            // 错误响应
 ```
 
-HTTP 状态码始终 200，业务状态由 `R.code` 表达（200=成功，4xx/5xx=错误）。理由：网关/CDN 会拦截 4xx/5xx，统一 200 + 业务码是电商通行做法。详见 [Controller 规范 §2](../controller-specification.md#二返回值与-http-状态码)。
+HTTP 状态码始终 200，业务状态由 `R.code` 表达（200=成功，4xx/5xx=错误）。理由：网关/CDN 会拦截 4xx/5xx，统一 200 + 业务码是电商通行做法。详见 [Controller 规范 §2](../standards/controller-specification.md)。
 
 ### 3.2 ResultCode — 错误码枚举
 
@@ -152,7 +152,7 @@ new BizException(40010, "该优惠券已被领完")
 | isDeleted | is_deleted | @TableLogic | 逻辑删除 |
 | version | version | @Version | 乐观锁 |
 
-继承后实体类无需重复声明这些字段。建表 DDL 必须有对应列，规范见 [表设计规范](../table-design-specification.md)。
+继承后实体类无需重复声明这些字段。建表 DDL 必须有对应列，规范见 [表设计规范](../standards/table-design-specification.md)。
 
 ### 3.6 MyMetaObjectHandler — 公共字段自动填充
 
@@ -192,10 +192,10 @@ new BizException(40010, "该优惠券已被领完")
 
 | 规范文档 | 关联组件 |
 |---------|---------|
-| [编码规范](../coding-standards.md) | BizException/GlobalExceptionHandler/BaseEntity/日志/DTO/命名 |
-| [Controller 规范](../controller-specification.md) | R/校验/HTTP 200 策略 |
-| [表设计规范](../table-design-specification.md) | BaseEntity 对应的 DDL 列 |
-| [MyBatis-Plus 代码生成规范](../mybatis-plus-codegen-guide.md) | 实体继承 BaseEntity 的生成 |
+| [编码规范](../standards/coding-standards.md) | BizException/GlobalExceptionHandler/BaseEntity/日志/DTO/命名 |
+| [Controller 规范](../standards/controller-specification.md) | R/校验/HTTP 200 策略 |
+| [表设计规范](../standards/table-design-specification.md) | BaseEntity 对应的 DDL 列 |
+| [MyBatis-Plus 代码生成规范](../standards/mybatis-plus-codegen-guide.md) | 实体继承 BaseEntity 的生成 |
 | [对象存储设计](../mall-product/object-storage-design.md) | oss 包 |
 
 ---

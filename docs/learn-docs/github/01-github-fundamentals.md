@@ -248,7 +248,7 @@ $ git commit -m "feat(cart): 购物车支持批量勾选"
  3 files changed, 42 insertions(+), 8 deletions(-)
 ```
 
-> 本项目遵循 Conventional Commits 规范（见 [git-workflow.md](../../git-workflow.md)），提交信息前缀有 `feat / fix / docs / refactor / chore` 等。
+> 本项目遵循 Conventional Commits 规范（见 [git-workflow.md](../../standards/git-workflow.md)），提交信息前缀有 `feat / fix / docs / refactor / chore` 等。
 
 ### Branch（分支）
 
@@ -320,7 +320,7 @@ $ git push origin main
 - 根目录有 `README.md`、`AGENTS.md`、`CLAUDE.md`、`.gitignore`、`docker-compose.yml`
 - `.github/workflows/mkdocs.yml` 是一个 GitHub Actions workflow（05 章详解）
 - `docs/` 是文档源目录，由 workflow 构建成静态站后部署到 GitHub Pages（06 章详解）
-- 项目用 Issue / PR 协作（03 章详解），遵循 [git-workflow.md](../../git-workflow.md) 里的分支与提交规范
+- 项目用 Issue / PR 协作（03 章详解），遵循 [git-workflow.md](../../standards/git-workflow.md) 里的分支与提交规范
 
 ## 小结
 

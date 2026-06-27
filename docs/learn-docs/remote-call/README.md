@@ -53,4 +53,4 @@
 
 - [OpenFeign 官方文档](https://docs.spring.io/spring-cloud-openfeign/)
 - [Spring Cloud LoadBalancer 文档](https://docs.spring.io/spring-cloud-commons/docs/current/reference/html/#spring-cloud-loadbalancer)
-- [项目远程调用配置](../../feign-config.md)
+- [项目远程调用配置](../../microservice/feign-config.md)

@@ -71,7 +71,7 @@ flowchart TD
 |-------------|-------------|----------|
 | GitHub Actions | [.github/workflows/mkdocs.yml](https://github.com/QiHaoo/my-mall/blob/main/.github/workflows/mkdocs.yml) 自动构建文档站 | 05、11 |
 | GitHub Pages | 文档站公网访问地址 `https://qihao0o.github.io/my-mall/` | 06、11 |
-| GitHub Flow | 主干 `main` + 功能分支 + PR（见 [git-workflow.md](../../git-workflow.md)） | 02、03 |
+| GitHub Flow | 主干 `main` + 功能分支 + PR（见 [git-workflow.md](../../standards/git-workflow.md)） | 02、03 |
 | Repository Rulesets | `main` 分支保护（待配置） | 04 |
 | Secrets | 暂未使用（未来 CI 推镜像到 Harbor 会用） | 09 |
 | Releases | 暂未使用（未来版本发布会用） | 07 |

@@ -332,7 +332,7 @@ CHANGELOG.md 格式参考 https://keepachangelog.com/。
    $ git push origin v0.1.0
    ```
 3. 在 GitHub Releases 发布，附 Release Notes 描述本阶段内容
-4. 未来想自动化可引入 release-please（前提是 commit message 严格遵循 Conventional Commits，本项目 [git-workflow.md](../../git-workflow.md) 已规范）
+4. 未来想自动化可引入 release-please（前提是 commit message 严格遵循 Conventional Commits，本项目 [git-workflow.md](../../standards/git-workflow.md) 已规范）
 
 ## 小结
 

@@ -43,6 +43,6 @@
 
 ## 相关文档
 
-- [项目远程调用配置说明](../../feign-config.md)
-- [Controller 接口编写规范](../../controller-specification.md)
+- [项目远程调用配置说明](../../microservice/feign-config.md)
+- [Controller 接口编写规范](../../standards/controller-specification.md)
 - [E2E 测试方案对比](../testing/e2e-testing-strategies.md)

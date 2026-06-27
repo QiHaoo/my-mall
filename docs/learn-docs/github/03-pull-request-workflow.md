@@ -190,7 +190,7 @@ gitGraph
 - **丢掉中间过程**：feature 上那些「修 typo」「跑通测试」的脏 commit 不污染 main
 - **适合**：feature 分支 commit 多且杂、只想在 main 留一个干净 commit
 
-> 本项目推荐用这个，因为 AI 辅助开发过程中 feature 分支常有大量小提交，squash 后 main 历史清爽。本项目 [git-workflow.md](../../git-workflow.md) 也明确要求合并到 main 时 squash。
+> 本项目推荐用这个，因为 AI 辅助开发过程中 feature 分支常有大量小提交，squash 后 main 历史清爽。本项目 [git-workflow.md](../../standards/git-workflow.md) 也明确要求合并到 main 时 squash。
 
 ### Rebase and merge
 
@@ -281,7 +281,7 @@ $ git push --force-with-lease  # rebase 重写了历史，需强推
 
 ## 3.9 本项目对照
 
-本项目的 PR 实践（见 [git-workflow.md](../../git-workflow.md)）：
+本项目的 PR 实践（见 [git-workflow.md](../../standards/git-workflow.md)）：
 
 - 分支命名：`feature/<模块>-<功能>`、`fix/<模块>-<问题>`
 - 提交信息：Conventional Commits（`feat:` / `fix:` / `docs:` / `refactor:` / `chore:`）

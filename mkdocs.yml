@@ -103,19 +103,20 @@ nav:
   - 技术与架构:
       - 技术选型与架构设计: tech-stack-and-architecture-2026.md
       - 本地开发环境手册: local-dev-reference.md
-      - 服务注册配置说明: service-registration-config.md
-      - Nacos 配置中心指南: nacos-config-guide.md
-      - API 网关配置指南: gateway-config-guide.md
-      - Feign 远程调用配置: feign-config.md
+  - 微服务配置:
+      - 服务注册配置说明: microservice/service-registration-config.md
+      - Nacos 配置中心指南: microservice/nacos-config-guide.md
+      - API 网关配置指南: microservice/gateway-config-guide.md
+      - Feign 远程调用配置: microservice/feign-config.md
   - 开发规范:
-      - 编码规范: coding-standards.md
-      - Controller 接口规范: controller-specification.md
-      - 后端测试规范: testing-specification.md
-      - 数据库表设计规范: table-design-specification.md
-      - Git 管理规范: git-workflow.md
-      - AI 辅助开发流程: development-workflow.md
-      - MyBatis-Plus 代码生成规范: mybatis-plus-codegen-guide.md
-      - MyBatis-Plus ORM 实践笔记: mybatis-plus-orm-notes.md
+      - 编码规范: standards/coding-standards.md
+      - Controller 接口规范: standards/controller-specification.md
+      - 后端测试规范: standards/testing-specification.md
+      - 数据库表设计规范: standards/table-design-specification.md
+      - Git 管理规范: standards/git-workflow.md
+      - AI 辅助开发流程: standards/development-workflow.md
+      - MyBatis-Plus 代码生成规范: standards/mybatis-plus-codegen-guide.md
+      - MyBatis-Plus ORM 实践笔记: standards/mybatis-plus-orm-notes.md
   - 模块设计:
       - common 公共模块设计: common/common-module-design.md
       - common 文档规范: common/doc-convention.md

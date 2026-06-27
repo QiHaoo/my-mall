@@ -273,7 +273,7 @@
 | `categoryIds` | `List<Long>` | 否 | 每个需为存在的三级分类 |
 | `version` | Integer | 修改时必填 | 乐观锁版本号 |
 
-> 新增/修改复用同一个 `BrandSaveDTO`，通过 `@Validated(Create.class)` / `@Validated(Update.class)` 区分（见 [Controller 规范 - 校验分组](../controller-specification.md#13-校验分组新增-vs-修改)）。
+> 新增/修改复用同一个 `BrandSaveDTO`，通过 `@Validated(Create.class)` / `@Validated(Update.class)` 区分（见 [Controller 规范 - 校验分组](../standards/controller-specification.md)）。
 
 **响应**：
 

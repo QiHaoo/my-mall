@@ -147,16 +147,16 @@ com.mymall.common/
 | `docs/git-workflow.md` | Git 管理规范（分支策略、Commit 规范、发布流程） |
 | `docs/tech-stack-and-architecture-2026.md` | 技术选型与架构设计（选型理由、架构图、服务划分） |
 | `docs/local-dev-reference.md` | 本地开发环境手册（服务连接信息、启停命令、IDEA 配置） |
-| `docs/service-registration-config.md` | 服务注册配置说明（Nacos 配置、禁用项、依赖清理、端口规划） |
-| `docs/nacos-config-guide.md` | Nacos 配置中心使用指南（依赖配置、动态刷新、演示接口、多环境配置） |
-| `docs/mybatis-plus-codegen-guide.md` | MyBatis-Plus 代码生成规范（生成器使用、包结构、Entity/Mapper/Service/Controller 规范） |
-| `docs/development-workflow.md` | AI 辅助开发流程规范（轻量 Spec + TDD，三阶段流程、核心/样板判定、配套 skill） |
-| `docs/controller-specification.md` | Controller 接口编写规范（参数校验、校验分组、返回值、URL 设计、分页、幂等性、检查清单） |
-| `docs/coding-standards.md` | 编码规范（分层架构、Service 事务、异常体系、GlobalExceptionHandler、日志、DTO/VO/Entity、命名规范） |
-| `docs/testing-specification.md` | 后端测试规范（测试分层、各层写法、AssertJ、命名规范、依赖配置、提交前自查清单） |
-| `docs/feign-config.md` | 远程调用（Feign）配置说明（依赖、@FeignClient 规范、调用链路、测试配置） |
-| `docs/gateway-config-guide.md` | API 网关配置指南（路由规则、全局过滤器、断言演示、生产配置） |
-| `docs/mybatis-plus-orm-notes.md` | MyBatis-Plus ORM 实践笔记（依赖配置、全局组件、使用约定） |
+| `docs/microservice/service-registration-config.md` | 服务注册配置说明（Nacos 配置、禁用项、依赖清理、端口规划） |
+| `docs/microservice/nacos-config-guide.md` | Nacos 配置中心使用指南（依赖配置、动态刷新、演示接口、多环境配置） |
+| `docs/standards/mybatis-plus-codegen-guide.md` | MyBatis-Plus 代码生成规范（生成器使用、包结构、Entity/Mapper/Service/Controller 规范） |
+| `docs/standards/development-workflow.md` | AI 辅助开发流程规范（轻量 Spec + TDD，三阶段流程、核心/样板判定、配套 skill） |
+| `docs/standards/controller-specification.md` | Controller 接口编写规范（参数校验、校验分组、返回值、URL 设计、分页、幂等性、检查清单） |
+| `docs/standards/coding-standards.md` | 编码规范（分层架构、Service 事务、异常体系、GlobalExceptionHandler、日志、DTO/VO/Entity、命名规范） |
+| `docs/standards/testing-specification.md` | 后端测试规范（测试分层、各层写法、AssertJ、命名规范、依赖配置、提交前自查清单） |
+| `docs/microservice/feign-config.md` | 远程调用（Feign）配置说明（依赖、@FeignClient 规范、调用链路、测试配置） |
+| `docs/microservice/gateway-config-guide.md` | API 网关配置指南（路由规则、全局过滤器、断言演示、生产配置） |
+| `docs/standards/mybatis-plus-orm-notes.md` | MyBatis-Plus ORM 实践笔记（依赖配置、全局组件、使用约定） |
 | `docs/other/` | 归档文档（原始架构分析、参考资料等，开发时一般不需要） |
 
 > **进度文档与提交关联规则**：完成一个事项后，将过程中的多个小提交合并为一条提交并推送到远程，再在进度文档记录关联的提交 hash。过程中未合并推送的小提交不记录。
