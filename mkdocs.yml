@@ -97,9 +97,10 @@ markdown_extensions:
 nav:
   - 首页: index.md
   - 项目进度: PROGRESS.md
-  - 文档分层规范: documentation-layering-guide.md
-  - 文档写作规范: doc-convention.md
-  - 文档站部署指南: docs-site-deployment.md
+  - 文档指南:
+      - 文档分层规范: documentation-layering-guide.md
+      - 文档写作规范: doc-convention.md
+      - 文档站部署指南: docs-site-deployment.md
   - 技术与架构:
       - 技术选型与架构设计: tech-stack-and-architecture-2026.md
       - 本地开发环境手册: local-dev-reference.md
