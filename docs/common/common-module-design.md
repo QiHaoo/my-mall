@@ -161,7 +161,7 @@ new BizException(40010, "该优惠券已被领完")
 
 ### 3.10 oss — 对象存储 SDK
 
-`OssProperties`（endpoint/publicBaseUrl/region/上传限制）、`OssTemplate`（MinIO Presigned URL 签发/删除/statObject）、`OssAutoConfiguration`（按 `oss.*` 配置装配，minio 依赖 optional）。供 mall-oss 服务使用，设计详见 [对象存储设计](../product/object-storage-design.md)。
+`OssProperties`（endpoint/publicBaseUrl/region/上传限制）、`OssTemplate`（MinIO Presigned URL 签发/删除/statObject）、`OssAutoConfiguration`（按 `oss.*` 配置装配，minio 依赖 optional）。供 mall-oss 服务使用，设计详见 [对象存储设计](../mall-product/object-storage-design.md)。
 
 ---
 
@@ -181,7 +181,7 @@ new BizException(40010, "该优惠券已被领完")
 | [Controller 规范](../controller-specification.md) | R/校验/HTTP 200 策略 |
 | [表设计规范](../table-design-specification.md) | BaseEntity 对应的 DDL 列 |
 | [MyBatis-Plus 代码生成规范](../mybatis-plus-codegen-guide.md) | 实体继承 BaseEntity 的生成 |
-| [对象存储设计](../product/object-storage-design.md) | oss 包 |
+| [对象存储设计](../mall-product/object-storage-design.md) | oss 包 |
 
 ---
 

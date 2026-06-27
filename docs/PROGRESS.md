@@ -46,7 +46,7 @@
 
 | 事项 | 模块 | 状态说明 |
 |------|------|---------|
-| SPU/SKU/属性体系实现 | mall-product | 设计文档已完成（product/overview.md + attr-management.md + spu-management.md + sku-management.md），Attr/Spu/Sku 相关 Service 仍为代码生成骨架，实现未开始 |
+| SPU/SKU/属性体系实现 | mall-product | 设计文档已完成（mall-product/overview.md + attr-management.md + spu-management.md + sku-management.md），Attr/Spu/Sku 相关 Service 仍为代码生成骨架，实现未开始 |
 
 ---
 

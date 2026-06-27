@@ -139,13 +139,13 @@ com.mymall.common/
 | `docs/PROGRESS.md` | **项目总进度**（已完成 + 当前进行，不列计划） |
 | `docs/_TEMPLATE-PROGRESS.md` | 服务进度文档模板（复制到各服务目录命名为 PROGRESS.md） |
 | `docs/{服务名}/` | 某服务的所有文档，含 `PROGRESS.md` 及该模块的设计、接口文档等 |
-| `docs/product/overview.md` | 商品中心模块概述（职责、功能域划分、核心概念 SPU/SKU/属性、整体 ER 图、功能文档索引） |
-| `docs/product/category-management.md` | 商品分类管理需求与接口文档（三级分类树、批量删除、拖拽排序、DTO/错误码） |
-| `docs/product/brand-management.md` | 品牌管理需求与接口文档（品牌 CRUD、品牌-分类多对多关联、冗余字段同步） |
-| `docs/product/attr-management.md` | 属性管理需求与接口文档（属性元数据 CRUD、属性分组、分组-属性关联） |
-| `docs/product/spu-management.md` | SPU 管理需求与接口文档（SPU CRUD、上下架、多表事务写入） |
-| `docs/product/sku-management.md` | SKU 管理需求与接口文档（SKU CRUD、销售属性组合唯一性校验） |
-| `docs/product/object-storage-design.md` | 对象存储服务设计文档（MinIO 自建、Presigned URL 前端直传、mall-oss 服务 + mall-common-oss SDK） |
+| `docs/mall-product/overview.md` | 商品中心模块概述（职责、功能域划分、核心概念 SPU/SKU/属性、整体 ER 图、功能文档索引） |
+| `docs/mall-product/category-management.md` | 商品分类管理需求与接口文档（三级分类树、批量删除、拖拽排序、DTO/错误码） |
+| `docs/mall-product/brand-management.md` | 品牌管理需求与接口文档（品牌 CRUD、品牌-分类多对多关联、冗余字段同步） |
+| `docs/mall-product/attr-management.md` | 属性管理需求与接口文档（属性元数据 CRUD、属性分组、分组-属性关联） |
+| `docs/mall-product/spu-management.md` | SPU 管理需求与接口文档（SPU CRUD、上下架、多表事务写入） |
+| `docs/mall-product/sku-management.md` | SKU 管理需求与接口文档（SKU CRUD、销售属性组合唯一性校验） |
+| `docs/mall-product/object-storage-design.md` | 对象存储服务设计文档（MinIO 自建、Presigned URL 前端直传、mall-oss 服务 + mall-common-oss SDK） |
 | `docs/git-workflow.md` | Git 管理规范（分支策略、Commit 规范、发布流程） |
 | `docs/tech-stack-and-architecture-2026.md` | 技术选型与架构设计（选型理由、架构图、服务划分） |
 | `docs/local-dev-reference.md` | 本地开发环境手册（服务连接信息、启停命令、IDEA 配置） |

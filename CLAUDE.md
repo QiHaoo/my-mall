@@ -146,8 +146,8 @@ com.mymall.common/
 | `docs/{服务名}/` | 某服务的所有文档，含 `PROGRESS.md` 及该模块的设计、接口文档等 |
 | `docs/common/common-module-design.md` | mall-common 公共模块设计文档（包结构、自动装配、各组件职责、演进记录） |
 | `docs/table-design-specification.md` | 数据库表设计规范（建表模板、审计字段、类型/索引/命名规范、迁移表改造要点） |
-| `docs/product/category-management.md` | 商品分类管理需求与接口文档（三级分类树、批量删除、拖拽排序、DTO/错误码） |
-| `docs/product/object-storage-design.md` | 对象存储服务设计文档（MinIO 自建、Presigned URL 前端直传、mall-oss 服务 + mall-common-oss SDK） |
+| `docs/mall-product/category-management.md` | 商品分类管理需求与接口文档（三级分类树、批量删除、拖拽排序、DTO/错误码） |
+| `docs/mall-product/object-storage-design.md` | 对象存储服务设计文档（MinIO 自建、Presigned URL 前端直传、mall-oss 服务 + mall-common-oss SDK） |
 | `docs/git-workflow.md` | Git 管理规范（分支策略、Commit 规范、发布流程） |
 | `docs/tech-stack-and-architecture-2026.md` | 技术选型与架构设计（选型理由、架构图、服务划分） |
 | `docs/local-dev-reference.md` | 本地开发环境手册（服务连接信息、启停命令、IDEA 配置） |

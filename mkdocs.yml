@@ -118,12 +118,12 @@ nav:
   - 模块设计:
       - common 公共模块设计: common/common-module-design.md
       - 商品中心:
-          - 分类管理: product/category-management.md
-          - 品牌管理: product/brand-management.md
-          - 属性管理: product/attr-management.md
-          - SPU 管理: product/spu-management.md
-          - SKU 管理: product/sku-management.md
-          - 对象存储设计: product/object-storage-design.md
+          - 分类管理: mall-product/category-management.md
+          - 品牌管理: mall-product/brand-management.md
+          - 属性管理: mall-product/attr-management.md
+          - SPU 管理: mall-product/spu-management.md
+          - SKU 管理: mall-product/sku-management.md
+          - 对象存储设计: mall-product/object-storage-design.md
   - 学习笔记:
       - 服务发现:
           - 概述: learn-docs/service-discovery/README.md

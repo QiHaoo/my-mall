@@ -76,13 +76,13 @@
 **当前属于本层的文档：**
 
 - `common/common-module-design.md` — mall-common 公共模块设计
-- `product/overview.md` — 商品中心模块概述（职责、功能域、概念、ER 图）
-- `product/category-management.md` — 商品分类管理
-- `product/brand-management.md` — 品牌管理
-- `product/attr-management.md` — 属性管理（属性元数据 + 属性分组）
-- `product/spu-management.md` — SPU 管理
-- `product/sku-management.md` — SKU 管理
-- `product/object-storage-design.md` — 对象存储设计
+- `mall-product/overview.md` — 商品中心模块概述（职责、功能域、概念、ER 图）
+- `mall-product/category-management.md` — 商品分类管理
+- `mall-product/brand-management.md` — 品牌管理
+- `mall-product/attr-management.md` — 属性管理（属性元数据 + 属性分组）
+- `mall-product/spu-management.md` — SPU 管理
+- `mall-product/sku-management.md` — SKU 管理
+- `mall-product/object-storage-design.md` — 对象存储设计
 
 ### 第三层：学习文档
 
