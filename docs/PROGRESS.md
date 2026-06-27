@@ -38,6 +38,7 @@
 | 2026-06-24 | 品牌管理实现 | `e53fe25` | product 模块：BrandController/Service（分页查询/详情/新增/修改/状态更新/删除/分类下品牌）+ DTO/VO；mall-common 新增校验分组 Create/Update + 品牌错误码 53001-53005；Brand.showStatus Byte→Integer；product 补 MyBatisConfig(@MapperScan)；BrandServiceTest + BrandControllerTest 全绿（mvn test 58 通过）；brand-management.md 设计文档 + product-brand-demo.http；CLAUDE.md 补 JDK21 路径约定 |
 | 2026-06-24 | 文档站搭建 + 文档分层规范 | `ce62329` | MkDocs Material 文档站（mkdocs.yml + GitHub Actions 自动部署到 Pages + serve-docs.bat 本地启动脚本）+ docs/docs-site-deployment.md 部署指南 + docs/documentation-layering-guide.md 三层文档分层规范（全局设计+规范 / 模块设计 / 学习文档）+ docs/index.md 首页 + 修复 2 处跨文档死链；SPU/SKU 属性设计文档（product/spu-sku-attr-design.md）+ 接口设计补充。部署过程修复 workflow setup-python 失败（关 pip cache）、strict 构建死链（docs/ 外文件改 GitHub 绝对链接），站点已上线 https://qihao0o.github.io/my-mall/ |
 | 2026-06-21 | 网关路由配置修复 | `5bb4e9a` | RequestLogFilter + application.yml 路由过滤器修正 |
+| 2026-06-27 | GitHub 学习文档 + learn-docs 组织原则 | — | 新增 `docs/learn-docs/github/` 12 篇学习文档（基础/协作工作流/PR/分支保护/Actions/Pages/Release/Issue/Secrets/CLI/项目实践串联，含 mkdocs.yml workflow 逐行解读）；AGENTS.md 补充 learn-docs 文档组织原则（按实际内容组织，不套用开发文档模式）；mkdocs.yml 导航新增 GitHub 子项；修复 strict 构建链接警告（外部文件改 GitHub 绝对 URL、修正相对路径） |
 
 ---
 

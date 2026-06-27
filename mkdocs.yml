@@ -147,6 +147,19 @@ nav:
           - 项目实现: learn-docs/api-gateway/project-implementation.md
       - 测试:
           - 端到端测试策略: learn-docs/testing/e2e-testing-strategies.md
+      - GitHub:
+          - 学习地图: learn-docs/github/README.md
+          - GitHub 基础: learn-docs/github/01-github-fundamentals.md
+          - 协作工作流: learn-docs/github/02-collaboration-workflows.md
+          - Pull Request 与代码审查: learn-docs/github/03-pull-request-workflow.md
+          - 分支保护与规则: learn-docs/github/04-branch-protection.md
+          - GitHub Actions: learn-docs/github/05-github-actions.md
+          - GitHub Pages: learn-docs/github/06-github-pages.md
+          - Release 与版本管理: learn-docs/github/07-releases-versioning.md
+          - Issue 与项目管理: learn-docs/github/08-issues-projects.md
+          - Secrets 与安全: learn-docs/github/09-secrets-security.md
+          - GitHub CLI: learn-docs/github/10-github-cli.md
+          - 本项目实践串联: learn-docs/github/11-project-practice.md
   - 归档:
       - 2020 vs 2026 架构分析: other/architecture-analysis-2020-vs-2026.md
       - 架构分析与现代化: other/architecture-analysis-and-modernization.md
