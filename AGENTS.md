@@ -150,6 +150,7 @@ com.mymall.common/
 | `docs/microservice/service-registration-config.md` | 服务注册配置说明（Nacos 配置、禁用项、依赖清理、端口规划） |
 | `docs/microservice/nacos-config-guide.md` | Nacos 配置中心使用指南（依赖配置、动态刷新、演示接口、多环境配置） |
 | `docs/standards/mybatis-plus-codegen-guide.md` | MyBatis-Plus 代码生成规范（生成器使用、包结构、Entity/Mapper/Service/Controller 规范） |
+| `docs/standards/ai-assisted-development.md` | AI 辅助开发体系（Skill 体系、上下文管理、AGENTS.md 解读） |
 | `docs/standards/development-workflow.md` | AI 辅助开发流程规范（轻量 Spec + TDD，三阶段流程、核心/样板判定、配套 skill） |
 | `docs/standards/controller-specification.md` | Controller 接口编写规范（参数校验、校验分组、返回值、URL 设计、分页、幂等性、检查清单） |
 | `docs/standards/coding-standards.md` | 编码规范（分层架构、Service 事务、异常体系、GlobalExceptionHandler、日志、DTO/VO/Entity、命名规范） |

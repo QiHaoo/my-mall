@@ -110,6 +110,7 @@ nav:
       - API 网关配置指南: microservice/gateway-config-guide.md
       - Feign 远程调用配置: microservice/feign-config.md
   - 开发规范:
+      - AI 辅助开发体系: standards/ai-assisted-development.md
       - 编码规范: standards/coding-standards.md
       - Controller 接口规范: standards/controller-specification.md
       - 后端测试规范: standards/testing-specification.md
