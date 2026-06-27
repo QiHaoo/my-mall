@@ -68,7 +68,7 @@ public class BrandController {
                                     @Valid @RequestBody BrandShowStatusDTO dto) {
         log.info("更新品牌显示状态: id={}, showStatus={}", id, dto.getShowStatus());
         brandService.updateShowStatus(id, dto);
-        return R.ok(null);
+        return R.ok();
     }
 
     @Operation(summary = "删除品牌")
@@ -76,7 +76,7 @@ public class BrandController {
     public R<Void> delete(@PathVariable Long id) {
         log.info("删除品牌: id={}", id);
         brandService.removeBrand(id);
-        return R.ok(null);
+        return R.ok();
     }
 
     @Operation(summary = "查询分类下的品牌")

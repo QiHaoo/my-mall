@@ -61,6 +61,6 @@ public class CategoryController {
     public R<Void> sort(@Validated @RequestBody CategorySortDTO dto) {
         log.info("拖拽排序: count={}", dto.getCategories().size());
         categoryService.sortCategories(dto);
-        return R.ok(null);
+        return R.ok();
     }
 }

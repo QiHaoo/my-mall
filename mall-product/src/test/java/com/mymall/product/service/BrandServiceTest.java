@@ -98,7 +98,7 @@ class BrandServiceTest {
             });
 
             // When
-            Page<BrandVO> result = brandService.pageQuery(query);
+            PageVO<BrandVO> result = brandService.pageQuery(query);
 
             // Then
             assertThat(result.getTotal()).isEqualTo(1);

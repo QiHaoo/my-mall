@@ -68,7 +68,13 @@ class MemberControllerTest {
         @Test
         @DisplayName("当远程服务返回空列表时应正常返回")
         void  shouldReturnEmptyListWhenNoCoupons() throws Exception {
-            R<Map<String, Object>> emptyResponse = R.ok().put("coupons", List.of()).put("total", 0);
+            R<Map<String, Object>> emptyResponse;
+            {
+                Map<String, Object> emptyData = new HashMap<>();
+                emptyData.put("coupons", List.of());
+                emptyData.put("total", 0);
+                emptyResponse = R.ok(emptyData);
+            }
             when(couponFeignClient.list()).thenReturn(emptyResponse);
 
             mockMvc.perform(get("/member/member/test-remote"))

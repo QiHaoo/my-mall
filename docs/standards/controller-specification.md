@@ -123,7 +123,7 @@ public R<Coupon> getById(@PathVariable Long id) {
     try {
         return R.ok(couponService.getById(id));
     } catch (Exception e) {
-        return R.error(e.getMessage());
+        return R.error(ResultCode.INTERNAL_ERROR, e.getMessage());
     }
 }
 ```

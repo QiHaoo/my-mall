@@ -22,7 +22,7 @@ public interface IBrandService extends IService<Brand> {
      * @param query 查询条件
      * @return 品牌分页结果
      */
-    Page<BrandVO> pageQuery(BrandQueryDTO query);
+    PageVO<BrandVO> pageQuery(BrandQueryDTO query);
 
     /**
      * 品牌详情（含关联三级分类 ID 列表）

@@ -45,7 +45,7 @@ public class OssController {
     public R<Void> deleteFile(@RequestParam String bucket, @RequestParam String objectName) {
         log.info("删除文件: bucket={}, objectName={}", bucket, objectName);
         ossService.deleteFile(bucket, objectName);
-        return R.ok(null);
+        return R.ok();
     }
 
     @Operation(summary = "获取下载 URL（私有文件）")

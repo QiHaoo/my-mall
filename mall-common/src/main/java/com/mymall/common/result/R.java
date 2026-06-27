@@ -1,5 +1,6 @@
 package com.mymall.common.result;
 
+import com.mymall.common.exception.ResultCode;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -11,14 +12,20 @@ import java.util.Map;
  *
  * <h3>使用示例</h3>
  * <pre>{@code
- * // 返回单个数据
+ * // 成功（无数据）—— 新增/修改/删除等操作
+ * R.ok();
+ *
+ * // 成功（携带数据）
  * R.ok(entity);
  *
- * // 链式返回多个键值对（data 自动变为 Map）
- * R.ok().put("coupons", list).put("total", 2);
+ * // 成功（携带分页数据）
+ * R.ok(PageVO.of(page));
  *
- * // 错误响应
- * R.error("参数错误");
+ * // 失败（使用错误码枚举）
+ * R.error(ResultCode.PARAM_ERROR);
+ *
+ * // 失败（错误码枚举 + 自定义消息）
+ * R.error(ResultCode.STOCK_NOT_ENOUGH, "SKU[" + skuId + "] 库存不足");
  * }</pre>
  *
  * @param <T> 数据泛型
@@ -26,51 +33,88 @@ import java.util.Map;
 @Data
 public class R<T> implements Serializable {
 
+    private static final int SUCCESS_CODE = 200;
+    private static final String SUCCESS_MSG = "success";
+
     private Integer code;
     private String msg;
     private T data;
 
+    // ==================== Success ====================
+
     /**
-     * 成功响应（data 初始化为 HashMap，支持后续链式 {@link #put}）
+     * 成功（无数据），用于新增/修改/删除等不需要返回数据的操作
      */
-    public static R<Map<String, Object>> ok() {
-        R<Map<String, Object>> r = new R<>();
-        r.setCode(200);
-        r.setMsg("success");
-        r.setData(new HashMap<>());
-        return r;
+    public static R<Void> ok() {
+        return restResult(null, SUCCESS_CODE, SUCCESS_MSG);
     }
 
     /**
-     * 成功响应（携带单个数据对象）
+     * 成功（携带单个数据对象）
      */
     public static <T> R<T> ok(T data) {
-        return restResult(data, 200, "success");
+        return restResult(data, SUCCESS_CODE, SUCCESS_MSG);
     }
 
-    public static <T> R<T> error(String msg) {
-        return restResult(null, 500, msg);
+    // ==================== Error ====================
+
+    /**
+     * 失败（使用 ResultCode 枚举）
+     */
+    public static R<Void> error(ResultCode resultCode) {
+        return restResult(null, resultCode.getCode(), resultCode.getMessage());
     }
 
-    public static <T> R<T> error(Integer code, String msg) {
+    /**
+     * 失败（使用 ResultCode 枚举 + 自定义 message，覆盖枚举默认 message）
+     */
+    public static R<Void> error(ResultCode resultCode, String message) {
+        return restResult(null, resultCode.getCode(), message);
+    }
+
+    /**
+     * 失败（自定义 code + message）
+     */
+    public static R<Void> error(int code, String msg) {
         return restResult(null, code, msg);
     }
 
+    // ==================== Utility ====================
+
     /**
-     * 链式添加键值对，要求 data 为 Map 类型（通过 {@link #ok()} 创建）
+     * 判断是否为成功响应
+     */
+    public boolean isSuccess() {
+        return SUCCESS_CODE == this.code;
+    }
+
+    /**
+     * 链式添加键值对，要求 data 为 Map 类型（通过 {@link #ok(Object)} 传入 Map 创建）。
      *
-     * <pre>{@code R.ok().put("coupons", list).put("total", 2);}</pre>
+     * <pre>{@code
+     * Map<String, Object> data = new HashMap<>();
+     * data.put("coupons", list);
+     * data.put("total", 2);
+     * R.ok(data);
+     * }</pre>
+     *
+     * @throws IllegalStateException 如果 data 不是 Map 类型
      */
     @SuppressWarnings("unchecked")
     public R<T> put(String key, Object value) {
-        if (this.data == null || !(this.data instanceof Map)) {
+        if (this.data == null) {
             this.data = (T) new HashMap<String, Object>();
+        } else if (!(this.data instanceof Map)) {
+            throw new IllegalStateException(
+                    "put() 要求 data 为 Map 类型，当前 data 类型: " + this.data.getClass().getName());
         }
         ((Map<String, Object>) this.data).put(key, value);
         return this;
     }
 
-    private static <T> R<T> restResult(T data, Integer code, String msg) {
+    // ==================== Internal ====================
+
+    private static <T> R<T> restResult(T data, int code, String msg) {
         R<T> r = new R<>();
         r.setCode(code);
         r.setMsg(msg);

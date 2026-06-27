@@ -19,7 +19,7 @@ import lombok.Data;
  *
  * // Controller
  * @GetMapping("/page")
- * public R<IPage<Coupon>> page(@Valid CouponPageQuery query) {
+ * public R<PageVO<Coupon>> page(@Valid CouponPageQuery query) {
  *     return R.ok(couponService.page(query));
  * }
  * }</pre>

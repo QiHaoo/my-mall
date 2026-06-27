@@ -1,8 +1,8 @@
 # 统一响应与异常体系
 
-> 涉及组件：`R` → `ResultCode` → `BizException` → `GlobalExceptionHandler`
+> 涉及组件：`R` → `PageVO` → `ResultCode` → `BizException` → `GlobalExceptionHandler`
 >
-> 这四个组件构成一条完整的链路：Controller 返回 `R`，Service 抛 `BizException`，`GlobalExceptionHandler` 统一捕获后转成 `R`，错误码由 `ResultCode` 统一管理。
+> 这五个组件构成一条完整的链路：Controller 返回 `R`，分页接口用 `PageVO` 包装分页数据，Service 抛 `BizException`，`GlobalExceptionHandler` 统一捕获后转成 `R`，错误码由 `ResultCode` 统一管理。
 
 ## 为什么需要统一响应
 
@@ -67,22 +67,103 @@ public class R<T> implements Serializable {
 - **`msg`**：给用户看的提示，不是给开发者看的堆栈
 - **`data`**：泛型，灵活携带任意类型数据
 
+### API 设计
+
+```java
+// 成功（无数据）—— 新增/修改/删除
+R.ok()                         // R<Void>
+
+// 成功（携带数据）
+R.ok(entity)                   // R<T>
+
+// 成功（携带分页数据）
+R.ok(PageVO.of(page))          // R<PageVO<T>>
+
+// 失败（错误码枚举）
+R.error(ResultCode.PARAM_ERROR)              // R<Void>
+
+// 失败（枚举 + 自定义消息）
+R.error(ResultCode.STOCK_NOT_ENOUGH, "SKU 库存不足")
+
+// 判断是否成功（Feign 调用方常用）
+response.isSuccess()           // boolean
+```
+
 ### 链式 put 的设计
 
 ```java
 // 返回多个数据段
-R.ok().put("coupons", list).put("total", 2);
+Map<String, Object> data = new HashMap<>();
+data.put("coupons", list);
+data.put("total", 2);
+R.ok(data);
 ```
 
-这个设计的取舍：
+`put` 方法仍保留用于链式添加，但 data 非 Map 类型时会抛 `IllegalStateException` 而非静默替换。推荐直接传入 Map 而非用 `put` 链。
 
-- **优点**：一个接口需要返回多个不相干数据段时，不用专门建 VO 类
-- **缺点**：`put` 方法里有 `instanceof` 检查和强制转型，类型安全性弱
 - **适用场景**：接口聚合查询（如首页需要 banner + 推荐商品 + 公告），数据段之间无结构关联
+- **不适用场景**：有明确结构的响应，应该建 VO 类
 
 ### 业界对比
 
 淘宝的 `Result` 和微信的 `BaseResponse` 结构几乎一致。但有些框架（如 Spring HATEOAS）会在响应里加 `_links` 字段做超媒体导航，本项目的 `R` 不涉及 HATEOAS，因为是内部管理后台 + 前端分离架构，不需要超媒体。
+
+## PageVO：分页响应 VO
+
+### 为什么不直接返回 MyBatis-Plus 的 Page
+
+MyBatis-Plus 的 `Page` 序列化后会暴露内部字段：
+
+```json
+{
+  "records": [...],     // 前端需要
+  "total": 100,         // 前端需要
+  "current": 1,         // 前端需要
+  "size": 10,           // 前端需要
+  "pages": 10,          // 前端需要
+  "orders": [],         // 内部字段
+  "optimizeCountSql": true,   // 内部字段
+  "searchCount": true,        // 内部字段
+  "countId": null,            // 内部字段
+  "maxLimit": null            // 内部字段
+}
+```
+
+三个问题：
+1. **字段泄露**：MyBatis-Plus 内部配置字段直接暴露给前端
+2. **耦合**：API 响应格式绑定 ORM 实现类，未来换 ORM 要改所有接口
+3. **手动转换啰嗦**：Service 层每次都要 `new Page<>(current, size, total)` + `setRecords()`
+
+### PageVO 的设计
+
+```java
+@Data
+public class PageVO<T> implements Serializable {
+    private List<T> records;
+    private long total;
+    private long current;
+    private long size;
+    private long pages;
+
+    // records 类型一致时直接转换
+    public static <T> PageVO<T> of(Page<T> page) { ... }
+
+    // records 类型不一致时（如 Entity → VO），只转换分页信息
+    public static <T> PageVO<T> ofRaw(Page<?> page) { ... }
+}
+```
+
+两个工厂方法的区别：
+- `of(Page<T>)`：records 类型一致（如 `Page<BrandVO>` → `PageVO<BrandVO>`），直接拷贝
+- `ofRaw(Page<?>)`：records 类型不一致（如 `Page<Brand>` → `PageVO<BrandVO>`），只拷贝分页信息，records 由调用方手动 set
+
+### 业界对比
+
+| 方案 | 特点 |
+|------|------|
+| 独立 PageVO（本项目） | 只暴露必要字段，隔离 ORM |
+| 直接返回 Page | 简单但泄露内部字段 |
+| Spring Data 的 PagedModel | 标准 HAL 格式，含 `_links`，偏 RESTful |
 
 ## ResultCode：错误码枚举
 

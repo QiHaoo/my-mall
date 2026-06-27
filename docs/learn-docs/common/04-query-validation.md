@@ -60,7 +60,7 @@ public class BrandPageQuery extends PageQuery {
 
 // 2. Controller 直接接收
 @GetMapping("/page")
-public R<IPage<Brand>> page(@Valid BrandPageQuery query) {
+public R<PageVO<Brand>> page(@Valid BrandPageQuery query) {
     // query.getPageNum() / query.getPageSize() 已有默认值 + 校验
     return R.ok(brandService.page(query));
 }
@@ -94,6 +94,32 @@ pagination.setMaxLimit(MAX_PAGE_LIMIT);
 | 本项目 | `pageNum` | `pageSize` |
 
 本项目选 `pageNum`/`pageSize`，和 PageHelper 命名一致，也是国内最常用的命名。注意 `pageNum` 从 1 开始（不是 Spring Data 的从 0 开始），更符合直觉。
+
+### PageUtils：分页转换工具
+
+`PageQuery` 解决了"入参统一"的问题，但每个 Service 还要重复两件事：
+
+```java
+// 1. PageQuery → MyBatis-Plus Page
+Page<Brand> page = new Page<>(query.getPageNum(), query.getPageSize());
+
+// 2. Page + VO 列表 → PageVO
+PageVO<BrandVO> vo = PageVO.ofRaw(result).setRecords(voList);
+```
+
+`PageUtils` 封装这两个转换：
+
+```java
+// 改造后：从 4 步缩到 2 步
+Page<Brand> result = page(PageUtils.toPage(query), wrapper);
+List<BrandVO> voList = result.getRecords().stream().map(this::toVO).toList();
+return PageUtils.toPageVO(result, voList);
+```
+
+**为什么只封装这两步**：
+- `toPage(PageQuery)`：纯粹的参数转换，所有 Service 写法一致
+- `toPageVO(Page, List)`：纯粹的类型转换，records 由调用方提供（因为 Entity→VO 转换各业务不同）
+- 不封装"执行查询"：各 Service 调用方式不同（`page()` / `selectPage()`），强行封装增加抽象成本
 
 ## Create / Update：校验分组
 

@@ -54,7 +54,7 @@ public class GlobalExceptionHandler {
                 .map(FieldError::getDefaultMessage)
                 .collect(Collectors.joining("; "));
         log.warn("参数校验失败: {}", message);
-        return R.error(ResultCode.PARAM_ERROR.getCode(), message);
+        return R.error(ResultCode.PARAM_ERROR, message);
     }
 
     /** @ModelAttribute / 表单参数校验失败 */
@@ -64,7 +64,7 @@ public class GlobalExceptionHandler {
                 .map(FieldError::getDefaultMessage)
                 .collect(Collectors.joining("; "));
         log.warn("参数绑定失败: {}", message);
-        return R.error(ResultCode.PARAM_ERROR.getCode(), message);
+        return R.error(ResultCode.PARAM_ERROR, message);
     }
 
     /** @PathVariable / @RequestParam 上的 @Validated 约束校验失败 */
@@ -74,35 +74,35 @@ public class GlobalExceptionHandler {
                 .map(v -> v.getMessage())
                 .collect(Collectors.joining("; "));
         log.warn("约束校验失败: {}", message);
-        return R.error(ResultCode.PARAM_ERROR.getCode(), message);
+        return R.error(ResultCode.PARAM_ERROR, message);
     }
 
     /** 缺少必填的 @RequestParam */
     @ExceptionHandler(MissingServletRequestParameterException.class)
     public R<Void> handleMissingParam(MissingServletRequestParameterException e) {
         log.warn("缺少请求参数: {}", e.getParameterName());
-        return R.error(ResultCode.PARAM_ERROR.getCode(), "缺少参数: " + e.getParameterName());
+        return R.error(ResultCode.PARAM_ERROR, "缺少参数: " + e.getParameterName());
     }
 
     /** 参数类型转换失败（如 ?id=abc 期望 Long） */
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public R<Void> handleTypeMismatch(MethodArgumentTypeMismatchException e) {
         log.warn("参数类型不匹配: name={}, value={}", e.getName(), e.getValue());
-        return R.error(ResultCode.PARAM_ERROR.getCode(), "参数类型不匹配: " + e.getName());
+        return R.error(ResultCode.PARAM_ERROR, "参数类型不匹配: " + e.getName());
     }
 
     /** 请求体 JSON 解析失败（格式错误 / 缺 body） */
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public R<Void> handleNotReadable(HttpMessageNotReadableException e) {
         log.warn("请求体解析失败: {}", e.getMessage());
-        return R.error(ResultCode.PARAM_ERROR.getCode(), "请求体格式错误或为空");
+        return R.error(ResultCode.PARAM_ERROR, "请求体格式错误或为空");
     }
 
     /** 上传文件超过限制 */
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     public R<Void> handleUploadTooLarge(MaxUploadSizeExceededException e) {
         log.warn("上传文件超过大小限制: {}", e.getMessage());
-        return R.error(ResultCode.PARAM_ERROR.getCode(), "上传文件超过大小限制");
+        return R.error(ResultCode.PARAM_ERROR, "上传文件超过大小限制");
     }
 
     // ==================== 3. Spring MVC 路由异常（R.code = 404/405） ====================
@@ -110,13 +110,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(NoResourceFoundException.class)
     public R<Void> handleNoResource(NoResourceFoundException e) {
         log.warn("资源不存在: {}", e.getResourcePath());
-        return R.error(ResultCode.NOT_FOUND.getCode(), ResultCode.NOT_FOUND.getMessage());
+        return R.error(ResultCode.NOT_FOUND);
     }
 
     @ExceptionHandler(org.springframework.web.HttpRequestMethodNotSupportedException.class)
     public R<Void> handleMethodNotAllowed(org.springframework.web.HttpRequestMethodNotSupportedException e) {
         log.warn("请求方法不支持: {}", e.getMethod());
-        return R.error(ResultCode.METHOD_NOT_ALLOWED.getCode(),
+        return R.error(ResultCode.METHOD_NOT_ALLOWED,
                 ResultCode.METHOD_NOT_ALLOWED.getMessage() + ": " + e.getMethod());
     }
 
@@ -125,6 +125,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public R<Void> handleException(Exception e) {
         log.error("未处理异常", e);
-        return R.error(ResultCode.INTERNAL_ERROR.getCode(), ResultCode.INTERNAL_ERROR.getMessage());
+        return R.error(ResultCode.INTERNAL_ERROR);
     }
 }

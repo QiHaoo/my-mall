@@ -6,6 +6,8 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.mymall.common.exception.BizException;
 import com.mymall.common.exception.ResultCode;
+import com.mymall.common.result.PageVO;
+import com.mymall.common.util.PageUtils;
 import com.mymall.product.dto.brand.BrandQueryDTO;
 import com.mymall.product.dto.brand.BrandSaveDTO;
 import com.mymall.product.dto.brand.BrandShowStatusDTO;
@@ -51,8 +53,7 @@ public class BrandServiceImpl extends ServiceImpl<BrandMapper, Brand> implements
     // ==================== 查询 ====================
 
     @Override
-    public Page<BrandVO> pageQuery(BrandQueryDTO query) {
-        Page<Brand> page = new Page<>(query.getPageNum(), query.getPageSize());
+    public PageVO<BrandVO> pageQuery(BrandQueryDTO query) {
         LambdaQueryWrapper<Brand> wrapper = new LambdaQueryWrapper<Brand>()
                 .like(isNotBlank(query.getName()), Brand::getName, query.getName())
                 .eq(isNotBlank(query.getFirstLetter()), Brand::getFirstLetter,
@@ -60,11 +61,10 @@ public class BrandServiceImpl extends ServiceImpl<BrandMapper, Brand> implements
                 .eq(query.getShowStatus() != null, Brand::getShowStatus, query.getShowStatus())
                 .orderByAsc(Brand::getSort)
                 .orderByAsc(Brand::getId);
-        Page<Brand> result = page(page, wrapper);
+        Page<Brand> result = page(PageUtils.toPage(query), wrapper);
 
-        Page<BrandVO> voPage = new Page<>(result.getCurrent(), result.getSize(), result.getTotal());
-        voPage.setRecords(result.getRecords().stream().map(this::toVO).toList());
-        return voPage;
+        List<BrandVO> voList = result.getRecords().stream().map(this::toVO).toList();
+        return PageUtils.toPageVO(result, voList);
     }
 
     @Override

@@ -42,6 +42,9 @@ public class CouponController {
         c2.setEndTime(LocalDateTime.now().plusDays(30));
 
         List<Coupon> coupons = List.of(c1, c2);
-        return R.ok().put("coupons", coupons).put("total", coupons.size());
+        Map<String, Object> data = new HashMap<>();
+        data.put("coupons", coupons);
+        data.put("total", coupons.size());
+        return R.ok(data);
     }
 }

@@ -11,7 +11,8 @@
 ```
 com.mymall.common/
 ├── result/
-│   └── R.java                    # 统一响应体
+│   ├── R.java                    # 统一响应体
+│   └── PageVO.java               # 分页响应 VO
 ├── exception/
 │   ├── ResultCode.java           # 错误码枚举
 │   ├── BizException.java         # 业务异常
@@ -23,7 +24,8 @@ com.mymall.common/
 ├── handler/
 │   └── MyMetaObjectHandler.java  # 公共字段自动填充
 ├── util/
-│   └── UserContext.java          # 请求级用户上下文（ThreadLocal）
+│   ├── UserContext.java          # 请求级用户上下文（ThreadLocal）
+│   └── PageUtils.java            # 分页转换工具（PageQuery→Page、Page→PageVO）
 ├── config/
 │   ├── MybatisPlusConfig.java    # MP 拦截器 + 全局配置
 │   ├── SpringDocConfig.java      # OpenAPI 文档配置
@@ -71,6 +73,7 @@ mall-common/src/main/resources/
 | 组件 | 包 | 一句话 | 详见 |
 |------|---|--------|------|
 | `R` | `result` | 统一响应体（HTTP 200 + 业务码） | §3.1 |
+| `PageVO` | `result` | 分页响应 VO（隔离 MyBatis-Plus Page 内部字段） | §3.1.1 |
 | `ResultCode` | `exception` | 错误码枚举（按模块分段） | §3.2 |
 | `BizException` | `exception` | 业务异常，携带错误码 | §3.3 |
 | `GlobalExceptionHandler` | `exception` | 全局异常处理器，统一兜底 | §3.4 |
@@ -78,18 +81,36 @@ mall-common/src/main/resources/
 | `MyMetaObjectHandler` | `handler` | 审计字段自动填充 | §3.6 |
 | `PageQuery` | `query` | 分页查询基类 | §3.7 |
 | `UserContext` | `util` | 请求级用户上下文（ThreadLocal） | §3.8 |
+| `PageUtils` | `util` | 分页转换工具（PageQuery→Page、Page→PageVO） | §3.8.1 |
 | `MybatisPlusConfig` / `SpringDocConfig` / `JacksonConfig` | `config` | 全局配置类 | §3.9 |
 | `OssTemplate` / `OssProperties` / `OssAutoConfiguration` | `oss` | 对象存储 SDK（MinIO 封装） | §3.10 |
 
 ### 3.1 R — 统一响应体
 
 ```java
-R.ok(data)                    // R<T> 成功，code=200
-R.ok().put("k", v)            // R<Map> 链式多键值
-R.error(code, msg)            // 错误响应
+R.ok()                        // R<Void> 成功（无数据），用于新增/修改/删除
+R.ok(data)                    // R<T> 成功（携带数据）
+R.ok(PageVO.of(page))         // R<PageVO<T>> 成功（携带分页数据）
+R.error(ResultCode.PARAM_ERROR)               // R<Void> 失败（使用错误码枚举）
+R.error(ResultCode.STOCK_NOT_ENOUGH, "SKU 库存不足")  // 失败（枚举 + 自定义消息）
+R.error(40010, "该优惠券已被领完")               // 失败（自定义 code + msg）
 ```
 
-HTTP 状态码始终 200，业务状态由 `R.code` 表达（200=成功，4xx/5xx=错误）。理由：网关/CDN 会拦截 4xx/5xx，统一 200 + 业务码是电商通行做法。详见 [Controller 规范 §2](../standards/controller-specification.md)。
+HTTP 状态码始终 200，业务状态由 `R.code` 表达（200=成功，其他=错误）。理由：网关/CDN 会拦截 4xx/5xx，统一 200 + 业务码是电商通行做法。详见 [Controller 规范 §2](../standards/controller-specification.md)。
+
+### 3.1.1 PageVO — 分页响应 VO
+
+```java
+// Service 层：从 MyBatis-Plus Page 转换
+PageVO<BrandVO> vo = PageVO.ofRaw(result).setRecords(voList);
+
+// Controller 层
+public R<PageVO<BrandVO>> list(BrandQueryDTO query) {
+    return R.ok(brandService.pageQuery(query));
+}
+```
+
+隔离 MyBatis-Plus `Page` 的内部字段（orders、optimizeCountSql 等），只暴露 records/total/current/size/pages 五个字段。
 
 ### 3.2 ResultCode — 错误码枚举
 
@@ -167,6 +188,19 @@ new BizException(40010, "该优惠券已被领完")
 `ThreadLocal<Long>` 存当前请求用户 ID。网关鉴权后通过 `X-User-Id` 头透传，各服务 `UserContextFilter`（在 mall-oss 等服务内）解析写入。Service 层调 `UserContext.getUserId()` 获取，无需逐层透传。
 
 > **线程池注意**：普通 ThreadLocal 在 `@Async`/线程池中不传递，异步逻辑需显式传 userId 或升级为 `TransmittableThreadLocal`。当前业务均在请求线程内完成。
+
+### 3.8.1 PageUtils — 分页转换工具
+
+```java
+// PageQuery → MyBatis-Plus Page
+Page<Brand> result = page(PageUtils.toPage(query), wrapper);
+
+// Page + VO 列表 → PageVO
+List<BrandVO> voList = result.getRecords().stream().map(this::toVO).toList();
+return PageUtils.toPageVO(result, voList);
+```
+
+封装 `PageQuery` → `Page`、`Page` + VO 列表 → `PageVO` 的转换，避免每个 Service 重复构造。
 
 ### 3.9 全局配置类
 

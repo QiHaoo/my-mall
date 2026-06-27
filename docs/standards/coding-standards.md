@@ -269,7 +269,7 @@ public class GlobalExceptionHandler {
         String msg = e.getBindingResult().getFieldErrors().stream()
                 .map(FieldError::getDefaultMessage)
                 .collect(Collectors.joining("; "));
-        return R.error(ResultCode.PARAM_ERROR.getCode(), msg);
+        return R.error(ResultCode.PARAM_ERROR, msg);  // 使用枚举简化调用
     }
 
     /** 表单参数校验失败 */
@@ -292,8 +292,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public R<Void> handleException(Exception e) {
         log.error("未处理异常", e);
-        return R.error(ResultCode.INTERNAL_ERROR.getCode(),
-                       ResultCode.INTERNAL_ERROR.getMessage());
+        return R.error(ResultCode.INTERNAL_ERROR);
     }
 }
 ```
