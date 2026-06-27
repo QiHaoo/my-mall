@@ -122,13 +122,7 @@ com.mymall.common/
 
 > **文档管理约定**：AGENTS.md 保持精简，只放技术选型、架构概览、文档索引等高频参考信息。详细内容放到 `docs/` 目录下。对于执行过程中可能需要查阅的文档，在此处维护索引，确保通过索引即可快速定位。
 >
-> **注意**：`docs/learn-docs/` 目录存放个人学习笔记，不属于项目开发文档，不在本索引范围内。
->
-> **learn-docs 文档组织原则**：每个学习主题在 `docs/learn-docs/{主题}/` 下建独立子目录，文档组织方式**按照实际内容来**，不套用项目已有开发文档的模式（如 `docs/` 下的规范类文档、`docs/{服务}/` 的进度模板等）。具体来说：
-> - 文件命名和数量由主题本身的内容结构决定，不强求统一的 `01-basics / 02-architecture / 03-xxx / 04-best-practices` 模板
-> - 每个子目录至少有一个 `README.md` 作为入口（学习地图、路径、清单）
-> - 内容深度和篇幅按主题需要自由安排，可深可浅
-> - 学习笔记的写作目标是「自己能看懂、能复习」，不强制生产级文档规范
+> **注意**：`docs/learn-docs/` 目录存放个人学习笔记，不属于项目开发文档，不在本索引范围内。学习笔记的组织原则见 [docs/learn-docs/README.md](docs/learn-docs/README.md)。
 
 ### docs 目录结构
 
@@ -139,6 +133,8 @@ com.mymall.common/
 | `docs/PROGRESS.md` | **项目总进度**（已完成 + 当前进行，不列计划） |
 | `docs/_TEMPLATE-PROGRESS.md` | 服务进度文档模板（复制到各服务目录命名为 PROGRESS.md） |
 | `docs/{服务名}/` | 某服务的所有文档，含 `PROGRESS.md` 及该模块的设计、接口文档等 |
+| `docs/doc-convention.md` | 文档写作规范（模块文档组织、图表规范 Mermaid vs 纯文本） |
+| `docs/learn-docs/README.md` | learn-docs 学习笔记组织原则 |
 | `docs/mall-product/overview.md` | 商品中心模块概述（职责、功能域划分、核心概念 SPU/SKU/属性、整体 ER 图、功能文档索引） |
 | `docs/mall-product/category-management.md` | 商品分类管理需求与接口文档（三级分类树、批量删除、拖拽排序、DTO/错误码） |
 | `docs/mall-product/brand-management.md` | 品牌管理需求与接口文档（品牌 CRUD、品牌-分类多对多关联、冗余字段同步） |
@@ -173,18 +169,7 @@ com.mymall.common/
 >
 > **代码注释规范**：项目中的代码和配置文件要有适当的注释。难理解的逻辑、需要注意的坑、有学习价值的设计，注释要丰富；简单的 CRUD / 样板代码可以不写注释。
 
-> **模块文档组织规范（按需演进 + 分层结构）**：
-> - **文档分层**：每个服务模块的文档分两层 —— 模块概述文档（`overview.md`）+ 功能域文档（每块独立功能一篇）。模块概述讲全局（职责、功能域划分、核心概念、整体数据模型、上下游关系），功能域文档讲具体（需求、接口、DTO、错误码）。功能域文档之间通过相对链接互相引用，不重复内容。
-> - **按需演进，不强制前置规划**：文档跟着开发节奏走，开发到哪写到哪。不要求一开始就写完整的 `overview.md`——可以先写功能域文档，模块内容积累到一定程度再抽取共性形成概述。概念性内容暂时无处安放时，先放当前功能域文档，等 `overview.md` 出现时再迁移。
-> - **粒度控制**：一个功能域一篇文档，不把多个功能域塞进同一篇。判断标准：如果一块功能有独立的表、独立的 Controller、独立的 Service，就值得单独一篇文档。参考 `docs/product/` 下的分类管理、品牌管理。
-> - **模板一致**：功能域文档统一遵循 `category-management.md` / `brand-management.md` 的章节结构（业务背景 → 功能需求 → 数据模型 → 接口设计 → DTO/VO → 错误码 → 网关路由 → HTTP 调试 → 非功能性要求 → 实现清单），保持风格统一。
-> - **overview.md 索引职责**：概述文档维护该模块所有功能域文档的链接索引，读者从概述入口能快速定位到任意功能域。
-
-> **文档图表规范（Mermaid vs 纯文本）**：
-> - **用 Mermaid 的场景**：流程图 / 架构图（flowchart）、时序图（sequenceDiagram）、状态图（stateDiagram）、ER 图（erDiagram）、类图（classDiagram）、Git 分支图（gitGraph）、甘特图（gantt）、思维导图（mindmap）—— 即有明确节点关系、流向、状态流转的图，一律用 Mermaid，禁用 ASCII 画线框图
-> - **用纯文本的场景**：目录树（`tree` 风格缩进）、层级嵌套结构（如包结构、DTO 列表）、配置项清单、简单的层级缩进说明 —— 这些用文本缩进更紧凑直观，不要硬套 Mermaid
-> - **Mermaid 语法要求**：使用 ` ```mermaid ` 代码块（注意语言名是 `mermaid` 全小写），Material 主题自动渲染，支持深浅色切换
-> - **选择原则**：能表达清楚的前提下，选更简洁的方式。简单层级用文本，复杂关系用 Mermaid
+> **文档写作规范**：模块文档组织（按需演进 + 分层结构）、图表规范（Mermaid vs 纯文本）详见 [docs/doc-convention.md](docs/doc-convention.md)。common 模块的文档组织规范见 [docs/common/doc-convention.md](docs/common/doc-convention.md)。
 
 ### 根目录配置文件
 
