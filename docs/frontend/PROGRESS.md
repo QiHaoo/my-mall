@@ -11,6 +11,7 @@
 |------|------|---------|------|
 | 2026-06-28 | 管理后台前端基础设施搭建 + 分类/品牌管理页面 | — | Vite + Vue 3 + TS + Element Plus + Pinia + Axios 脚手架；SCSS 样式系统（变量/Reset/主题定制/工具类）；API 请求层（Axios 拦截器剥离 R\<T\> + 统一错误处理）；路由系统（懒加载 + meta + afterEach 标题）；AdminLayout 布局（侧边栏可折叠 + 顶栏 + 面包屑 + 内容区过渡）；通用组件 PageTable + FormDialog；Composables useTable + useDialog；树形工具函数；分类管理（三级树 CRUD + 拖拽排序 + 批量删除）；品牌管理（分页 CRUD + 显示状态切换 + 关联分类管理）；404 页面 |
 | 2026-06-29 | 前端联调验证与 PageTable 刷新修复 | — | 开发服务器启动并对接 mall-gateway（CORS 允许 5173~5176）；分类/品牌管理页面端到端验证通过；修复品牌新增/删除后 PageTable 列表未自动刷新的问题（brand/index.vue 移除冗余 useTable，改用 PageTable ref 暴露的 refresh / tableData / pageNum） |
+| 2026-06-29 | 前端文档体系补充与学习文档 | — | 修正 overview.md 与实现对齐（目录结构/ID 类型/路由示例）；新增 infrastructure.md（基础设施设计，含待实现组件规划）、components.md（通用组件与 composables 速查）、coding-standards.md（编码规范）；调整 design-system.md 通用组件章节职责；功能域文档章节顺序调整为「需求→前端设计→后端实现」（doc-convention.md 规范 + category/brand-management.md 同步）；新增 learn-docs/frontend/ 10 篇学习文档（Vue3 基础/路由/Pinia/TS/Element Plus/Vite/基础设施设计/通用组件/API 层/功能页面实现） |
 
 ## 当前进行
 

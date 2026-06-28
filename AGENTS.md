@@ -148,8 +148,11 @@ com.mymall.common/
 | `docs/mall-product/object-storage-design.md` | 对象存储服务设计文档（MinIO 自建、Presigned URL 前端直传、mall-oss 服务 + mall-common-oss SDK） |
 | `docs/common/common-module-design.md` | mall-common 公共模块设计（包结构、自动装配、各组件职责、组件速查表、演进记录） |
 | `docs/common/doc-convention.md` | common 模块文档组织规范（单文档+速查表模式、复杂组件独立文档判定、新增组件流程） |
-| `docs/frontend/overview.md` | 前端架构概述（项目结构、技术栈、路由设计、状态管理、API 层封装） |
-| `docs/frontend/design-system.md` | 前端设计系统（Element Plus 定制、主题色、通用组件规范、Figma 设计稿交付流程） |
+| `docs/frontend/overview.md` | 前端架构概述（项目结构、技术栈、路由设计、状态管理、API 层封装、后端协作约定） |
+| `docs/frontend/infrastructure.md` | 前端基础设施设计（Vite/TS/ESLint 配置、样式体系、布局组件、踩坑记录、待实现组件规划） |
+| `docs/frontend/components.md` | 前端通用组件与 composables 设计（PageTable/FormDialog/useTable/useDialog/request/tree 速查表） |
+| `docs/frontend/coding-standards.md` | 前端编码规范（SFC 结构、Composition API、TypeScript、命名、样式、代码风格） |
+| `docs/frontend/design-system.md` | 前端设计系统（Element Plus 定制、主题色、通用组件视觉与交互规范、Figma 设计稿交付流程） |
 | `docs/frontend/PROGRESS.md` | 前端开发进度 |
 | `docs/frontend/figma-mcp-guide.md` | AI Agent 操作 Figma 设计稿指南（figma-console-mcp 选型、配置、连接验证、生成流程、核心工具速查） |
 | `docs/git-workflow.md` | Git 管理规范（分支策略、Commit 规范、发布流程） |
@@ -162,7 +165,7 @@ com.mymall.common/
 | `docs/standards/development-workflow.md` | AI 辅助开发流程规范（轻量 Spec + TDD，三阶段流程、核心/样板判定、配套 skill） |
 | `docs/standards/controller-specification.md` | Controller 接口编写规范（参数校验、校验分组、返回值、URL 设计、分页、幂等性、检查清单） |
 | `docs/standards/coding-standards.md` | 编码规范（分层架构、Service 事务、异常体系、GlobalExceptionHandler、日志、DTO/VO/Entity、命名规范） |
-| `docs/standards/testing-specification.md` | 后端测试规范（测试分层、各层写法、AssertJ、命名规范、依赖配置、提交前自查清单） |
+| `docs/standards/testing-specification.md` | 测试规范（测试分层、各层写法、AssertJ、E2E、公共组件/网关测试、覆盖率门禁 Jacoco、CI 集成、前端测试体系规划、提交前自查清单、待补充事项行动清单） |
 | `docs/microservice/feign-config.md` | 远程调用（Feign）配置说明（依赖、@FeignClient 规范、调用链路、测试配置） |
 | `docs/microservice/gateway-config-guide.md` | API 网关配置指南（路由规则、全局过滤器、断言演示、生产配置） |
 | `docs/standards/mybatis-plus-orm-notes.md` | MyBatis-Plus ORM 实践笔记（依赖配置、全局组件、使用约定） |

@@ -126,9 +126,77 @@
 
 ---
 
-## 三、数据模型
+## 三、前端设计
 
-### 3.1 表结构 `pms_brand`
+### 页面布局
+
+> Figma 设计稿：[品牌管理 Section](https://www.figma.com/design/UPX2R9RSakc3klzVIEB6Hq/My-mall?node-id=38-626)
+> - [品牌列表页](https://www.figma.com/design/UPX2R9RSakc3klzVIEB6Hq/My-mall?node-id=38-627)
+> - [新增/编辑品牌弹窗](https://www.figma.com/design/UPX2R9RSakc3klzVIEB6Hq/My-mall?node-id=40-116)
+> - [关联分类弹窗](https://www.figma.com/design/UPX2R9RSakc3klzVIEB6Hq/My-mall?node-id=38-786)
+
+**品牌列表页**（管理后台 `/product/brand`）
+
+- 顶部筛选区（Toolbar）：品牌名输入框（200×32）+ 首字母下拉（120×32，A-Z）+ 显示状态下拉（100×32，全部/显示/隐藏）+ 查询按钮（主色，72×32）+ 竖线分隔符 + 新增品牌按钮（主色，96×32）+ 批量删除按钮（危险色，96×32）
+- 表格区（列宽与筛选区严格对齐，从 x=20 开始）：
+  - 复选框列（60px）：行内复选框
+  - 品牌 Logo 列（120px）：logo 缩略图（60×40 圆角卡片 + "Logo" 占位文字）或"暂无"
+  - 品牌名称列（180px）：品牌名（Medium 字体）
+  - 品牌介绍列（380px）：单行截断展示（最多 28 字符 + "…"）
+  - 首字母列（100px）：首字母，居中
+  - 排序列（100px）：数字，居中
+  - 显示状态列（120px）：el-switch（绿色开启 / 灰色关闭）
+  - 操作列（292px）：✎ 编辑 / 🔗 关联分类 / 🗑 删除（三个动作均使用蓝色主色，删除用红色危险色）
+- 底部分页区：共 4 条 + 10条/页下拉 + 页码按钮（‹ 1 ›）+ 前往页码输入框 + 页
+
+**品牌表单弹窗**（新增 / 编辑复用，520×626，8px 圆角带浅灰描边）
+
+- 弹窗头部（高 56px）：标题"新增品牌"（或"编辑品牌"）+ 右侧 ✕ 关闭按钮 + 底部 1px 浅灰分隔线
+- 表单区（高 510px）：
+  - 品牌名称（必填，y=24，h=40）：单行文本输入框，placeholder "请输入品牌名称"
+  - 品牌 Logo（必填，y=80，120×80 虚线/浅灰上传区）：📷图标 + "点击上传" + "支持 JPG/PNG，≤ 10MB" 提示
+  - 品牌介绍（y=176，h=60）：多行 textarea，placeholder "请输入品牌介绍（≤ 500字符）"
+  - 首字母（y=252，h=40，120 宽）+ 排序（同行，h=40，100 宽，间距 20px）
+  - 显示状态（y=322）：绿色 switch 默认开启 + 文字说明 "默认开启，开启后前台分类筛选可显示"
+- 弹窗底部（高 60px）：取消按钮（白底边框）+ 确定按钮（主色填充），顶部 1px 浅灰分隔线
+
+**关联分类弹窗**（520×480，8px 圆角带浅灰描边）
+
+- 弹窗头部（高 56px）：标题"关联分类" + 右侧 ✕ 关闭按钮
+- Toolbar（高 56px）：+ 新增关联 按钮（主色，96×32）+ 底部分隔线
+- 表格区（4 列：#、品牌名、分类名、操作，居中对齐）：
+  - 表格行展示当前品牌已关联的分类列表（如华为→手机、平板电脑、平板电视、智能穿戴、路由器）
+  - 操作列提供"移除"动作（红色危险色文字）
+- 弹窗底部（高 60px）：取消 + 确定按钮
+
+### 组件拆分
+
+| 组件 | 职责 | 消费接口 |
+|------|------|---------|
+| BrandList | 列表页主体：筛选 + 表格 + 分页 + 批量删除 | GET /product/brand，DELETE /product/brand/batch |
+| BrandForm | 新增/编辑表单弹窗（仅基础信息，不含关联分类） | POST/PUT /product/brand，GET /product/brand/{id} |
+| BrandRelationDialog | 关联分类管理弹窗（查询/新增/移除品牌-分类关联） | GET /product/brand/{brandId}/category，POST /product/brand/category，DELETE /product/brand/{brandId}/category/{catelogId} |
+| BrandStatusSwitch | 表格行内显示状态切换 | PUT /product/brand/{id}/show-status |
+| LogoUpload | logo 上传（OSS 直传 MinIO） | mall-oss Presigned URL 接口 |
+
+### 关键交互
+
+- **筛选查询**：name 模糊 + firstLetter 精确 + showStatus 精确，点查询触发 `GET /product/brand`；重置清空所有条件并重新查询
+- **分页**：el-pagination，pageNum / pageSize 变化触发重新查询
+- **新增 / 编辑**：表单校验通过后提交；编辑时携带 `version` 触发乐观锁；品牌名变更由后端同步刷新关联表冗余字段，前端无需额外处理
+- **关联分类**：从列表页操作列的 🔗「关联分类」按钮触发 → 弹出关联分类弹窗，展示当前品牌已关联的分类列表（#、品牌名、分类名、操作），支持「新增关联」和「移除」操作。**品牌表单弹窗中不包含关联分类字段**，关联关系统一由独立弹窗管理，避免表单过于复杂。
+- **logo 上传**：前端先调 `mall-oss` 拿 Presigned URL → 直传 MinIO → 拿到对象访问 URL → 填入表单 `logo` 字段；品牌接口不接收文件流（详见 [对象存储服务设计](./object-storage-design.md)）
+- **显示状态切换**：el-switch 切换即调用 `PUT /product/brand/{id}/show-status`，失败回滚开关状态并提示
+- **删除**：确认弹窗 → `DELETE /product/brand/{id}`；若后端返回 `53003 BRAND_HAS_PRODUCTS`，前端提示"品牌下存在关联商品，无法删除"
+- **删除后列表刷新**：删除成功后停留在当前页，若当前页已无数据则回退到上一页
+
+> 前台检索页（按分类筛品牌）消费 `GET /product/brand/by-category/{catelogId}`，属于前台展示模块，不在本管理后台页面范围内，待前台检索模块设计时统一规划。
+
+---
+
+## 四、数据模型
+
+### 4.1 表结构 `pms_brand`
 
 | 字段 | 类型 | 必填 | 说明 |
 |------|------|------|------|
@@ -144,7 +212,7 @@
 | `is_deleted` | tinyint | 是 | 逻辑删除：0-正常，1-删除（`@TableLogic`） |
 | `version` | int | 是 | 乐观锁版本号（`@Version`） |
 
-### 3.2 表结构 `pms_category_brand_relation`
+### 4.2 表结构 `pms_category_brand_relation`
 
 | 字段 | 类型 | 必填 | 说明 |
 |------|------|------|------|
@@ -160,7 +228,7 @@
 
 > `brand_name` / `catelog_name` 为冗余字段：品牌/分类改名时需同步刷新，避免联表查询。
 
-### 3.3 索引
+### 4.3 索引
 
 `pms_brand`：
 
@@ -186,9 +254,9 @@
 
 ---
 
-## 四、接口设计
+## 五、接口设计
 
-### 4.1 接口总览
+### 5.1 接口总览
 
 | 接口 | 方法 | 路径 | 说明 |
 |------|------|------|------|
@@ -206,9 +274,9 @@
 
 > 所有接口经过网关（`localhost:1000`），前端 `baseUrl` 为 `/api`，网关将 `/api/product/**` 路由到 `mall-product` 服务（`StripPrefix=1`）。
 >
-> **关联分类独立管理**：品牌新增/修改接口不处理关联分类，关联分类的增删查由独立接口承担（对应前端「关联分类」弹窗）。品牌改名、分类改名时分别通过关联关系 service 内部方法 `updateBrandName` / `updateCatelogName` 同步刷新冗余字段（见 4.10）。
+> **关联分类独立管理**：品牌新增/修改接口不处理关联分类，关联分类的增删查由独立接口承担（对应前端「关联分类」弹窗）。品牌改名、分类改名时分别通过关联关系 service 内部方法 `updateBrandName` / `updateCatelogName` 同步刷新冗余字段（见 5.10）。
 
-### 4.2 分页查询品牌
+### 5.2 分页查询品牌
 
 **GET** `/product/brand?pageNum=1&pageSize=10&name=小米&firstLetter=X&showStatus=1`
 
@@ -253,7 +321,7 @@
 - 排序：`order by sort asc, id asc`
 - 分页用 MyBatis-Plus `Page<Brand>`，返回 `R<Page<BrandVO>>`
 
-### 4.3 品牌详情
+### 5.3 品牌详情
 
 **GET** `/product/brand/{id}`
 
@@ -277,9 +345,9 @@
 
 **实现要点**：
 - 查品牌主记录，不存在抛 `BRAND_NOT_FOUND`
-- 仅返回基础字段，关联分类由 4.9 独立接口提供
+- 仅返回基础字段，关联分类由 5.9 独立接口提供
 
-### 4.4 新增品牌
+### 5.4 新增品牌
 
 **POST** `/product/brand`
 
@@ -308,7 +376,7 @@
 | `version` | Integer | 修改时必填 | 乐观锁版本号 |
 
 > 新增/修改复用同一个 `BrandSaveDTO`，通过 `@Validated(Create.class)` / `@Validated(Update.class)` 区分（见 [Controller 规范 - 校验分组](../standards/controller-specification.md)）。
-> **不含 `categoryIds`**：关联分类由独立接口（4.10/4.11）维护。
+> **不含 `categoryIds`**：关联分类由独立接口（5.10/5.11）维护。
 
 **响应**：
 
@@ -330,7 +398,7 @@
    （仅品牌主表写入，不涉及关联表）
 ```
 
-### 4.5 修改品牌
+### 5.5 修改品牌
 
 **PUT** `/product/brand`
 
@@ -363,11 +431,11 @@
 3. MyBatis-Plus updateById（携带 version 触发乐观锁，冲突抛异常）
 4. 品牌名变更 → 调用关联关系 service 的 updateBrandName(brandId, newName)
    （UPDATE pms_category_brand_relation SET brand_name=? WHERE brand_id=? AND is_deleted=0）
-5. 不处理 categoryIds（关联分类增删由 4.10/4.11 独立维护）
+5. 不处理 categoryIds（关联分类增删由 5.10/5.11 独立维护）
    （第 3、4 步在同一事务 @Transactional）
 ```
 
-### 4.6 更新显示状态
+### 5.6 更新显示状态
 
 **PUT** `/product/brand/{id}/show-status`
 
@@ -397,7 +465,7 @@
 3. UPDATE pms_brand SET show_status=? WHERE id=?（携带 version）
 ```
 
-### 4.7 删除品牌
+### 5.7 删除品牌
 
 **DELETE** `/product/brand/{id}`
 
@@ -422,7 +490,7 @@
    （第 3、4 步在同一事务 @Transactional）
 ```
 
-### 4.8 查询分类下的品牌
+### 5.8 查询分类下的品牌
 
 **GET** `/product/brand/by-category/{catelogId}`
 
@@ -451,7 +519,7 @@
 2. 返回精简 BrandVO 列表（前台展示用，不带 descript 等大字段）
 ```
 
-### 4.9 查询品牌关联分类列表
+### 5.9 查询品牌关联分类列表
 
 **GET** `/product/brand/{brandId}/category`
 
@@ -490,7 +558,7 @@
 3. 直接映射为 BrandRelationVO 列表（brandName / catelogName 取冗余字段）
 ```
 
-### 4.10 新增品牌-分类关联
+### 5.10 新增品牌-分类关联
 
 **POST** `/product/brand/category`
 
@@ -544,7 +612,7 @@
 > - `BrandServiceImpl.update()` 改名时调用 `updateBrandName`
 > - `CategoryServiceImpl.update()` 改名时通过 Feign/直接调用 `updateCatelogName`（分类管理模块实现时补充调用点）
 
-### 4.11 移除品牌-分类关联
+### 5.11 移除品牌-分类关联
 
 **DELETE** `/product/brand/{brandId}/category/{catelogId}`
 
@@ -566,7 +634,7 @@
 3. 逻辑删除：UPDATE ... SET is_deleted=1 WHERE id=?
 ```
 
-### 4.12 批量删除品牌
+### 5.12 批量删除品牌
 
 **DELETE** `/product/brand/batch`
 
@@ -610,7 +678,7 @@
 
 ---
 
-## 五、DTO / VO 定义
+## 六、DTO / VO 定义
 
 ```
 com.mymall.product.dto.brand/
@@ -624,7 +692,7 @@ com.mymall.product.dto.brand/
 └── BrandRelationVO.java                 // 品牌关联分类列表项（关联分类弹窗）
 ```
 
-### 5.1 BrandSaveDTO
+### 6.1 BrandSaveDTO
 
 ```java
 @Data
@@ -666,7 +734,7 @@ public class BrandSaveDTO {
 }
 ```
 
-### 5.2 BrandQueryDTO
+### 6.2 BrandQueryDTO
 
 ```java
 @Data
@@ -691,7 +759,7 @@ public class BrandQueryDTO {
 }
 ```
 
-### 5.3 BrandShowStatusDTO
+### 6.3 BrandShowStatusDTO
 
 ```java
 @Data
@@ -704,7 +772,7 @@ public class BrandShowStatusDTO {
 }
 ```
 
-### 5.4 BrandVO
+### 6.4 BrandVO
 
 ```java
 @Data
@@ -720,9 +788,9 @@ public class BrandVO {
 }
 ```
 
-> 关联分类列表由独立接口 4.9 返回 `BrandRelationVO`，不在 `BrandVO` 中耦合。
+> 关联分类列表由独立接口 5.9 返回 `BrandRelationVO`，不在 `BrandVO` 中耦合。
 
-### 5.5 BrandSimpleVO
+### 6.5 BrandSimpleVO
 
 ```java
 @Data
@@ -735,7 +803,7 @@ public class BrandSimpleVO {
 }
 ```
 
-### 5.6 BrandCategoryRelationSaveDTO
+### 6.6 BrandCategoryRelationSaveDTO
 
 ```java
 @Data
@@ -752,7 +820,7 @@ public class BrandCategoryRelationSaveDTO {
 }
 ```
 
-### 5.7 BrandRelationVO
+### 6.7 BrandRelationVO
 
 ```java
 @Data
@@ -766,7 +834,7 @@ public class BrandRelationVO {
 }
 ```
 
-### 5.8 BrandBatchDeleteDTO
+### 6.8 BrandBatchDeleteDTO
 
 ```java
 @Data
@@ -781,7 +849,7 @@ public class BrandBatchDeleteDTO {
 
 ---
 
-## 六、错误码
+## 七、错误码
 
 在 `ResultCode` 枚举中补充品牌相关错误码（**53001+ 码段**，紧接对象存储 52001~52007 之后）：
 
@@ -814,7 +882,7 @@ BRAND_BATCH_DELETE_EMPTY(53008, "批量删除 id 列表不能为空"),
 
 ---
 
-## 七、网关路由
+## 八、网关路由
 
 前端管理后台通过网关访问品牌接口：
 
@@ -836,7 +904,7 @@ BRAND_BATCH_DELETE_EMPTY(53008, "批量删除 id 列表不能为空"),
 
 ---
 
-## 八、HTTP 调试文件
+## 九、HTTP 调试文件
 
 `http/product-brand-demo.http`
 
@@ -914,7 +982,7 @@ DELETE http://localhost:1000/api/product/brand/1/category/225
 
 ---
 
-## 九、非功能性要求
+## 十、非功能性要求
 
 | 项目 | 要求 |
 |------|------|
@@ -926,74 +994,6 @@ DELETE http://localhost:1000/api/product/brand/1/category/225
 | 日志 | 写操作记录操作人 + 变更内容（审计需要），查询不记录 |
 | 幂等 | 新增靠 `uk_name` 唯一约束兜底重复提交；其余为覆盖写，天然幂等 |
 | 一致性 | 品牌改名 → 同步刷新 `pms_category_brand_relation.brand_name`；分类改名 → 同步刷新 `pms_category_brand_relation.catelog_name`（均通过关联关系 service 的 `updateBrandName` / `updateCatelogName` 内部方法） |
-
----
-
-## 十、前端设计
-
-### 页面布局
-
-> Figma 设计稿：[品牌管理 Section](https://www.figma.com/design/UPX2R9RSakc3klzVIEB6Hq/My-mall?node-id=38-626)
-> - [品牌列表页](https://www.figma.com/design/UPX2R9RSakc3klzVIEB6Hq/My-mall?node-id=38-627)
-> - [新增/编辑品牌弹窗](https://www.figma.com/design/UPX2R9RSakc3klzVIEB6Hq/My-mall?node-id=40-116)
-> - [关联分类弹窗](https://www.figma.com/design/UPX2R9RSakc3klzVIEB6Hq/My-mall?node-id=38-786)
-
-**品牌列表页**（管理后台 `/product/brand`）
-
-- 顶部筛选区（Toolbar）：品牌名输入框（200×32）+ 首字母下拉（120×32，A-Z）+ 显示状态下拉（100×32，全部/显示/隐藏）+ 查询按钮（主色，72×32）+ 竖线分隔符 + 新增品牌按钮（主色，96×32）+ 批量删除按钮（危险色，96×32）
-- 表格区（列宽与筛选区严格对齐，从 x=20 开始）：
-  - 复选框列（60px）：行内复选框
-  - 品牌 Logo 列（120px）：logo 缩略图（60×40 圆角卡片 + "Logo" 占位文字）或"暂无"
-  - 品牌名称列（180px）：品牌名（Medium 字体）
-  - 品牌介绍列（380px）：单行截断展示（最多 28 字符 + "…"）
-  - 首字母列（100px）：首字母，居中
-  - 排序列（100px）：数字，居中
-  - 显示状态列（120px）：el-switch（绿色开启 / 灰色关闭）
-  - 操作列（292px）：✎ 编辑 / 🔗 关联分类 / 🗑 删除（三个动作均使用蓝色主色，删除用红色危险色）
-- 底部分页区：共 4 条 + 10条/页下拉 + 页码按钮（‹ 1 ›）+ 前往页码输入框 + 页
-
-**品牌表单弹窗**（新增 / 编辑复用，520×626，8px 圆角带浅灰描边）
-
-- 弹窗头部（高 56px）：标题"新增品牌"（或"编辑品牌"）+ 右侧 ✕ 关闭按钮 + 底部 1px 浅灰分隔线
-- 表单区（高 510px）：
-  - 品牌名称（必填，y=24，h=40）：单行文本输入框，placeholder "请输入品牌名称"
-  - 品牌 Logo（必填，y=80，120×80 虚线/浅灰上传区）：📷图标 + "点击上传" + "支持 JPG/PNG，≤ 10MB" 提示
-  - 品牌介绍（y=176，h=60）：多行 textarea，placeholder "请输入品牌介绍（≤ 500字符）"
-  - 首字母（y=252，h=40，120 宽）+ 排序（同行，h=40，100 宽，间距 20px）
-  - 显示状态（y=322）：绿色 switch 默认开启 + 文字说明 "默认开启，开启后前台分类筛选可显示"
-- 弹窗底部（高 60px）：取消按钮（白底边框）+ 确定按钮（主色填充），顶部 1px 浅灰分隔线
-
-**关联分类弹窗**（520×480，8px 圆角带浅灰描边）
-
-- 弹窗头部（高 56px）：标题"关联分类" + 右侧 ✕ 关闭按钮
-- Toolbar（高 56px）：+ 新增关联 按钮（主色，96×32）+ 底部分隔线
-- 表格区（4 列：#、品牌名、分类名、操作，居中对齐）：
-  - 表格行展示当前品牌已关联的分类列表（如华为→手机、平板电脑、平板电视、智能穿戴、路由器）
-  - 操作列提供"移除"动作（红色危险色文字）
-- 弹窗底部（高 60px）：取消 + 确定按钮
-
-### 组件拆分
-
-| 组件 | 职责 | 消费接口 |
-|------|------|---------|
-| BrandList | 列表页主体：筛选 + 表格 + 分页 + 批量删除 | GET /product/brand，DELETE /product/brand/batch |
-| BrandForm | 新增/编辑表单弹窗（仅基础信息，不含关联分类） | POST/PUT /product/brand，GET /product/brand/{id} |
-| BrandRelationDialog | 关联分类管理弹窗（查询/新增/移除品牌-分类关联） | GET /product/brand/{brandId}/category，POST /product/brand/category，DELETE /product/brand/{brandId}/category/{catelogId} |
-| BrandStatusSwitch | 表格行内显示状态切换 | PUT /product/brand/{id}/show-status |
-| LogoUpload | logo 上传（OSS 直传 MinIO） | mall-oss Presigned URL 接口 |
-
-### 关键交互
-
-- **筛选查询**：name 模糊 + firstLetter 精确 + showStatus 精确，点查询触发 `GET /product/brand`；重置清空所有条件并重新查询
-- **分页**：el-pagination，pageNum / pageSize 变化触发重新查询
-- **新增 / 编辑**：表单校验通过后提交；编辑时携带 `version` 触发乐观锁；品牌名变更由后端同步刷新关联表冗余字段，前端无需额外处理
-- **关联分类**：从列表页操作列的 🔗「关联分类」按钮触发 → 弹出关联分类弹窗，展示当前品牌已关联的分类列表（#、品牌名、分类名、操作），支持「新增关联」和「移除」操作。**品牌表单弹窗中不包含关联分类字段**，关联关系统一由独立弹窗管理，避免表单过于复杂。
-- **logo 上传**：前端先调 `mall-oss` 拿 Presigned URL → 直传 MinIO → 拿到对象访问 URL → 填入表单 `logo` 字段；品牌接口不接收文件流（详见 [对象存储服务设计](./object-storage-design.md)）
-- **显示状态切换**：el-switch 切换即调用 `PUT /product/brand/{id}/show-status`，失败回滚开关状态并提示
-- **删除**：确认弹窗 → `DELETE /product/brand/{id}`；若后端返回 `53003 BRAND_HAS_PRODUCTS`，前端提示"品牌下存在关联商品，无法删除"
-- **删除后列表刷新**：删除成功后停留在当前页，若当前页已无数据则回退到上一页
-
-> 前台检索页（按分类筛品牌）消费 `GET /product/brand/by-category/{catelogId}`，属于前台展示模块，不在本管理后台页面范围内，待前台检索模块设计时统一规划。
 
 ---
 

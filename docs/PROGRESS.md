@@ -43,6 +43,7 @@
 | 2026-06-28 | 分类与品牌管理接口实现同步 v1.1 | `b67f0ee` | 按最新设计文档同步分类/品牌后端实现：分类字段统一 catId、show_status 业务删除、SPU 引用检查与关联表冗余名同步；品牌表单剥离分类关联、新增批量删除与独立关联管理接口（查询/新增/移除）；补充 ResultCode 53006-53008；Service/Controller 单元测试全绿（mall-product 28 个用例通过） |
 | 2026-06-28 | 管理后台前端搭建 + 分类/品牌管理页面 | — | mall-admin-frontend：Vite + Vue 3 + TS + Element Plus + Pinia + Axios 脚手架；基础设施（SCSS 样式系统、API 请求层 R\<T\> 剥离、路由系统、AdminLayout 布局、PageTable/FormDialog 通用组件、useTable/useDialog composables、树形工具函数）；分类管理（三级树 CRUD + 拖拽排序 + 批量删除）；品牌管理（分页 CRUD + 显示状态切换 + 关联分类管理）；404 页面；mall-gateway CORS 已允许 5173~5176 开发端口 |
 | 2026-06-29 | 前端联调验证与 PageTable 刷新修复 | — | 分类/品牌管理页面对接后端端到端验证通过；修复品牌新增/删除后 PageTable 列表未自动刷新的问题 |
+| 2026-06-29 | 前端文档体系补充与学习文档 | — | 修正 overview.md 与实现对齐；新增 infrastructure.md（基础设施设计）、components.md（通用组件设计）、coding-standards.md（编码规范）；调整 design-system.md 组件章节职责；功能域文档章节顺序调整为「需求→前端设计→后端实现」（doc-convention.md 规范 + category/brand-management.md 同步）；新增 learn-docs/frontend/ 10 篇学习文档（Vue3/路由/Pinia/TS/Element Plus/Vite/基础设施/组件/API层/功能页面） |
 
 ---
 
