@@ -44,6 +44,8 @@
 | 2026-06-28 | 管理后台前端搭建 + 分类/品牌管理页面 | — | mall-admin-frontend：Vite + Vue 3 + TS + Element Plus + Pinia + Axios 脚手架；基础设施（SCSS 样式系统、API 请求层 R\<T\> 剥离、路由系统、AdminLayout 布局、PageTable/FormDialog 通用组件、useTable/useDialog composables、树形工具函数）；分类管理（三级树 CRUD + 拖拽排序 + 批量删除）；品牌管理（分页 CRUD + 显示状态切换 + 关联分类管理）；404 页面；mall-gateway CORS 已允许 5173~5176 开发端口 |
 | 2026-06-29 | 前端联调验证与 PageTable 刷新修复 | — | 分类/品牌管理页面对接后端端到端验证通过；修复品牌新增/删除后 PageTable 列表未自动刷新的问题 |
 | 2026-06-29 | 前端文档体系补充与学习文档 | — | 修正 overview.md 与实现对齐；新增 infrastructure.md（基础设施设计）、components.md（通用组件设计）、coding-standards.md（编码规范）；调整 design-system.md 组件章节职责；功能域文档章节顺序调整为「需求→前端设计→后端实现」（doc-convention.md 规范 + category/brand-management.md 同步）；新增 learn-docs/frontend/ 10 篇学习文档（Vue3/路由/Pinia/TS/Element Plus/Vite/基础设施/组件/API层/功能页面） |
+| 2026-06-29 | 测试规范增强 + 测试学习文档 | — | testing-specification.md 生产级增强（覆盖率门禁 §9、CI 集成 §10、前端测试体系 §11、待补充行动清单 §14）；新增 learn-docs/testing/ 5 篇学习文档（测试金字塔、单元测试、切片测试、集成测试、学习地图） |
+| 2026-06-29 | CI/CD 持续集成方案设计 + 学习文档 | — | 新增 docs/standards/ci-cd/ 6 篇设计文档（overview/backend-ci/frontend-ci/docker-publish/harbor-setup/release-and-protection），覆盖可复用工作流组合架构、后端/前端 CI、多阶段 Dockerfile + Harbor 集成、Release 发布 + 分支保护；新增 docs/learn-docs/ci/ 7 篇学习文档（Docker 基础→CI 概念→测试策略→镜像构建→发布管理→项目方案解读）；AGENTS.md + mkdocs.yml 文档索引同步 |
 
 ---
 

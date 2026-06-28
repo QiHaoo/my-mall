@@ -119,6 +119,12 @@ nav:
       - AI 辅助开发流程: standards/development-workflow.md
       - MyBatis-Plus 代码生成规范: standards/mybatis-plus-codegen-guide.md
       - MyBatis-Plus ORM 实践笔记: standards/mybatis-plus-orm-notes.md
+      - CI/CD 总体设计: standards/ci-cd/overview.md
+      - 后端 CI 工作流设计: standards/ci-cd/backend-ci.md
+      - 前端 CI 工作流设计: standards/ci-cd/frontend-ci.md
+      - 镜像构建与 Harbor 集成: standards/ci-cd/docker-publish.md
+      - Harbor 部署指南: standards/ci-cd/harbor-setup.md
+      - Release 发布与分支保护: standards/ci-cd/release-and-protection.md
   - 模块设计:
       - common 公共模块设计: common/common-module-design.md
       - common 文档规范: common/doc-convention.md
@@ -162,6 +168,11 @@ nav:
           - 生产实践: learn-docs/api-gateway/04-production-practices.md
           - 项目实现: learn-docs/api-gateway/project-implementation.md
       - 测试:
+          - 学习地图: learn-docs/testing/README.md
+          - 测试分层思想: learn-docs/testing/01-testing-pyramid.md
+          - 单元测试核心: learn-docs/testing/02-unit-testing.md
+          - 切片测试: learn-docs/testing/03-slice-testing.md
+          - 集成测试: learn-docs/testing/04-integration-testing.md
           - 端到端测试策略: learn-docs/testing/e2e-testing-strategies.md
       - GitHub:
           - 学习地图: learn-docs/github/README.md
@@ -176,6 +187,14 @@ nav:
           - Secrets 与安全: learn-docs/github/09-secrets-security.md
           - GitHub CLI: learn-docs/github/10-github-cli.md
           - 本项目实践串联: learn-docs/github/11-project-practice.md
+      - 持续集成:
+          - 学习地图: learn-docs/ci/README.md
+          - Docker 容器基础: learn-docs/ci/01-docker-basics.md
+          - CI 核心概念: learn-docs/ci/02-ci-fundamentals.md
+          - 测试与质量门禁: learn-docs/ci/03-ci-testing-strategy.md
+          - 构建与镜像仓库: learn-docs/ci/04-ci-build-and-images.md
+          - 发布与版本管理: learn-docs/ci/05-ci-release-workflow.md
+          - 读懂本项目 CI 方案: learn-docs/ci/06-project-ci-walkthrough.md
   - 归档:
       - 2020 vs 2026 架构分析: other/architecture-analysis-2020-vs-2026.md
       - 架构分析与现代化: other/architecture-analysis-and-modernization.md

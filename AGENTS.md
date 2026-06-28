@@ -166,6 +166,13 @@ com.mymall.common/
 | `docs/standards/controller-specification.md` | Controller 接口编写规范（参数校验、校验分组、返回值、URL 设计、分页、幂等性、检查清单） |
 | `docs/standards/coding-standards.md` | 编码规范（分层架构、Service 事务、异常体系、GlobalExceptionHandler、日志、DTO/VO/Entity、命名规范） |
 | `docs/standards/testing-specification.md` | 测试规范（测试分层、各层写法、AssertJ、E2E、公共组件/网关测试、覆盖率门禁 Jacoco、CI 集成、前端测试体系规划、提交前自查清单、待补充事项行动清单） |
+| `docs/standards/ci-cd/overview.md` | CI/CD 总体设计（方案选型、CI/CD 边界、编排器结构、关键决策、分阶段实施路径） |
+| `docs/standards/ci-cd/backend-ci.md` | 后端 CI 工作流设计（mvn verify、jacoco 门禁、composite action、前置条件） |
+| `docs/standards/ci-cd/frontend-ci.md` | 前端 CI 工作流设计（pnpm lint/type-check/build、vitest 留位、scripts 调整） |
+| `docs/standards/ci-cd/docker-publish.md` | 镜像构建与 Harbor 集成（多阶段 Dockerfile、矩阵并行、tag 策略、Trivy 扫描） |
+| `docs/standards/ci-cd/harbor-setup.md` | Harbor 部署指南（独立部署、项目/机器人账号配置、镜像保留策略、生产环境注意事项） |
+| `docs/standards/ci-cd/release-and-protection.md` | Release 发布与分支保护（Changelog 自动生成、prerelease 判断、Secrets/Variables、main/develop 保护规则） |
+| `docs/learn-docs/ci/README.md` | 持续集成学习笔记（Docker 基础→CI 概念→测试→镜像→发布→项目方案解读，6 篇） |
 | `docs/microservice/feign-config.md` | 远程调用（Feign）配置说明（依赖、@FeignClient 规范、调用链路、测试配置） |
 | `docs/microservice/gateway-config-guide.md` | API 网关配置指南（路由规则、全局过滤器、断言演示、生产配置） |
 | `docs/standards/mybatis-plus-orm-notes.md` | MyBatis-Plus ORM 实践笔记（依赖配置、全局组件、使用约定） |
