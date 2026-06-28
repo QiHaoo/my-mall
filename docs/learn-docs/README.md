@@ -11,8 +11,10 @@
 | Nacos 配置 | [nacos-config/README.md](./nacos-config/README.md) |
 | 远程调用 | [remote-call/README.md](./remote-call/README.md) |
 | API 网关 | [api-gateway/README.md](./api-gateway/README.md) |
+| 测试 | [testing/README.md](./testing/README.md) |
 | 公共模块 | [common/README.md](./common/README.md) |
 | 前端开发 | [frontend/README.md](./frontend/README.md) |
+| 持续集成 | [ci/README.md](./ci/README.md) |
 
 ---
 
