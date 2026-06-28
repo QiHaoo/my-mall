@@ -1,15 +1,19 @@
 package com.mymall.product.controller;
 
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.mymall.common.result.PageVO;
 import com.mymall.common.result.R;
 import com.mymall.common.validation.Create;
 import com.mymall.common.validation.Update;
+import com.mymall.product.dto.brand.BrandBatchDeleteDTO;
+import com.mymall.product.dto.brand.BrandCategoryRelationSaveDTO;
 import com.mymall.product.dto.brand.BrandQueryDTO;
+import com.mymall.product.dto.brand.BrandRelationVO;
 import com.mymall.product.dto.brand.BrandSaveDTO;
 import com.mymall.product.dto.brand.BrandShowStatusDTO;
 import com.mymall.product.dto.brand.BrandSimpleVO;
 import com.mymall.product.dto.brand.BrandVO;
 import com.mymall.product.service.IBrandService;
+import com.mymall.product.service.ICategoryBrandRelationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -33,10 +37,11 @@ import java.util.List;
 public class BrandController {
 
     private final IBrandService brandService;
+    private final ICategoryBrandRelationService categoryBrandRelationService;
 
     @Operation(summary = "分页查询品牌")
     @GetMapping
-    public R<Page<BrandVO>> list(BrandQueryDTO query) {
+    public R<PageVO<BrandVO>> list(BrandQueryDTO query) {
         return R.ok(brandService.pageQuery(query));
     }
 
@@ -79,9 +84,39 @@ public class BrandController {
         return R.ok();
     }
 
+    @Operation(summary = "批量删除品牌")
+    @DeleteMapping("/batch")
+    public R<Void> batchDelete(@Validated @RequestBody BrandBatchDeleteDTO dto) {
+        log.info("批量删除品牌: ids={}", dto.getIds());
+        brandService.batchDelete(dto);
+        return R.ok();
+    }
+
     @Operation(summary = "查询分类下的品牌")
     @GetMapping("/by-category/{catelogId}")
     public R<List<BrandSimpleVO>> listByCategory(@PathVariable Long catelogId) {
         return R.ok(brandService.listByCategory(catelogId));
+    }
+
+    @Operation(summary = "查询品牌关联分类列表")
+    @GetMapping("/{brandId}/category")
+    public R<List<BrandRelationVO>> listRelationsByBrand(@PathVariable Long brandId) {
+        return R.ok(categoryBrandRelationService.listByBrandId(brandId));
+    }
+
+    @Operation(summary = "新增品牌-分类关联")
+    @PostMapping("/category")
+    public R<Void> saveRelation(@Validated @RequestBody BrandCategoryRelationSaveDTO dto) {
+        log.info("新增品牌-分类关联: brandId={}, catelogId={}", dto.getBrandId(), dto.getCatelogId());
+        categoryBrandRelationService.saveRelation(dto);
+        return R.ok();
+    }
+
+    @Operation(summary = "移除品牌-分类关联")
+    @DeleteMapping("/{brandId}/category/{catelogId}")
+    public R<Void> removeRelation(@PathVariable Long brandId, @PathVariable Long catelogId) {
+        log.info("移除品牌-分类关联: brandId={}, catelogId={}", brandId, catelogId);
+        categoryBrandRelationService.removeRelation(brandId, catelogId);
+        return R.ok();
     }
 }

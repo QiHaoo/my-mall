@@ -1,46 +1,41 @@
 package com.mymall.product.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.mymall.common.exception.BizException;
 import com.mymall.common.exception.ResultCode;
 import com.mymall.common.result.PageVO;
 import com.mymall.common.util.PageUtils;
+import com.mymall.product.dto.brand.BrandBatchDeleteDTO;
 import com.mymall.product.dto.brand.BrandQueryDTO;
 import com.mymall.product.dto.brand.BrandSaveDTO;
 import com.mymall.product.dto.brand.BrandShowStatusDTO;
 import com.mymall.product.dto.brand.BrandSimpleVO;
 import com.mymall.product.dto.brand.BrandVO;
 import com.mymall.product.entity.Brand;
-import com.mymall.product.entity.Category;
 import com.mymall.product.entity.CategoryBrandRelation;
 import com.mymall.product.entity.SpuInfo;
 import com.mymall.product.mapper.BrandMapper;
 import com.mymall.product.mapper.CategoryBrandRelationMapper;
-import com.mymall.product.mapper.CategoryMapper;
 import com.mymall.product.mapper.SpuInfoMapper;
 import com.mymall.product.service.IBrandService;
+import com.mymall.product.service.ICategoryBrandRelationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * 品牌服务实现
  *
  * <p>涉及 {@code pms_brand} 与 {@code pms_category_brand_relation} 双表，写操作均在事务内。
  * 逻辑删除由 {@code @TableLogic} 自动处理，乐观锁由 {@code @Version} + OptimisticLockerInnerInterceptor 处理。
+ * 关联分类管理由 {@link ICategoryBrandRelationService} 独立承担，品牌新增/修改不处理关联分类。
  */
 @Service
 @RequiredArgsConstructor
@@ -48,7 +43,7 @@ public class BrandServiceImpl extends ServiceImpl<BrandMapper, Brand> implements
 
     private final CategoryBrandRelationMapper categoryBrandRelationMapper;
     private final SpuInfoMapper spuInfoMapper;
-    private final CategoryMapper categoryMapper;
+    private final ICategoryBrandRelationService categoryBrandRelationService;
 
     // ==================== 查询 ====================
 
@@ -61,7 +56,7 @@ public class BrandServiceImpl extends ServiceImpl<BrandMapper, Brand> implements
                 .eq(query.getShowStatus() != null, Brand::getShowStatus, query.getShowStatus())
                 .orderByAsc(Brand::getSort)
                 .orderByAsc(Brand::getId);
-        Page<Brand> result = page(PageUtils.toPage(query), wrapper);
+        Page<Brand> result = page(new Page<>(query.getPageNum(), query.getPageSize()), wrapper);
 
         List<BrandVO> voList = result.getRecords().stream().map(this::toVO).toList();
         return PageUtils.toPageVO(result, voList);
@@ -73,12 +68,7 @@ public class BrandServiceImpl extends ServiceImpl<BrandMapper, Brand> implements
         if (brand == null) {
             throw new BizException(ResultCode.BRAND_NOT_FOUND);
         }
-        BrandVO vo = toVO(brand);
-        List<CategoryBrandRelation> relations = categoryBrandRelationMapper.selectList(
-                new LambdaQueryWrapper<CategoryBrandRelation>()
-                        .eq(CategoryBrandRelation::getBrandId, id));
-        vo.setCategoryIds(relations.stream().map(CategoryBrandRelation::getCatelogId).toList());
-        return vo;
+        return toVO(brand);
     }
 
     @Override
@@ -86,7 +76,7 @@ public class BrandServiceImpl extends ServiceImpl<BrandMapper, Brand> implements
         List<CategoryBrandRelation> relations = categoryBrandRelationMapper.selectList(
                 new LambdaQueryWrapper<CategoryBrandRelation>()
                         .eq(CategoryBrandRelation::getCatelogId, catelogId));
-        if (relations.isEmpty()) {
+        if (CollectionUtils.isEmpty(relations)) {
             return Collections.emptyList();
         }
         List<Long> brandIds = relations.stream()
@@ -118,9 +108,6 @@ public class BrandServiceImpl extends ServiceImpl<BrandMapper, Brand> implements
             brand.setShowStatus(1);
         }
         save(brand);
-
-        // 关联分类（save 后 brand.id 已回填）
-        syncRelations(brand.getId(), brand.getName(), dto.getCategoryIds());
     }
 
     // ==================== 修改 ====================
@@ -148,18 +135,9 @@ public class BrandServiceImpl extends ServiceImpl<BrandMapper, Brand> implements
         // updateById 携带 version 触发乐观锁；非 null 字段更新（NOT_NULL 策略）
         updateById(brand);
 
-        String effectiveName = brand.getName() != null ? brand.getName() : existing.getName();
-
         // 品牌名变更 → 同步刷新关联表冗余 brand_name
         if (nameChanged) {
-            categoryBrandRelationMapper.update(null, new LambdaUpdateWrapper<CategoryBrandRelation>()
-                    .eq(CategoryBrandRelation::getBrandId, dto.getId())
-                    .set(CategoryBrandRelation::getBrandName, effectiveName));
-        }
-
-        // categoryIds 非 null 时全量覆盖关联（null 表示不变，空数组表示清空）
-        if (dto.getCategoryIds() != null) {
-            syncRelations(dto.getId(), effectiveName, dto.getCategoryIds());
+            categoryBrandRelationService.updateBrandName(dto.getId(), dto.getName());
         }
     }
 
@@ -191,98 +169,55 @@ public class BrandServiceImpl extends ServiceImpl<BrandMapper, Brand> implements
         if (brand == null) {
             throw new BizException(ResultCode.BRAND_NOT_FOUND);
         }
-        // 引用检查：存在关联商品则拒绝（@TableLogic 自动过滤已逻辑删除的 SPU）
-        long spuCount = spuInfoMapper.selectCount(
-                new LambdaQueryWrapper<SpuInfo>().eq(SpuInfo::getBrandId, id));
-        if (spuCount > 0) {
-            throw new BizException(ResultCode.BRAND_HAS_PRODUCTS,
-                    "品牌 [" + brand.getName() + "] 下存在关联商品，无法删除");
-        }
+        checkProductReference(id, brand.getName());
         removeById(id);
         categoryBrandRelationMapper.delete(new LambdaQueryWrapper<CategoryBrandRelation>()
                 .eq(CategoryBrandRelation::getBrandId, id));
     }
 
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void batchDelete(BrandBatchDeleteDTO dto) {
+        List<Long> ids = dto.getIds();
+        if (CollectionUtils.isEmpty(ids)) {
+            throw new BizException(ResultCode.BRAND_BATCH_DELETE_EMPTY);
+        }
+
+        // 逐个检查引用，任一品牌存在关联商品则整体回滚
+        for (Long id : ids) {
+            Brand brand = getById(id);
+            if (brand == null) {
+                throw new BizException(ResultCode.BRAND_NOT_FOUND);
+            }
+            checkProductReference(id, brand.getName());
+        }
+
+        // 统一逻辑删除品牌及关联
+        removeByIds(ids);
+        categoryBrandRelationMapper.delete(new LambdaQueryWrapper<CategoryBrandRelation>()
+                .in(CategoryBrandRelation::getBrandId, ids));
+    }
+
     // ==================== 内部方法 ====================
 
     /**
-     * 同步品牌-分类关联（diff：删除多余的、新增缺少的）
+     * 检查品牌下是否存在关联商品
      *
-     * <p>采用 diff 而非"全删再插"，规避逻辑删除与唯一约束 {@code uk_brand_catelog(brand_id, catelog_id)} 的冲突：
-     * 若先逻辑删除某关联再插入相同 (brand_id, catelog_id) 会触发唯一键冲突。
-     * <p>已知边界：跨操作复用历史已逻辑删除的相同分类对仍可能冲突，
-     * 生产彻底解决建议将唯一索引改为 {@code uk_brand_catelog(brand_id, catelog_id, is_deleted)}。
-     *
-     * @param brandId     品牌ID
-     * @param brandName   品牌名（冗余写入）
-     * @param categoryIds 期望的关联分类列表；null 表示不处理，空数组表示清空
+     * @param brandId   品牌ID
+     * @param brandName 品牌名（用于错误提示）
      */
-    private void syncRelations(Long brandId, String brandName, List<Long> categoryIds) {
-        if (categoryIds == null) {
-            return;
+    private void checkProductReference(Long brandId, String brandName) {
+        long spuCount = spuInfoMapper.selectCount(
+                new LambdaQueryWrapper<SpuInfo>().eq(SpuInfo::getBrandId, brandId));
+        if (spuCount > 0) {
+            throw new BizException(ResultCode.BRAND_HAS_PRODUCTS,
+                    "品牌 [" + brandName + "] 下存在关联商品，无法删除");
         }
-        Map<Long, String> nameMap = validateCategories(categoryIds);
-
-        Set<Long> desired = new LinkedHashSet<>(categoryIds);
-        List<CategoryBrandRelation> active = categoryBrandRelationMapper.selectList(
-                new LambdaQueryWrapper<CategoryBrandRelation>()
-                        .eq(CategoryBrandRelation::getBrandId, brandId));
-        Set<Long> activeCats = active.stream()
-                .map(CategoryBrandRelation::getCatelogId).collect(Collectors.toSet());
-
-        // 逻辑删除多余的关联
-        Set<Long> toRemove = new HashSet<>(activeCats);
-        toRemove.removeAll(desired);
-        if (!toRemove.isEmpty()) {
-            categoryBrandRelationMapper.delete(new LambdaQueryWrapper<CategoryBrandRelation>()
-                    .eq(CategoryBrandRelation::getBrandId, brandId)
-                    .in(CategoryBrandRelation::getCatelogId, toRemove));
-        }
-
-        // 新增缺少的关联
-        Set<Long> toAdd = new LinkedHashSet<>(desired);
-        toAdd.removeAll(activeCats);
-        for (Long catelogId : toAdd) {
-            CategoryBrandRelation relation = new CategoryBrandRelation();
-            relation.setBrandId(brandId);
-            relation.setCatelogId(catelogId);
-            relation.setBrandName(brandName);
-            relation.setCatelogName(nameMap.get(catelogId));
-            categoryBrandRelationMapper.insert(relation);
-        }
-    }
-
-    /**
-     * 校验关联分类全部存在且为三级分类，返回 id→name 映射
-     */
-    private Map<Long, String> validateCategories(List<Long> categoryIds) {
-        if (categoryIds == null || categoryIds.isEmpty()) {
-            return Collections.emptyMap();
-        }
-        List<Category> categories = categoryMapper.selectByIds(categoryIds);
-        if (categories.size() != new HashSet<>(categoryIds).size()) {
-            throw new BizException(ResultCode.BRAND_CATEGORY_INVALID, "部分关联分类不存在");
-        }
-        Map<Long, String> nameMap = new HashMap<>();
-        for (Category category : categories) {
-            if (category.getCatLevel() == null || category.getCatLevel() != 3) {
-                throw new BizException(ResultCode.BRAND_CATEGORY_INVALID,
-                        "分类 [" + category.getName() + "] 非三级分类，无法关联");
-            }
-            nameMap.put(category.getId(), category.getName());
-        }
-        return nameMap;
     }
 
     private BrandVO toVO(Brand brand) {
         BrandVO vo = new BrandVO();
-        vo.setId(brand.getId());
-        vo.setName(brand.getName());
-        vo.setLogo(brand.getLogo());
-        vo.setDescript(brand.getDescript());
-        vo.setShowStatus(brand.getShowStatus());
-        vo.setFirstLetter(brand.getFirstLetter());
-        vo.setSort(brand.getSort());
+        BeanUtils.copyProperties(brand, vo);
         return vo;
     }
 

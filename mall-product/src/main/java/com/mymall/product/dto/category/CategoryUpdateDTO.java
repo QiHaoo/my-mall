@@ -15,7 +15,7 @@ public class CategoryUpdateDTO {
 
     @NotNull(message = "分类ID不能为空")
     @Schema(description = "分类ID", example = "5")
-    private Long id;
+    private Long catId;
 
     @Size(max = 50, message = "分类名称最长 50 字符")
     @Schema(description = "分类名称")

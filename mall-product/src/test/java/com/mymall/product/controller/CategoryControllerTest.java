@@ -70,7 +70,7 @@ class CategoryControllerTest {
         void shouldReturnTreeData() throws Exception {
             // Given
             CategoryVO vo = new CategoryVO();
-            vo.setId(1L);
+            vo.setCatId(1L);
             vo.setName("图书");
             vo.setParentCid(0L);
             vo.setCatLevel(1);
@@ -83,7 +83,7 @@ class CategoryControllerTest {
             mockMvc.perform(get("/product/category/tree"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.code").value(200))
-                    .andExpect(jsonPath("$.data[0].id").value(1))
+                    .andExpect(jsonPath("$.data[0].catId").value(1))
                     .andExpect(jsonPath("$.data[0].name").value("图书"));
         }
     }
@@ -166,7 +166,7 @@ class CategoryControllerTest {
             // Given
             String body = """
                     {
-                        "id": 1,
+                        "catId": 1,
                         "name": "新名称"
                     }
                     """;
@@ -182,7 +182,7 @@ class CategoryControllerTest {
         }
 
         @Test
-        @DisplayName("id 为 null 时应返回参数错误")
+        @DisplayName("catId 为 null 时应返回参数错误")
         void shouldReturn400WhenCatIdNull() throws Exception {
             // Given
             String body = """
@@ -278,8 +278,8 @@ class CategoryControllerTest {
             String body = """
                     {
                         "categories": [
-                            {"id": 5, "parentCid": 2, "catLevel": 2, "sort": 1},
-                            {"id": 6, "parentCid": 2, "catLevel": 2, "sort": 2}
+                            {"catId": 5, "parentCid": 2, "catLevel": 2, "sort": 1},
+                            {"catId": 6, "parentCid": 2, "catLevel": 2, "sort": 2}
                         ]
                     }
                     """;

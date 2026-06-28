@@ -134,7 +134,8 @@ create table pms_category
     is_deleted        tinyint       not null default 0          comment '逻辑删除[0-正常 1-删除]',
     version           int           not null default 0          comment '乐观锁版本号',
     primary key (id),
-    index idx_parent_cid (parent_cid)
+    index idx_parent (parent_cid, show_status, sort),
+    unique index uk_parent_name (parent_cid, name)
 ) engine=innodb default charset=utf8mb4 collate=utf8mb4_unicode_ci comment='商品三级分类';
 
 /*==============================================================*/

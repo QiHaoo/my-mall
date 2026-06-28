@@ -1,14 +1,18 @@
 package com.mymall.product.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.mymall.common.exception.BizException;
 import com.mymall.common.exception.ResultCode;
 import com.mymall.product.dto.category.*;
 import com.mymall.product.entity.Category;
 import com.mymall.product.entity.CategoryBrandRelation;
+import com.mymall.product.entity.SpuInfo;
 import com.mymall.product.mapper.CategoryBrandRelationMapper;
 import com.mymall.product.mapper.CategoryMapper;
+import com.mymall.product.mapper.SpuInfoMapper;
+import com.mymall.product.service.ICategoryBrandRelationService;
 import com.mymall.product.service.ICategoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -25,6 +29,8 @@ import java.util.stream.Collectors;
 public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category> implements ICategoryService {
 
     private final CategoryBrandRelationMapper categoryBrandRelationMapper;
+    private final SpuInfoMapper spuInfoMapper;
+    private final ICategoryBrandRelationService categoryBrandRelationService;
 
     // ==================== 查询 ====================
 
@@ -93,14 +99,16 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category> i
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void updateCategory(CategoryUpdateDTO dto) {
-        Category existing = getById(dto.getId());
+        Long catId = dto.getCatId();
+        Category existing = getById(catId);
         if (existing == null) {
             throw new BizException(ResultCode.CATEGORY_NOT_FOUND);
         }
 
+        boolean nameChanged = dto.getName() != null && !dto.getName().equals(existing.getName());
         // 如果名称有变化，检查同级唯一
-        if (dto.getName() != null && !dto.getName().equals(existing.getName())) {
-            checkNameUnique(existing.getParentCid(), dto.getName(), dto.getId());
+        if (nameChanged) {
+            checkNameUnique(existing.getParentCid(), dto.getName(), catId);
         }
 
         // 只更新非 null 字段
@@ -110,6 +118,11 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category> i
         if (dto.getProductUnit() != null) existing.setProductUnit(dto.getProductUnit());
 
         updateById(existing);
+
+        // 分类名变更 → 同步刷新关联表冗余 catelog_name
+        if (nameChanged) {
+            categoryBrandRelationService.updateCatelogName(catId, existing.getName());
+        }
     }
 
     // ==================== 批量删除 ====================
@@ -142,19 +155,59 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category> i
             collectDescendantIds(id, childrenMap, allIdsToDelete);
         }
 
-        // 5. 检查品牌关联引用
+        // 5. 检查引用关系
+        checkCategoryReferences(allIdsToDelete);
+
+        // 6. 业务逻辑删除：show_status 置为 0（隐藏）
+        update(new LambdaUpdateWrapper<Category>()
+                .in(Category::getId, allIdsToDelete)
+                .set(Category::getShowStatus, 0));
+    }
+
+    /**
+     * 检查待删除分类（含子孙）是否存在外部引用。
+     * <p>
+     * 当前检查本服务内的商品、品牌关联；
+     * 优惠券分类关联（sms_coupon_spu_category_relation）位于 mall-coupon 服务，
+     * 待后续通过 Feign 接入后补充校验。
+     *
+     * @param allIdsToDelete 待删除分类 ID 集合
+     */
+    private void checkCategoryReferences(Set<Long> allIdsToDelete) {
+        // 5.1 商品引用检查：pms_spu_info.category_id（@TableLogic 自动过滤已删除 SPU）
+        long productCount = spuInfoMapper.selectCount(
+                new LambdaQueryWrapper<SpuInfo>()
+                        .in(SpuInfo::getCatalogId, allIdsToDelete));
+        if (productCount > 0) {
+            throw new BizException(ResultCode.CATEGORY_HAS_PRODUCTS,
+                    "分类下存在关联商品，无法删除");
+        }
+
+        // 5.2 品牌关联检查：pms_category_brand_relation.catelog_id
         for (Long id : allIdsToDelete) {
             long relationCount = categoryBrandRelationMapper.selectCount(
                     new LambdaQueryWrapper<CategoryBrandRelation>()
                             .eq(CategoryBrandRelation::getCatelogId, id));
             if (relationCount > 0) {
                 throw new BizException(ResultCode.CATEGORY_HAS_BRANDS,
-                        "分类ID [" + id + "] 下存在关联品牌，无法删除");
+                        "分类 [" + getCategoryNameById(id, allIdsToDelete) + "] 下存在关联品牌，无法删除");
             }
         }
 
-        // 6. 逻辑删除：BaseEntity 的 is_deleted 由 @TableLogic 自动置 1
-        removeByIds(allIdsToDelete);
+        // 5.3 优惠券分类关联检查（mall-coupon 服务，待 Feign 接入）
+        // TODO: 通过 Feign 调用 mall-coupon 服务校验 sms_coupon_spu_category_relation
+    }
+
+    /**
+     * 根据分类 ID 从待删除集合中查找分类名称（用于错误提示）
+     */
+    private String getCategoryNameById(Long id, Set<Long> allIdsToDelete) {
+        return list(new LambdaQueryWrapper<Category>().in(Category::getId, allIdsToDelete))
+                .stream()
+                .filter(c -> c.getId().equals(id))
+                .findFirst()
+                .map(Category::getName)
+                .orElseGet(() -> String.valueOf(id));
     }
 
     // ==================== 拖拽排序 ====================
@@ -172,26 +225,27 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category> i
                 .collect(Collectors.toMap(Category::getId, Category::getParentCid));
         Map<Long, Long> workingParentMap = new HashMap<>(parentMap);
         for (CategorySortDTO.SortItem item : dto.getCategories()) {
-            workingParentMap.put(item.getId(), item.getParentCid());
+            workingParentMap.put(item.getCatId(), item.getParentCid());
         }
 
         List<Category> toUpdate = new ArrayList<>();
 
         for (CategorySortDTO.SortItem item : dto.getCategories()) {
-            Category existing = categoryMap.get(item.getId());
+            Long catId = item.getCatId();
+            Category existing = categoryMap.get(catId);
             if (existing == null) {
                 throw new BizException(ResultCode.CATEGORY_NOT_FOUND,
-                        "分类ID [" + item.getId() + "] 不存在");
+                        "分类ID [" + catId + "] 不存在");
             }
 
             // 检查循环引用：新父节点不能是自己的子孙（基于叠加后的 workingParentMap）
             if (item.getParentCid() != 0L) {
-                checkCircularReference(item.getId(), item.getParentCid(), workingParentMap);
+                checkCircularReference(catId, item.getParentCid(), workingParentMap);
             }
 
             // 构建更新对象
             Category update = new Category();
-            update.setId(item.getId());
+            update.setId(catId);
             update.setParentCid(item.getParentCid());
             update.setCatLevel(item.getCatLevel());
             update.setSort(item.getSort());
@@ -259,7 +313,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category> i
     private List<CategoryVO> buildTree(Map<Long, List<CategoryVO>> parentMap, Long parentId) {
         List<CategoryVO> children = parentMap.getOrDefault(parentId, Collections.emptyList());
         for (CategoryVO child : children) {
-            child.setChildren(buildTree(parentMap, child.getId()));
+            child.setChildren(buildTree(parentMap, child.getCatId()));
         }
         return children;
     }
@@ -269,7 +323,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category> i
      */
     private CategoryVO toVO(Category entity) {
         CategoryVO vo = new CategoryVO();
-        vo.setId(entity.getId());
+        vo.setCatId(entity.getId());
         vo.setName(entity.getName());
         vo.setParentCid(entity.getParentCid());
         vo.setCatLevel(entity.getCatLevel());

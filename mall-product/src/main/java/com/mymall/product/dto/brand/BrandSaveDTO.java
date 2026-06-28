@@ -10,8 +10,6 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
-import java.util.List;
-
 /**
  * 品牌保存 DTO（新增 + 修改共用，用校验分组 Create/Update 区分）
  *
@@ -50,9 +48,6 @@ public class BrandSaveDTO {
     @Min(value = 0, groups = {Create.class, Update.class}, message = "排序值不能小于 0")
     @Schema(description = "排序值，越小越靠前", example = "0")
     private Integer sort;
-
-    @Schema(description = "关联三级分类ID列表（修改时传 null 表示不变，传空数组表示清空）")
-    private List<Long> categoryIds;
 
     @NotNull(groups = Update.class, message = "版本号不能为空")
     @Schema(description = "乐观锁版本号（修改时必填）", example = "0")

@@ -1,7 +1,8 @@
 package com.mymall.product.service;
 
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.mymall.common.result.PageVO;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.mymall.product.dto.brand.BrandBatchDeleteDTO;
 import com.mymall.product.dto.brand.BrandQueryDTO;
 import com.mymall.product.dto.brand.BrandSaveDTO;
 import com.mymall.product.dto.brand.BrandShowStatusDTO;
@@ -25,7 +26,7 @@ public interface IBrandService extends IService<Brand> {
     PageVO<BrandVO> pageQuery(BrandQueryDTO query);
 
     /**
-     * 品牌详情（含关联三级分类 ID 列表）
+     * 品牌详情（仅返回品牌基础字段）
      *
      * @param id 品牌ID
      * @return 品牌详情
@@ -33,14 +34,14 @@ public interface IBrandService extends IService<Brand> {
     BrandVO getBrandDetail(Long id);
 
     /**
-     * 新增品牌（含 logo URL，可选关联多个三级分类）
+     * 新增品牌（仅录入基础信息，不含关联分类）
      *
      * @param dto 新增参数
      */
     void saveBrand(BrandSaveDTO dto);
 
     /**
-     * 修改品牌（同步刷新关联表冗余品牌名，categoryIds 非 null 时全量覆盖关联）
+     * 修改品牌（同步刷新关联表冗余品牌名，不处理关联分类）
      *
      * @param dto 修改参数（id/version 必填）
      */
@@ -60,6 +61,13 @@ public interface IBrandService extends IService<Brand> {
      * @param id 品牌ID
      */
     void removeBrand(Long id);
+
+    /**
+     * 批量删除品牌（逐个引用检查后统一逻辑删除）
+     *
+     * @param dto 批量删除参数
+     */
+    void batchDelete(BrandBatchDeleteDTO dto);
 
     /**
      * 查询某三级分类下的品牌（前台检索用，仅返回显示中的品牌）

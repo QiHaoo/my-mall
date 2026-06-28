@@ -6,7 +6,12 @@ import com.mymall.product.dto.category.*;
 import com.mymall.product.entity.Category;
 import com.mymall.product.mapper.CategoryBrandRelationMapper;
 import com.mymall.product.mapper.CategoryMapper;
+import com.mymall.product.mapper.SpuInfoMapper;
 import com.mymall.product.service.impl.CategoryServiceImpl;
+import com.baomidou.mybatisplus.core.MybatisConfiguration;
+import com.baomidou.mybatisplus.core.metadata.TableInfoHelper;
+import org.apache.ibatis.builder.MapperBuilderAssistant;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -32,11 +37,23 @@ import static org.mockito.Mockito.*;
 @DisplayName("商品分类服务")
 class CategoryServiceTest {
 
+    @BeforeAll
+    static void initLambdaCache() {
+        MapperBuilderAssistant assistant = new MapperBuilderAssistant(new MybatisConfiguration(), "");
+        TableInfoHelper.initTableInfo(assistant, Category.class);
+    }
+
     @Mock
     private CategoryMapper categoryMapper;
 
     @Mock
     private CategoryBrandRelationMapper categoryBrandRelationMapper;
+
+    @Mock
+    private SpuInfoMapper spuInfoMapper;
+
+    @Mock
+    private ICategoryBrandRelationService categoryBrandRelationService;
 
     private CategoryServiceImpl categoryService;
 
@@ -45,7 +62,7 @@ class CategoryServiceTest {
         // ServiceImpl.baseMapper is set by Spring @Autowired field injection.
         // Mockito @InjectMocks only uses the @RequiredArgsConstructor constructor,
         // so the parent class field stays null. Set it manually via reflection.
-        categoryService = new CategoryServiceImpl(categoryBrandRelationMapper);
+        categoryService = new CategoryServiceImpl(categoryBrandRelationMapper, spuInfoMapper, categoryBrandRelationService);
         ReflectionTestUtils.setField(categoryService, "baseMapper", categoryMapper);
     }
 
@@ -175,7 +192,7 @@ class CategoryServiceTest {
         void shouldThrowWhenCategoryNotFound() {
             // Given
             CategoryUpdateDTO dto = new CategoryUpdateDTO();
-            dto.setId(999L);
+            dto.setCatId(999L);
             dto.setName("新名称");
 
             when(categoryMapper.selectById(999L)).thenReturn(null);
@@ -185,6 +202,26 @@ class CategoryServiceTest {
                     .isInstanceOf(BizException.class)
                     .extracting(e -> ((BizException) e).getCode())
                     .isEqualTo(ResultCode.CATEGORY_NOT_FOUND.getCode());
+        }
+
+        @Test
+        @DisplayName("改名时应同步刷新关联表冗余分类名")
+        void shouldSyncRelationCatelogNameWhenRenamed() {
+            // Given
+            CategoryUpdateDTO dto = new CategoryUpdateDTO();
+            dto.setCatId(1L);
+            dto.setName("新名称");
+
+            Category existing = buildCategory(1L, "旧名称", 0L, 1, 0);
+            when(categoryMapper.selectById(1L)).thenReturn(existing);
+            lenient().when(categoryMapper.selectCount(any())).thenReturn(0L);
+            when(categoryMapper.updateById(any(Category.class))).thenReturn(1);
+
+            // When
+            categoryService.updateCategory(dto);
+
+            // Then
+            verify(categoryBrandRelationService).updateCatelogName(1L, "新名称");
         }
     }
 
@@ -217,6 +254,27 @@ class CategoryServiceTest {
         }
 
         @Test
+        @DisplayName("分类下存在商品时应拒绝删除")
+        void shouldRejectWhenProductExists() {
+            // Given: 二级分类 ID=2（父为一级 ID=1）
+            Category child = buildCategory(2L, "电子书刊", 1L, 2, 0);
+            when(categoryMapper.selectByIds(anyList())).thenReturn(List.of(child));
+
+            // Mock allCategories（用于收集子孙）
+            Category root = buildCategory(1L, "图书", 0L, 1, 0);
+            when(categoryMapper.selectList(any())).thenReturn(List.of(root, child));
+
+            // Mock 商品引用检查：存在关联商品
+            when(spuInfoMapper.selectCount(any())).thenReturn(1L);
+
+            // When & Then
+            assertThatThrownBy(() -> categoryService.batchDelete(List.of(2L)))
+                    .isInstanceOf(BizException.class)
+                    .extracting(e -> ((BizException) e).getCode())
+                    .isEqualTo(ResultCode.CATEGORY_HAS_PRODUCTS.getCode());
+        }
+
+        @Test
         @DisplayName("分类下存在品牌关联时应拒绝删除")
         void shouldRejectWhenBrandRelationExists() {
             // Given: 二级分类 ID=2（父为一级 ID=1）
@@ -227,7 +285,8 @@ class CategoryServiceTest {
             Category root = buildCategory(1L, "图书", 0L, 1, 0);
             when(categoryMapper.selectList(any())).thenReturn(List.of(root, child));
 
-            // Mock 品牌关联检查：ID=2 存在品牌关联
+            // Mock 商品引用检查通过，品牌关联检查：ID=2 存在品牌关联
+            when(spuInfoMapper.selectCount(any())).thenReturn(0L);
             when(categoryBrandRelationMapper.selectCount(any())).thenReturn(1L);
 
             // When & Then
@@ -235,6 +294,26 @@ class CategoryServiceTest {
                     .isInstanceOf(BizException.class)
                     .extracting(e -> ((BizException) e).getCode())
                     .isEqualTo(ResultCode.CATEGORY_HAS_BRANDS.getCode());
+        }
+
+        @Test
+        @DisplayName("无引用时应将 show_status 置为 0")
+        void shouldSetShowStatusToZeroWhenNoReferences() {
+            // Given: 二级分类 ID=2（父为一级 ID=1）
+            Category child = buildCategory(2L, "电子书刊", 1L, 2, 0);
+            when(categoryMapper.selectByIds(anyList())).thenReturn(List.of(child));
+
+            Category root = buildCategory(1L, "图书", 0L, 1, 0);
+            when(categoryMapper.selectList(any())).thenReturn(List.of(root, child));
+
+            when(spuInfoMapper.selectCount(any())).thenReturn(0L);
+            when(categoryBrandRelationMapper.selectCount(any())).thenReturn(0L);
+            when(categoryMapper.update(isNull(), any())).thenReturn(1);
+
+            // When & Then
+            assertThatCode(() -> categoryService.batchDelete(List.of(2L)))
+                    .doesNotThrowAnyException();
+            verify(categoryMapper).update(isNull(), any());
         }
     }
 
@@ -257,13 +336,13 @@ class CategoryServiceTest {
             // 批量拖拽：D 移到 C 下，B 移到 D 下
             // 结果会形成 B->D->C->B 循环
             CategorySortDTO.SortItem item1 = new CategorySortDTO.SortItem();
-            item1.setId(4L);   // D
+            item1.setCatId(4L);   // D
             item1.setParentCid(3L); // 移到 C 下
             item1.setCatLevel(4);
             item1.setSort(0);
 
             CategorySortDTO.SortItem item2 = new CategorySortDTO.SortItem();
-            item2.setId(2L);   // B
+            item2.setCatId(2L);   // B
             item2.setParentCid(4L); // 移到 D 下
             item2.setCatLevel(3);
             item2.setSort(1);

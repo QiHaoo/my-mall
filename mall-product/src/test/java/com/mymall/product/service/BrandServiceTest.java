@@ -5,17 +5,17 @@ import com.baomidou.mybatisplus.core.metadata.TableInfoHelper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.mymall.common.exception.BizException;
 import com.mymall.common.exception.ResultCode;
+import com.mymall.common.result.PageVO;
+import com.mymall.product.dto.brand.BrandBatchDeleteDTO;
 import com.mymall.product.dto.brand.BrandQueryDTO;
 import com.mymall.product.dto.brand.BrandSaveDTO;
 import com.mymall.product.dto.brand.BrandShowStatusDTO;
 import com.mymall.product.dto.brand.BrandSimpleVO;
 import com.mymall.product.dto.brand.BrandVO;
 import com.mymall.product.entity.Brand;
-import com.mymall.product.entity.Category;
 import com.mymall.product.entity.CategoryBrandRelation;
 import com.mymall.product.mapper.BrandMapper;
 import com.mymall.product.mapper.CategoryBrandRelationMapper;
-import com.mymall.product.mapper.CategoryMapper;
 import com.mymall.product.mapper.SpuInfoMapper;
 import com.mymall.product.service.impl.BrandServiceImpl;
 import org.apache.ibatis.builder.MapperBuilderAssistant;
@@ -66,7 +66,7 @@ class BrandServiceTest {
     private SpuInfoMapper spuInfoMapper;
 
     @Mock
-    private CategoryMapper categoryMapper;
+    private ICategoryBrandRelationService categoryBrandRelationService;
 
     private BrandServiceImpl brandService;
 
@@ -74,7 +74,7 @@ class BrandServiceTest {
     void setUp() {
         // ServiceImpl.baseMapper 由 Spring 字段注入，@InjectMocks 仅走构造器，
         // 父类 baseMapper 字段保持 null，需反射注入。
-        brandService = new BrandServiceImpl(categoryBrandRelationMapper, spuInfoMapper, categoryMapper);
+        brandService = new BrandServiceImpl(categoryBrandRelationMapper, spuInfoMapper, categoryBrandRelationService);
         ReflectionTestUtils.setField(brandService, "baseMapper", brandMapper);
     }
 
@@ -127,22 +127,18 @@ class BrandServiceTest {
         }
 
         @Test
-        @DisplayName("应返回详情及关联分类ID列表")
-        void shouldReturnDetailWithCategoryIds() {
+        @DisplayName("应返回品牌基础详情")
+        void shouldReturnDetailWithoutCategoryIds() {
             // Given
             Brand brand = buildBrand(1L, "小米", 1, "X", 0);
             when(brandMapper.selectById(1L)).thenReturn(brand);
-            CategoryBrandRelation rel = new CategoryBrandRelation();
-            rel.setBrandId(1L);
-            rel.setCatelogId(225L);
-            when(categoryBrandRelationMapper.selectList(any())).thenReturn(List.of(rel));
 
             // When
             BrandVO vo = brandService.getBrandDetail(1L);
 
             // Then
             assertThat(vo.getName()).isEqualTo("小米");
-            assertThat(vo.getCategoryIds()).containsExactly(225L);
+            assertThat(vo.getFirstLetter()).isEqualTo("X");
         }
     }
 
@@ -156,7 +152,7 @@ class BrandServiceTest {
         @DisplayName("品牌名重复时应抛异常")
         void shouldThrowWhenNameDuplicate() {
             // Given
-            BrandSaveDTO dto = buildSaveDTO("小米", null);
+            BrandSaveDTO dto = buildSaveDTO("小米");
             when(brandMapper.selectCount(any())).thenReturn(1L);
 
             // When & Then
@@ -168,53 +164,20 @@ class BrandServiceTest {
         }
 
         @Test
-        @DisplayName("无关联分类时应成功且默认显示状态为 1")
-        void shouldSaveWithoutRelations() {
+        @DisplayName("首字母应转大写且默认显示状态为 1")
+        void shouldSaveWithUpperCaseLetterAndDefaultShowStatus() {
             // Given
-            BrandSaveDTO dto = buildSaveDTO("新品牌", null);
+            BrandSaveDTO dto = buildSaveDTO("新品牌");
+            dto.setFirstLetter("x");
+            dto.setShowStatus(null);
             when(brandMapper.selectCount(any())).thenReturn(0L);
             when(brandMapper.insert(any(Brand.class))).thenReturn(1);
 
             // When & Then
             assertThatCode(() -> brandService.saveBrand(dto)).doesNotThrowAnyException();
-            verify(brandMapper).insert(argThat((Brand b) -> b.getShowStatus() == 1));
+            verify(brandMapper).insert(argThat((Brand b) ->
+                    b.getShowStatus() == 1 && "X".equals(b.getFirstLetter())));
             verify(categoryBrandRelationMapper, never()).insert(any(CategoryBrandRelation.class));
-        }
-
-        @Test
-        @DisplayName("关联分类非三级时应抛异常")
-        void shouldThrowWhenCategoryNotLevel3() {
-            // Given
-            BrandSaveDTO dto = buildSaveDTO("新品牌", List.of(225L));
-            when(brandMapper.selectCount(any())).thenReturn(0L);
-            when(brandMapper.insert(any(Brand.class))).thenReturn(1);
-            // 返回一个二级分类
-            Category cat = buildCategory(225L, "二级分类", 2);
-            when(categoryMapper.selectByIds(anyList())).thenReturn(List.of(cat));
-
-            // When & Then
-            assertThatThrownBy(() -> brandService.saveBrand(dto))
-                    .isInstanceOf(BizException.class)
-                    .extracting(e -> ((BizException) e).getCode())
-                    .isEqualTo(ResultCode.BRAND_CATEGORY_INVALID.getCode());
-        }
-
-        @Test
-        @DisplayName("关联三级分类时应成功写入关联")
-        void shouldSaveWithValidRelations() {
-            // Given
-            BrandSaveDTO dto = buildSaveDTO("新品牌", List.of(225L));
-            when(brandMapper.selectCount(any())).thenReturn(0L);
-            when(brandMapper.insert(any(Brand.class))).thenAnswer(inv -> {
-                ((Brand) inv.getArgument(0)).setId(1L);
-                return 1;
-            });
-            when(categoryMapper.selectByIds(anyList())).thenReturn(List.of(buildCategory(225L, "手机", 3)));
-            when(categoryBrandRelationMapper.selectList(any())).thenReturn(Collections.emptyList());
-
-            // When & Then
-            assertThatCode(() -> brandService.saveBrand(dto)).doesNotThrowAnyException();
-            verify(categoryBrandRelationMapper).insert(any(CategoryBrandRelation.class));
         }
     }
 
@@ -228,7 +191,7 @@ class BrandServiceTest {
         @DisplayName("品牌不存在时应抛异常")
         void shouldThrowWhenNotFound() {
             // Given
-            BrandSaveDTO dto = buildSaveDTO("新名称", null);
+            BrandSaveDTO dto = buildSaveDTO("新名称");
             dto.setId(999L);
             dto.setVersion(0);
             when(brandMapper.selectById(999L)).thenReturn(null);
@@ -244,7 +207,7 @@ class BrandServiceTest {
         @DisplayName("改名后名称与他人重复时应抛异常")
         void shouldThrowWhenNameDuplicateOnUpdate() {
             // Given
-            BrandSaveDTO dto = buildSaveDTO("华为", null);
+            BrandSaveDTO dto = buildSaveDTO("华为");
             dto.setId(1L);
             dto.setVersion(0);
             Brand existing = buildBrand(1L, "小米", 1, "X", 0);
@@ -262,7 +225,7 @@ class BrandServiceTest {
         @DisplayName("改名时应同步刷新关联表冗余品牌名")
         void shouldSyncRelationBrandNameWhenRenamed() {
             // Given
-            BrandSaveDTO dto = buildSaveDTO("新小米", null);
+            BrandSaveDTO dto = buildSaveDTO("新小米");
             dto.setId(1L);
             dto.setVersion(0);
             Brand existing = buildBrand(1L, "小米", 1, "X", 0);
@@ -273,31 +236,7 @@ class BrandServiceTest {
             brandService.updateBrand(dto);
 
             // Then: 触发关联表 brand_name 更新
-            verify(categoryBrandRelationMapper).update(isNull(), any());
-        }
-
-        @Test
-        @DisplayName("传入 categoryIds 时应全量覆盖关联")
-        void shouldOverwriteRelationsWhenCategoryIdsProvided() {
-            // Given
-            BrandSaveDTO dto = buildSaveDTO("小米", List.of(226L));
-            dto.setId(1L);
-            dto.setVersion(0);
-            Brand existing = buildBrand(1L, "小米", 1, "X", 0);
-            when(brandMapper.selectById(1L)).thenReturn(existing);
-            when(brandMapper.updateById(any(Brand.class))).thenReturn(1);
-            when(categoryMapper.selectByIds(anyList())).thenReturn(List.of(buildCategory(226L, "家电", 3)));
-            // 现有关联：225（将被删除，因不在期望列表）
-            CategoryBrandRelation oldRel = new CategoryBrandRelation();
-            oldRel.setCatelogId(225L);
-            when(categoryBrandRelationMapper.selectList(any())).thenReturn(List.of(oldRel));
-
-            // When
-            brandService.updateBrand(dto);
-
-            // Then: 删除 225，新增 226
-            verify(categoryBrandRelationMapper).delete(any());
-            verify(categoryBrandRelationMapper).insert(any(CategoryBrandRelation.class));
+            verify(categoryBrandRelationService).updateBrandName(1L, "新小米");
         }
     }
 
@@ -393,6 +332,66 @@ class BrandServiceTest {
         }
     }
 
+    // ==================== 批量删除品牌 ====================
+
+    @Nested
+    @DisplayName("批量删除品牌")
+    class BatchDelete {
+
+        @Test
+        @DisplayName("id 列表为空时应抛异常")
+        void shouldThrowWhenIdsEmpty() {
+            // Given
+            BrandBatchDeleteDTO dto = new BrandBatchDeleteDTO();
+            dto.setIds(Collections.emptyList());
+
+            // When & Then
+            assertThatThrownBy(() -> brandService.batchDelete(dto))
+                    .isInstanceOf(BizException.class)
+                    .extracting(e -> ((BizException) e).getCode())
+                    .isEqualTo(ResultCode.BRAND_BATCH_DELETE_EMPTY.getCode());
+        }
+
+        @Test
+        @DisplayName("任一品牌存在商品引用时整体回滚")
+        void shouldRollbackWhenAnyBrandHasProducts() {
+            // Given
+            Brand brand1 = buildBrand(1L, "小米", 1, "X", 0);
+            Brand brand2 = buildBrand(2L, "华为", 1, "H", 0);
+            BrandBatchDeleteDTO dto = new BrandBatchDeleteDTO();
+            dto.setIds(List.of(1L, 2L));
+            when(brandMapper.selectById(1L)).thenReturn(brand1);
+            when(brandMapper.selectById(2L)).thenReturn(brand2);
+            when(spuInfoMapper.selectCount(any())).thenReturn(0L, 1L);
+
+            // When & Then
+            assertThatThrownBy(() -> brandService.batchDelete(dto))
+                    .isInstanceOf(BizException.class)
+                    .extracting(e -> ((BizException) e).getCode())
+                    .isEqualTo(ResultCode.BRAND_HAS_PRODUCTS.getCode());
+            verify(brandMapper, never()).deleteByIds(anyList());
+        }
+
+        @Test
+        @DisplayName("全部无引用时应统一删除")
+        void shouldBatchDeleteWhenNoReferences() {
+            // Given
+            Brand brand1 = buildBrand(1L, "小米", 1, "X", 0);
+            Brand brand2 = buildBrand(2L, "华为", 1, "H", 0);
+            BrandBatchDeleteDTO dto = new BrandBatchDeleteDTO();
+            dto.setIds(List.of(1L, 2L));
+            when(brandMapper.selectById(1L)).thenReturn(brand1);
+            when(brandMapper.selectById(2L)).thenReturn(brand2);
+            when(spuInfoMapper.selectCount(any())).thenReturn(0L);
+            when(brandMapper.deleteByIds(anyList())).thenReturn(2);
+
+            // When & Then
+            assertThatCode(() -> brandService.batchDelete(dto)).doesNotThrowAnyException();
+            verify(brandMapper).deleteByIds(List.of(1L, 2L));
+            verify(categoryBrandRelationMapper).delete(any());
+        }
+    }
+
     // ==================== 分类下品牌 ====================
 
     @Nested
@@ -443,21 +442,12 @@ class BrandServiceTest {
         return brand;
     }
 
-    private Category buildCategory(Long id, String name, int catLevel) {
-        Category category = new Category();
-        category.setId(id);
-        category.setName(name);
-        category.setCatLevel(catLevel);
-        return category;
-    }
-
-    private BrandSaveDTO buildSaveDTO(String name, List<Long> categoryIds) {
+    private BrandSaveDTO buildSaveDTO(String name) {
         BrandSaveDTO dto = new BrandSaveDTO();
         dto.setName(name);
         dto.setLogo("https://oss.example.com/brand/logo.png");
         dto.setFirstLetter("X");
         dto.setSort(0);
-        dto.setCategoryIds(categoryIds);
         return dto;
     }
 }

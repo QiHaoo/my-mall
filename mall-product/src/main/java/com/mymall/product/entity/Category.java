@@ -10,8 +10,8 @@ import lombok.experimental.Accessors;
  * 商品三级分类
  * <p>
  * 继承 {@link BaseEntity} 复用 id / 审计字段 / 逻辑删除（is_deleted）/ 乐观锁（version）。
- * 逻辑删除由 MyBatis-Plus {@code @TableLogic} 自动处理（removeByIds → is_deleted=1），
- * show_status 仅作业务显示控制，不再承担删除语义。
+ * 分类删除采用业务逻辑删除：将 {@code show_status} 置为 0（隐藏），
+ * 保留 {@code is_deleted} 字段由 {@code @TableLogic} 统一维护（目前不参与业务删除语义）。
  */
 @Data
 @EqualsAndHashCode(callSuper = true)

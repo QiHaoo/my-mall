@@ -6,6 +6,7 @@ import com.mymall.common.exception.ResultCode;
 import com.mymall.product.dto.brand.BrandSimpleVO;
 import com.mymall.product.dto.brand.BrandVO;
 import com.mymall.product.service.IBrandService;
+import com.mymall.product.service.ICategoryBrandRelationService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -41,6 +42,9 @@ class BrandControllerTest {
 
     @MockitoBean
     private IBrandService brandService;
+
+    @MockitoBean
+    private ICategoryBrandRelationService categoryBrandRelationService;
 
     // ==================== 分页查询 ====================
 

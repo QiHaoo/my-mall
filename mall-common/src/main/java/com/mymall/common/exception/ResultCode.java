@@ -67,6 +67,9 @@ public enum ResultCode {
     BRAND_HAS_PRODUCTS(53003, "品牌下存在关联商品，无法删除"),
     BRAND_CATEGORY_INVALID(53004, "关联分类不存在或非三级分类"),
     BRAND_SHOW_STATUS_INVALID(53005, "显示状态值非法"),
+    BRAND_RELATION_DUPLICATE(53006, "品牌-分类关联已存在"),
+    BRAND_RELATION_NOT_FOUND(53007, "品牌-分类关联不存在"),
+    BRAND_BATCH_DELETE_EMPTY(53008, "批量删除 id 列表不能为空"),
 
     // ==================== 订单服务 60001+ ====================
     ORDER_NOT_FOUND(60001, "订单不存在"),
