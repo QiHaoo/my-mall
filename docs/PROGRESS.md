@@ -40,7 +40,7 @@
 | 2026-06-21 | 网关路由配置修复 | `5bb4e9a` | RequestLogFilter + application.yml 路由过滤器修正 |
 | 2026-06-27 | GitHub 学习文档 + learn-docs 组织原则 | — | 新增 `docs/learn-docs/github/` 12 篇学习文档（基础/协作工作流/PR/分支保护/Actions/Pages/Release/Issue/Secrets/CLI/项目实践串联，含 mkdocs.yml workflow 逐行解读）；AGENTS.md 补充 learn-docs 文档组织原则（按实际内容组织，不套用开发文档模式）；mkdocs.yml 导航新增 GitHub 子项；修复 strict 构建链接警告（外部文件改 GitHub 绝对 URL、修正相对路径） |
 | 2026-06-28 | AI Agent 操作 Figma 方案落地 | — | figma-console-mcp 集成（MCP 服务器 + Desktop Bridge 插件 + Trae 配置），验证 WebSocket 连接并生成测试设计稿（仪表盘画板）；新增 `docs/frontend/figma-mcp-guide.md`（选型/配置/流程/核心工具速查）；更新 design-system.md 第七章链接、doc-convention.md 1.4.1 过时规则（AI 现可生成 Figma）、AGENTS.md 文档索引 |
-| 2026-06-28 | 分类与品牌管理接口实现同步 v1.1 | - | 按最新设计文档同步分类/品牌后端实现：分类字段统一 catId、show_status 业务删除、SPU 引用检查与关联表冗余名同步；品牌表单剥离分类关联、新增批量删除与独立关联管理接口（查询/新增/移除）；补充 ResultCode 53006-53008；Service/Controller 单元测试全绿（mall-product 28 个用例通过） |
+| 2026-06-28 | 分类与品牌管理接口实现同步 v1.1 | `b67f0ee` | 按最新设计文档同步分类/品牌后端实现：分类字段统一 catId、show_status 业务删除、SPU 引用检查与关联表冗余名同步；品牌表单剥离分类关联、新增批量删除与独立关联管理接口（查询/新增/移除）；补充 ResultCode 53006-53008；Service/Controller 单元测试全绿（mall-product 28 个用例通过） |
 
 ---
 
