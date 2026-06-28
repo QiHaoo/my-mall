@@ -151,6 +151,7 @@ com.mymall.common/
 | `docs/frontend/overview.md` | 前端架构概述（项目结构、技术栈、路由设计、状态管理、API 层封装） |
 | `docs/frontend/design-system.md` | 前端设计系统（Element Plus 定制、主题色、通用组件规范、Figma 设计稿交付流程） |
 | `docs/frontend/PROGRESS.md` | 前端开发进度 |
+| `docs/frontend/figma-mcp-guide.md` | AI Agent 操作 Figma 设计稿指南（figma-console-mcp 选型、配置、连接验证、生成流程、核心工具速查） |
 | `docs/git-workflow.md` | Git 管理规范（分支策略、Commit 规范、发布流程） |
 | `docs/tech-stack-and-architecture-2026.md` | 技术选型与架构设计（选型理由、架构图、服务划分） |
 | `docs/local-dev-reference.md` | 本地开发环境手册（服务连接信息、启停命令、IDEA 配置） |

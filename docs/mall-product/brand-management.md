@@ -677,7 +677,53 @@ GET http://localhost:1000/api/product/brand/by-category/225
 
 ---
 
-## 十、实现清单
+## 十、前端设计
+
+### 页面布局
+
+> Figma 设计稿：[待产出]()
+>
+> 在 Figma 出稿前，以下列文字描述作为页面结构契约。
+
+**品牌列表页**（管理后台 `/product/brand`）
+
+- 顶部筛选区：品牌名输入框 + 首字母下拉（A-Z）+ 显示状态下拉（全部/显示/隐藏）+ 查询/重置按钮
+- 操作区：新增品牌按钮 + 批量删除按钮
+- 表格区：列含 logo 缩略图 / 品牌名 / 首字母 / 显示状态(switch) / 排序值 / 操作（编辑 / 删除）
+- 底部分页区：el-pagination（pageNum / pageSize）
+
+**品牌表单弹窗**（新增 / 编辑复用）
+
+- 基础信息：品牌名 / logo 上传 / 首字母 / 排序值 / 显示状态
+- 品牌介绍：textarea（最多 500 字符）
+- 关联分类：el-cascader 多选（仅三级分类可选），已选分类以 tag 展示
+
+### 组件拆分
+
+| 组件 | 职责 | 消费接口 |
+|------|------|---------|
+| BrandList | 列表页主体：筛选 + 表格 + 分页 | GET /product/brand |
+| BrandForm | 新增/编辑表单弹窗 | POST/PUT /product/brand，GET /product/brand/{id} |
+| BrandStatusSwitch | 表格行内显示状态切换 | PUT /product/brand/{id}/show-status |
+| LogoUpload | logo 上传（OSS 直传 MinIO） | mall-oss Presigned URL 接口 |
+| CategoryCascaderMulti | 三级分类多选级联 | GET /product/category/tree（复用分类模块） |
+
+### 关键交互
+
+- **筛选查询**：name 模糊 + firstLetter 精确 + showStatus 精确，点查询触发 `GET /product/brand`；重置清空所有条件并重新查询
+- **分页**：el-pagination，pageNum / pageSize 变化触发重新查询
+- **新增 / 编辑**：表单校验通过后提交；编辑时携带 `version` 触发乐观锁；品牌名变更由后端同步刷新关联表冗余字段，前端无需额外处理
+- **logo 上传**：前端先调 `mall-oss` 拿 Presigned URL → 直传 MinIO → 拿到对象访问 URL → 填入表单 `logo` 字段；品牌接口不接收文件流（详见 [对象存储服务设计](./object-storage-design.md)）
+- **关联分类**：el-cascader 多选，仅叶子节点（三级）可选，提交时传 `categoryIds`；后端校验全部为三级分类，失败返回 `53004 BRAND_CATEGORY_INVALID`
+- **显示状态切换**：el-switch 切换即调用 `PUT /product/brand/{id}/show-status`，失败回滚开关状态并提示
+- **删除**：确认弹窗 → `DELETE /product/brand/{id}`；若后端返回 `53003 BRAND_HAS_PRODUCTS`，前端提示"品牌下存在关联商品，无法删除"
+- **删除后列表刷新**：删除成功后停留在当前页，若当前页已无数据则回退到上一页
+
+> 前台检索页（按分类筛品牌）消费 `GET /product/brand/by-category/{catelogId}`，属于前台展示模块，不在本管理后台页面范围内，待前台检索模块设计时统一规划。
+
+---
+
+## 十一、实现清单
 
 | 序号 | 任务 | 文件 |
 |------|------|------|

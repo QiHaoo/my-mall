@@ -168,3 +168,17 @@
 Figma 中的组件应与 Vue 组件一一对应，命名保持一致：
 - Figma `CategoryTree` → Vue `CategoryTree.vue`
 - Figma `BrandForm` → Vue `BrandForm.vue`
+
+### 7.4 AI Agent 辅助生成设计稿
+
+AI Agent（Trae + figma-console-mcp）可直接在 Figma 画布上生成、修改设计稿。完整的方案选型、环境配置、连接验证与生成流程见 [figma-mcp-guide.md](figma-mcp-guide.md)。
+
+**关键能力**：
+- 通过 `figma_execute` 执行 Figma Plugin API 代码，创建 Frame/Text/Rectangle 等节点
+- 通过 `figma_take_screenshot` 截图验证，形成"生成 → 验证 → 迭代"闭环
+- 支持设计变量管理、组件实例化等
+
+**使用场景**：
+- 功能域文档"前端设计"章节的页面布局，可由 AI 直接生成 Figma 稿
+- 设计系统变量批量创建
+- 快速出原型验证布局

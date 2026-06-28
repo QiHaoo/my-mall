@@ -39,6 +39,7 @@
 | 2026-06-24 | 文档站搭建 + 文档分层规范 | `ce62329` | MkDocs Material 文档站（mkdocs.yml + GitHub Actions 自动部署到 Pages + serve-docs.bat 本地启动脚本）+ docs/docs-site-deployment.md 部署指南 + docs/documentation-layering-guide.md 三层文档分层规范（全局设计+规范 / 模块设计 / 学习文档）+ docs/index.md 首页 + 修复 2 处跨文档死链；SPU/SKU 属性设计文档（product/spu-sku-attr-design.md）+ 接口设计补充。部署过程修复 workflow setup-python 失败（关 pip cache）、strict 构建死链（docs/ 外文件改 GitHub 绝对链接），站点已上线 https://qihao0o.github.io/my-mall/ |
 | 2026-06-21 | 网关路由配置修复 | `5bb4e9a` | RequestLogFilter + application.yml 路由过滤器修正 |
 | 2026-06-27 | GitHub 学习文档 + learn-docs 组织原则 | — | 新增 `docs/learn-docs/github/` 12 篇学习文档（基础/协作工作流/PR/分支保护/Actions/Pages/Release/Issue/Secrets/CLI/项目实践串联，含 mkdocs.yml workflow 逐行解读）；AGENTS.md 补充 learn-docs 文档组织原则（按实际内容组织，不套用开发文档模式）；mkdocs.yml 导航新增 GitHub 子项；修复 strict 构建链接警告（外部文件改 GitHub 绝对 URL、修正相对路径） |
+| 2026-06-28 | AI Agent 操作 Figma 方案落地 | — | figma-console-mcp 集成（MCP 服务器 + Desktop Bridge 插件 + Trae 配置），验证 WebSocket 连接并生成测试设计稿（仪表盘画板）；新增 `docs/frontend/figma-mcp-guide.md`（选型/配置/流程/核心工具速查）；更新 design-system.md 第七章链接、doc-convention.md 1.4.1 过时规则（AI 现可生成 Figma）、AGENTS.md 文档索引 |
 
 ---
 
