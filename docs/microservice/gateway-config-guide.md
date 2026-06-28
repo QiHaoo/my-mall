@@ -138,7 +138,11 @@ spring:
       globalcors:
         cors-configurations:
           '[/**]':
-            allowed-origins: "http://localhost:5173"  # Vite 默认端口
+            # Vite 开发服务器默认 5173；若端口被占用会飘到 5174 等，本地开发时统一允许。
+            # allow-credentials: true 时 allowed-origins 不能为 *，必须显式列出。
+            allowed-origins:
+              - "http://localhost:5173"
+              - "http://localhost:5174"
             allowed-methods: "*"
             allowed-headers: "*"
             allow-credentials: true

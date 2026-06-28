@@ -39,7 +39,6 @@ public class JacksonConfig {
             SimpleModule longModule = new SimpleModule();
             longModule.addSerializer(Long.class, ToStringSerializer.instance);
             longModule.addSerializer(Long.TYPE, ToStringSerializer.instance);
-            builder.modules(longModule);
 
             // 时间格式化
             JavaTimeModule timeModule = new JavaTimeModule();
@@ -49,7 +48,10 @@ public class JacksonConfig {
                     new com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer(DATE_FORMATTER));
             timeModule.addDeserializer(LocalDateTime.class, new LocalDateTimeDeserializer(DATE_TIME_FORMATTER));
             timeModule.addDeserializer(LocalDate.class, new LocalDateDeserializer(DATE_FORMATTER));
-            builder.modules(timeModule);
+
+            // 注意：Jackson2ObjectMapperBuilder.modules() 是覆盖式设置，不能多次调用，
+            // 否则后一次会覆盖前一次注册的 module。必须在一次调用中传入所有 module。
+            builder.modules(longModule, timeModule);
 
             builder.failOnUnknownProperties(false);
         };

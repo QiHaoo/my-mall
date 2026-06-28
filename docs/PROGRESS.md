@@ -41,6 +41,8 @@
 | 2026-06-27 | GitHub 学习文档 + learn-docs 组织原则 | — | 新增 `docs/learn-docs/github/` 12 篇学习文档（基础/协作工作流/PR/分支保护/Actions/Pages/Release/Issue/Secrets/CLI/项目实践串联，含 mkdocs.yml workflow 逐行解读）；AGENTS.md 补充 learn-docs 文档组织原则（按实际内容组织，不套用开发文档模式）；mkdocs.yml 导航新增 GitHub 子项；修复 strict 构建链接警告（外部文件改 GitHub 绝对 URL、修正相对路径） |
 | 2026-06-28 | AI Agent 操作 Figma 方案落地 | — | figma-console-mcp 集成（MCP 服务器 + Desktop Bridge 插件 + Trae 配置），验证 WebSocket 连接并生成测试设计稿（仪表盘画板）；新增 `docs/frontend/figma-mcp-guide.md`（选型/配置/流程/核心工具速查）；更新 design-system.md 第七章链接、doc-convention.md 1.4.1 过时规则（AI 现可生成 Figma）、AGENTS.md 文档索引 |
 | 2026-06-28 | 分类与品牌管理接口实现同步 v1.1 | `b67f0ee` | 按最新设计文档同步分类/品牌后端实现：分类字段统一 catId、show_status 业务删除、SPU 引用检查与关联表冗余名同步；品牌表单剥离分类关联、新增批量删除与独立关联管理接口（查询/新增/移除）；补充 ResultCode 53006-53008；Service/Controller 单元测试全绿（mall-product 28 个用例通过） |
+| 2026-06-28 | 管理后台前端搭建 + 分类/品牌管理页面 | — | mall-admin-frontend：Vite + Vue 3 + TS + Element Plus + Pinia + Axios 脚手架；基础设施（SCSS 样式系统、API 请求层 R\<T\> 剥离、路由系统、AdminLayout 布局、PageTable/FormDialog 通用组件、useTable/useDialog composables、树形工具函数）；分类管理（三级树 CRUD + 拖拽排序 + 批量删除）；品牌管理（分页 CRUD + 显示状态切换 + 关联分类管理）；404 页面；mall-gateway CORS 已允许 5173~5176 开发端口 |
+| 2026-06-29 | 前端联调验证与 PageTable 刷新修复 | — | 分类/品牌管理页面对接后端端到端验证通过；修复品牌新增/删除后 PageTable 列表未自动刷新的问题 |
 
 ---
 

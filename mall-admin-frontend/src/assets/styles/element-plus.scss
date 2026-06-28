@@ -1,0 +1,9 @@
+// 覆盖 Element Plus CSS 变量（运行时生效，无需 SCSS 编译）
+:root {
+  --el-color-primary: #409eff;
+  --el-color-success: #67c23a;
+  --el-color-warning: #e6a23c;
+  --el-color-danger: #f56c6c;
+  --el-color-info: #909399;
+  --el-border-radius-base: 4px;
+}

@@ -113,7 +113,7 @@ nav:
       - AI 辅助开发体系: standards/ai-assisted-development.md
       - 编码规范: standards/coding-standards.md
       - Controller 接口规范: standards/controller-specification.md
-      - 后端测试规范: standards/testing-specification.md
+      - 测试规范: standards/testing-specification.md
       - 数据库表设计规范: standards/table-design-specification.md
       - Git 管理规范: standards/git-workflow.md
       - AI 辅助开发流程: standards/development-workflow.md

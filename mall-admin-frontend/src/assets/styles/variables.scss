@@ -1,0 +1,52 @@
+// ===== 颜色 =====
+$color-primary: #409eff;
+$color-success: #67c23a;
+$color-warning: #e6a23c;
+$color-danger: #f56c6c;
+$color-info: #909399;
+
+// ===== 文字颜色 =====
+$text-primary: #303133;
+$text-regular: #606266;
+$text-secondary: #909399;
+$text-placeholder: #c0c4cc;
+
+// ===== 边框颜色 =====
+$border-base: #dcdfe6;
+$border-light: #e4e7ed;
+$border-lighter: #ebeef5;
+
+// ===== 背景色 =====
+$bg-base: #ffffff;
+$bg-page: #f5f7fa; // 页面背景
+$bg-hover: #f5f7fa;
+
+// ===== 侧边栏 =====
+$sidebar-bg: #304156;
+$sidebar-text: #bfcbd9;
+$sidebar-active-text: #409eff;
+$sidebar-width: 210px;
+$sidebar-collapsed-width: 64px;
+
+// ===== 间距（4px 网格）=====
+$spacing-xs: 4px;
+$spacing-sm: 8px;
+$spacing-md: 12px;
+$spacing-base: 16px;
+$spacing-lg: 24px;
+
+// ===== 字号 =====
+$font-size-xs: 12px;
+$font-size-sm: 13px;
+$font-size-base: 14px;
+$font-size-lg: 16px;
+$font-size-xl: 20px;
+
+// ===== 圆角 =====
+$radius-sm: 2px;
+$radius-base: 4px;
+$radius-lg: 8px;
+
+// ===== 阴影 =====
+$shadow-base: 0 2px 4px rgba(0, 0, 0, 0.06);
+$shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);

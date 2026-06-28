@@ -46,7 +46,7 @@
 
 ## 二、启停命令
 
-> 以下命令均在 **WSL2 终端** 中执行，项目目录：`/mnt/d/WorkSpace/my-mall`
+> 后端中间件与网关命令在 **WSL2 终端** 中执行，项目目录：`/mnt/d/WorkSpace/my-mall`；前端命令在 Windows PowerShell 中执行，项目目录：`D:\WorkSpace\my-mall\mall-admin-frontend`
 
 ### 按阶段启动
 
@@ -100,6 +100,23 @@ docker compose restart nacos
 docker compose pull nacos
 docker compose --profile core up -d
 ```
+
+### 前端开发服务器
+
+```powershell
+# 进入前端目录
+cd D:\WorkSpace\my-mall\mall-admin-frontend
+
+# 安装依赖（已安装可跳过）
+pnpm install --store-dir .pnpm-store
+
+# 启动开发服务器
+pnpm dev
+```
+
+- 默认端口 `5173`，若被占用会依次尝试 `5174/5175/5176`
+- 网关 `mall-gateway` 已配置 `allowed-origins: 5173~5176`，前端无论落到哪个端口都不会触发 CORS
+- 开发环境 API 基地址：`http://localhost:1000/api`（由 `.env.development` 的 `VITE_API_BASE_URL` 指定）
 
 ---
 
