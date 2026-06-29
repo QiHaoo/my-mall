@@ -46,6 +46,7 @@
 | 2026-06-29 | 前端文档体系补充与学习文档 | — | 修正 overview.md 与实现对齐；新增 infrastructure.md（基础设施设计）、components.md（通用组件设计）、coding-standards.md（编码规范）；调整 design-system.md 组件章节职责；功能域文档章节顺序调整为「需求→前端设计→后端实现」（doc-convention.md 规范 + category/brand-management.md 同步）；新增 learn-docs/frontend/ 10 篇学习文档（Vue3/路由/Pinia/TS/Element Plus/Vite/基础设施/组件/API层/功能页面） |
 | 2026-06-29 | 测试规范增强 + 测试学习文档 | — | testing-specification.md 生产级增强（覆盖率门禁 §9、CI 集成 §10、前端测试体系 §11、待补充行动清单 §14）；新增 learn-docs/testing/ 5 篇学习文档（测试金字塔、单元测试、切片测试、集成测试、学习地图） |
 | 2026-06-29 | CI/CD 持续集成方案设计 + 学习文档 | — | 新增 docs/standards/ci-cd/ 6 篇设计文档（overview/backend-ci/frontend-ci/docker-publish/harbor-setup/release-and-protection），覆盖可复用工作流组合架构、后端/前端 CI、多阶段 Dockerfile + Harbor 集成、Release 发布 + 分支保护；新增 docs/learn-docs/ci/ 7 篇学习文档（Docker 基础→CI 概念→测试策略→镜像构建→发布管理→项目方案解读）；AGENTS.md + mkdocs.yml 文档索引同步 |
+| 2026-06-29 | 文档体系审视 + 安全规范 + CI workflow 落地 | — | 文档体系全面审视，输出 docs/documentation-system-review.md（已有强项、三大缺口、四波落地计划）；新增 docs/standards/security-specification.md（OAuth2 流程、JWT 设计、RBAC 鉴权、敏感数据保护、密钥管理、攻击防护、mall-auth 接口设计）；CI 设计文档落地为实际 yaml（ci.yml 编排器 + backend-ci.yml + frontend-ci.yml + setup-java/setup-frontend composite action）；新增 PR 模板 + Bug/Feature Issue 模板；AGENTS.md 索引修复（git-workflow 路径）+ 合并 JDK21 路径约定 + 新增安全规范与审视报告索引 |
 
 ---
 

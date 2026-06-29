@@ -1,0 +1,101 @@
+# CI 编排器：按事件类型 / 分支调用子工作流
+# 不直接执行构建逻辑，只负责「检测变更 + 编排调用」
+# 设计文档：docs/standards/ci-cd/overview.md
+
+name: CI
+
+on:
+  # PR 检查：仅跑 CI，不发布
+  pull_request:
+    branches: [main, develop]
+  # develop 集成检查：仅跑 CI，不发布
+  push:
+    branches: [develop]
+    paths-ignore:
+      - 'docs/**'
+      - '**/*.md'
+  # main 合并：跑 CI + 发布镜像（持续交付）
+  # tag 推送：跑 CI + 发布镜像 + Release（正式发布）
+  # 注：main 和 tag 共用 push 触发，通过 job 的 if 条件区分
+  workflow_dispatch:
+    inputs:
+      run_backend:
+        description: '执行后端 CI'
+        required: false
+        default: 'true'
+        type: boolean
+      run_frontend:
+        description: '执行前端 CI'
+        required: false
+        default: 'true'
+        type: boolean
+      run_publish:
+        description: '执行镜像发布'
+        required: false
+        default: 'false'
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  # 同一分支的 CI 取消旧的运行，避免并发浪费
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ----------------------------------------------------------
+  # Job 1: 检测变更范围
+  # 用 dorny/paths-filter 检测 backend / frontend 是否变更
+  # 后续 job 根据此 job 的输出决定是否执行
+  # ----------------------------------------------------------
+  detect-changes:
+    name: Detect Changes
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+      frontend: ${{ steps.filter.outputs.frontend }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Detect changed paths
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            backend:
+              - 'mall-*/**'
+              - 'pom.xml'
+              - '.github/workflows/backend-ci.yml'
+              - '.github/workflows/ci.yml'
+              - '.github/actions/setup-java/**'
+            frontend:
+              - 'mall-admin-frontend/**'
+              - '.github/workflows/frontend-ci.yml'
+              - '.github/workflows/ci.yml'
+              - '.github/actions/setup-frontend/**'
+
+  # ----------------------------------------------------------
+  # Job 2: 后端 CI
+  # needs detect-changes，仅当 backend 变更时执行
+  # 与 frontend-ci 无 needs 依赖，两者并行
+  # ----------------------------------------------------------
+  backend-ci:
+    name: Backend CI
+    needs: detect-changes
+    if: ${{ needs.detect-changes.outputs.backend == 'true' }}
+    uses: ./.github/workflows/backend-ci.yml
+    secrets: inherit
+
+  # ----------------------------------------------------------
+  # Job 3: 前端 CI
+  # needs detect-changes，仅当 frontend 变更时执行
+  # 与 backend-ci 无 needs 依赖，两者并行
+  # ----------------------------------------------------------
+  frontend-ci:
+    name: Frontend CI
+    needs: detect-changes
+    if: ${{ needs.detect-changes.outputs.frontend == 'true' }}
+    uses: ./.github/workflows/frontend-ci.yml
+    secrets: inherit

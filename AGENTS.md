@@ -13,6 +13,15 @@
 
 目的：确保学到的东西能够直接应用于生产环境，避免“学的”和“用的”脱节。
 
+## 开发环境约定
+
+- **JDK 21 路径**：`D:\DeveloperUtil\JDK21`（OpenJDK 21.0.11 LTS）。项目 `java.version=21`，系统默认 `java` 可能指向 JDK 17，编译/运行前需显式指定：
+  ```bash
+  export JAVA_HOME="/d/DeveloperUtil/JDK21"
+  export PATH="$JAVA_HOME/bin:$PATH"
+  ```
+  或在 Maven 命令前加 `JAVA_HOME`：`JAVA_HOME=/d/DeveloperUtil/JDK21 mvn test`。
+
 ## 技术选型
 
 | 类别 | 选型 |
@@ -138,11 +147,13 @@ com.mymall.common/
 | `docs/_TEMPLATE-PROGRESS.md` | 服务进度文档模板（复制到各服务目录命名为 PROGRESS.md） |
 | `docs/{服务名}/` | 某服务的所有文档，含 `PROGRESS.md` 及该模块的设计、接口文档等 |
 | `docs/doc-convention.md` | 文档写作规范（模块文档组织、图表规范 Mermaid vs 纯文本） |
+| `docs/documentation-system-review.md` | 文档体系与开发体系审视报告（已有强项、缺失项、补充优先级与落地计划） |
 | `docs/learn-docs/README.md` | learn-docs 学习笔记组织原则 |
 | `docs/mall-product/overview.md` | 商品中心模块概述（职责、功能域划分、核心概念 SPU/SKU/属性、整体 ER 图、功能文档索引） |
 | `docs/mall-product/category-management.md` | 商品分类管理需求与接口文档（三级分类树、批量删除、拖拽排序、DTO/错误码） |
 | `docs/mall-product/brand-management.md` | 品牌管理需求与接口文档（品牌 CRUD、品牌-分类多对多关联、冗余字段同步） |
-| `docs/mall-product/attr-management.md` | 属性管理需求与接口文档（属性元数据 CRUD、属性分组、分组-属性关联） |
+| `docs/mall-product/attrgroup-management.md` | 属性分组管理需求与接口文档（属性分组 CRUD、分组-属性关联管理、1:1 业务约束） |
+| `docs/mall-product/attr-management.md` | 属性管理需求与接口文档（规格参数/销售属性 CRUD、共用接口按 attrType 区分） |
 | `docs/mall-product/spu-management.md` | SPU 管理需求与接口文档（SPU CRUD、上下架、多表事务写入） |
 | `docs/mall-product/sku-management.md` | SKU 管理需求与接口文档（SKU CRUD、销售属性组合唯一性校验） |
 | `docs/mall-product/object-storage-design.md` | 对象存储服务设计文档（MinIO 自建、Presigned URL 前端直传、mall-oss 服务 + mall-common-oss SDK） |
@@ -155,7 +166,7 @@ com.mymall.common/
 | `docs/frontend/design-system.md` | 前端设计系统（Element Plus 定制、主题色、通用组件视觉与交互规范、Figma 设计稿交付流程） |
 | `docs/frontend/PROGRESS.md` | 前端开发进度 |
 | `docs/frontend/figma-mcp-guide.md` | AI Agent 操作 Figma 设计稿指南（figma-console-mcp 选型、配置、连接验证、生成流程、核心工具速查） |
-| `docs/git-workflow.md` | Git 管理规范（分支策略、Commit 规范、发布流程） |
+| `docs/standards/git-workflow.md` | Git 管理规范（分支策略、Commit 规范、发布流程） |
 | `docs/tech-stack-and-architecture-2026.md` | 技术选型与架构设计（选型理由、架构图、服务划分） |
 | `docs/local-dev-reference.md` | 本地开发环境手册（服务连接信息、启停命令、IDEA 配置） |
 | `docs/microservice/service-registration-config.md` | 服务注册配置说明（Nacos 配置、禁用项、依赖清理、端口规划） |
@@ -164,6 +175,7 @@ com.mymall.common/
 | `docs/standards/ai-assisted-development.md` | AI 辅助开发体系（Skill 体系、上下文管理、AGENTS.md 解读） |
 | `docs/standards/development-workflow.md` | AI 辅助开发流程规范（轻量 Spec + TDD，三阶段流程、核心/样板判定、配套 skill） |
 | `docs/standards/controller-specification.md` | Controller 接口编写规范（参数校验、校验分组、返回值、URL 设计、分页、幂等性、检查清单） |
+| `docs/standards/security-specification.md` | 安全与认证授权规范（OAuth2 流程、JWT 设计、RBAC 鉴权、敏感数据保护、密钥管理、攻击防护） |
 | `docs/standards/coding-standards.md` | 编码规范（分层架构、Service 事务、异常体系、GlobalExceptionHandler、日志、DTO/VO/Entity、命名规范） |
 | `docs/standards/testing-specification.md` | 测试规范（测试分层、各层写法、AssertJ、E2E、公共组件/网关测试、覆盖率门禁 Jacoco、CI 集成、前端测试体系规划、提交前自查清单、待补充事项行动清单） |
 | `docs/standards/ci-cd/overview.md` | CI/CD 总体设计（方案选型、CI/CD 边界、编排器结构、关键决策、分阶段实施路径） |

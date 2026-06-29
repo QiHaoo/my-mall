@@ -1,0 +1,46 @@
+# 前端 CI：pnpm lint + type-check + build + vitest
+# 设计文档：docs/standards/ci-cd/frontend-ci.md
+
+name: Frontend CI
+
+on:
+  workflow_call:
+
+jobs:
+  frontend-ci:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        # 前端代码在 mall-admin-frontend/ 子目录，所有 pnpm 命令需在此目录执行
+        working-directory: mall-admin-frontend
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm + Node 20 + cache
+        uses: ./.github/actions/setup-frontend
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Type check
+        run: pnpm type-check
+
+      - name: Test
+        run: pnpm test
+        # 待测试体系建立后移除 continue-on-error
+        continue-on-error: true
+
+      - name: Build
+        run: pnpm build
+
+      - name: Upload dist artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: mall-admin-frontend/dist/
+          retention-days: 7

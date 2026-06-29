@@ -1,0 +1,30 @@
+# composite action：安装 pnpm + Node 20 + pnpm store 缓存
+# 供 frontend-ci / docker-publish 复用
+# 设计文档：docs/standards/ci-cd/frontend-ci.md 第五章
+
+name: Setup Frontend Environment
+description: 安装 pnpm + Node 20 + 缓存，供前端 CI 和 Docker 构建复用
+
+inputs:
+  working-directory:
+    description: 前端项目目录（相对于仓库根）
+    required: false
+    default: 'mall-admin-frontend'
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v4
+      with:
+        version: 9
+
+    - name: Setup Node 20 with pnpm cache
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'pnpm'
+        cache-dependency-path: '${{ inputs.working-directory }}/pnpm-lock.yaml'

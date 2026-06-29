@@ -1,0 +1,44 @@
+# 后端 CI：Maven 构建测试 + Jacoco 覆盖率
+# 设计文档：docs/standards/ci-cd/backend-ci.md
+
+name: Backend CI
+
+# 可调用工作流：由编排器 ci.yml 通过 workflow_call 调用，不直接监听事件
+on:
+  workflow_call:
+
+jobs:
+  backend-ci:
+    name: Build & Test (Maven)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # 完整历史，支持覆盖率按提交归属（Git blame）
+          fetch-depth: 0
+
+      - name: Setup JDK 21 + Maven cache
+        uses: ./.github/actions/setup-java
+
+      - name: Run tests
+        run: mvn verify -B -ntp -pl !mall-admin-frontend
+
+      - name: Upload coverage report
+        # 即使测试失败也上传报告，方便排查
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-reports
+          path: '**/target/site/jacoco/'
+          if-no-files-found: warn
+
+      - name: PR coverage comment
+        # 仅 PR 事件时评论；workflow_call 调用时 github 上下文从编排器透传
+        if: github.event_name == 'pull_request'
+        uses: Madrapps/jacoco-report@v1.2
+        with:
+          paths: '**/target/site/jacoco/jacoco.xml'
+          token: ${{ secrets.GITHUB_TOKEN }}
+          min-coverage-overall: 60
+          min-coverage-changed-files: 60

@@ -1,0 +1,22 @@
+# composite action：统一 JDK 21 (temurin) 环境与 Maven 本地仓库缓存
+# 供 backend-ci / docker-publish 复用
+# 设计文档：docs/standards/ci-cd/backend-ci.md 第六章
+
+name: Setup JDK 21 + Maven Cache
+description: 统一 JDK 21 (temurin) 环境与 Maven 本地仓库缓存，供 backend-ci / docker-publish 复用
+
+inputs:
+  java-version:
+    description: JDK 版本
+    required: false
+    default: '21'
+
+runs:
+  using: composite
+  steps:
+    - name: Setup JDK
+      uses: actions/setup-java@v4
+      with:
+        java-version: ${{ inputs.java-version }}
+        distribution: temurin
+        cache: maven
