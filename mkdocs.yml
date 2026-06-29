@@ -130,16 +130,23 @@ nav:
       - common 文档规范: common/doc-convention.md
       - 前端架构:
           - 前端架构概述: frontend/overview.md
+          - 前端基础设施设计: frontend/infrastructure.md
+          - 前端通用组件: frontend/components.md
+          - 前端编码规范: frontend/coding-standards.md
           - 前端设计系统: frontend/design-system.md
+          - Figma 设计稿指南: frontend/figma-mcp-guide.md
           - 前端开发进度: frontend/PROGRESS.md
       - 商品中心:
+          - 商品中心概述: mall-product/overview.md
           - 分类管理: mall-product/category-management.md
           - 品牌管理: mall-product/brand-management.md
           - 属性管理: mall-product/attr-management.md
           - SPU 管理: mall-product/spu-management.md
           - SKU 管理: mall-product/sku-management.md
           - 对象存储设计: mall-product/object-storage-design.md
+          - 商品中心开发进度: mall-product/PROGRESS.md
   - 学习笔记:
+      - 学习笔记总览: learn-docs/README.md
       - 服务发现:
           - 概述: learn-docs/service-discovery/README.md
           - 服务发现基础: learn-docs/service-discovery/01-service-discovery-basics.md
@@ -195,6 +202,26 @@ nav:
           - 构建与镜像仓库: learn-docs/ci/04-ci-build-and-images.md
           - 发布与版本管理: learn-docs/ci/05-ci-release-workflow.md
           - 读懂本项目 CI 方案: learn-docs/ci/06-project-ci-walkthrough.md
+      - 公共模块:
+          - 概述: learn-docs/common/README.md
+          - 公共模块总览: learn-docs/common/01-overview.md
+          - 统一响应与异常体系: learn-docs/common/02-response-exception.md
+          - 数据审计与用户上下文: learn-docs/common/03-audit-context.md
+          - 请求参数基础设施: learn-docs/common/04-query-validation.md
+          - 全局配置类: learn-docs/common/05-global-config.md
+          - 对象存储 SDK: learn-docs/common/06-oss-sdk.md
+      - 前端开发:
+          - 概述: learn-docs/frontend/README.md
+          - Vue3 基础: learn-docs/frontend/01-vue3-basics.md
+          - Vue Router: learn-docs/frontend/02-vue-router.md
+          - Pinia 状态管理: learn-docs/frontend/03-pinia-state.md
+          - TypeScript 实践: learn-docs/frontend/04-typescript-essentials.md
+          - Element Plus: learn-docs/frontend/05-element-plus.md
+          - Vite 构建: learn-docs/frontend/06-vite-build.md
+          - 基础设施设计: learn-docs/frontend/07-infrastructure.md
+          - 通用组件与 Composables: learn-docs/frontend/08-composables-components.md
+          - API 层设计: learn-docs/frontend/09-api-layer.md
+          - 功能页面实现: learn-docs/frontend/10-feature-pages.md
   - 归档:
       - 2020 vs 2026 架构分析: other/architecture-analysis-2020-vs-2026.md
       - 架构分析与现代化: other/architecture-analysis-and-modernization.md

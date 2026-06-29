@@ -80,7 +80,7 @@ defineExpose({ refresh, loadData })
 ### 2.2 computed
 
 - 只读 computed 用 getter 函数：`const activeMenu = computed(() => route.path)`
-- 可写 computed 用 get/set（如双向绑定 props）：见 [FormDialog](../../mall-admin-frontend/src/components/FormDialog/index.vue) 的 `dialogVisible`
+- 可写 computed 用 get/set（如双向绑定 props）：见 [FormDialog](https://github.com/QiHaoo/my-mall/blob/main/mall-admin-frontend/src/components/FormDialog/index.vue) 的 `dialogVisible`
 
 ### 2.3 watch
 

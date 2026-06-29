@@ -279,7 +279,7 @@ void setUp() {
 }
 ```
 
-> 参考项目 [OssServiceTest.java](../../../mall-oss/src/test/java/com/mymall/oss/service/OssServiceTest.java) 的 setUp 方法，大量用了 `lenient()`。
+> 参考项目 [OssServiceTest.java](https://github.com/QiHaoo/my-mall/blob/main/mall-oss/src/test/java/com/mymall/oss/service/OssServiceTest.java) 的 setUp 方法，大量用了 `lenient()`。
 
 ---
 
@@ -471,7 +471,7 @@ class OrderServiceTest {
 
 ## 七、完整实战：参照项目真实测试
 
-项目的 [OssServiceTest.java](../../../mall-oss/src/test/java/com/mymall/oss/service/OssServiceTest.java) 是单元测试的范本，覆盖了正常/异常/边界/幂等场景。这里拆解它的核心结构：
+项目的 [OssServiceTest.java](https://github.com/QiHaoo/my-mall/blob/main/mall-oss/src/test/java/com/mymall/oss/service/OssServiceTest.java) 是单元测试的范本，覆盖了正常/异常/边界/幂等场景。这里拆解它的核心结构：
 
 ```java
 @ExtendWith(MockitoExtension.class)

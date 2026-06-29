@@ -293,7 +293,7 @@ detect ──┤                ├── docker-publish ── release
 
 CI 的触发策略不是凭空定的，要和 **Git 分支策略**对齐。分支策略定义了「代码怎么流动」，CI 触发策略定义了「代码流动时跑什么检查」——两者必须配套，否则会出现「该检查的没检查」或「不该跑的浪费资源」。
 
-本项目分支策略（详见 [docs/git-workflow.md](../../git-workflow.md)）与 CI 行为的对应关系：
+本项目分支策略（详见 [docs/git-workflow.md](../../standards/git-workflow.md)）与 CI 行为的对应关系：
 
 | 分支 | CI 行为 | 说明 |
 |------|--------|------|

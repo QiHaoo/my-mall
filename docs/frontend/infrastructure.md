@@ -567,11 +567,11 @@ export function createCategory(data: CategorySaveDTO) {
 
 | 组件 | 职责 |
 |------|------|
-| [AdminLayout.vue](../../mall-admin-frontend/src/layouts/AdminLayout.vue) | 布局容器，flex 布局组合 Sidebar + 主容器（Navbar + AppMain） |
-| [Sidebar.vue](../../mall-admin-frontend/src/layouts/components/Sidebar.vue) | 侧边栏菜单，深色背景 `#304156`，从路由配置自动生成菜单项，支持折叠 |
-| [Navbar.vue](../../mall-admin-frontend/src/layouts/components/Navbar.vue) | 顶栏，折叠按钮（调 app store toggleSidebar）+ Breadcrumb |
-| [Breadcrumb.vue](../../mall-admin-frontend/src/layouts/components/Breadcrumb.vue) | 从 `route.matched` 自动生成面包屑 |
-| [AppMain.vue](../../mall-admin-frontend/src/layouts/components/AppMain.vue) | 内容区，`<router-view>` + `<transition>` 淡入过渡 |
+| [AdminLayout.vue](https://github.com/QiHaoo/my-mall/blob/main/mall-admin-frontend/src/layouts/AdminLayout.vue) | 布局容器，flex 布局组合 Sidebar + 主容器（Navbar + AppMain） |
+| [Sidebar.vue](https://github.com/QiHaoo/my-mall/blob/main/mall-admin-frontend/src/layouts/components/Sidebar.vue) | 侧边栏菜单，深色背景 `#304156`，从路由配置自动生成菜单项，支持折叠 |
+| [Navbar.vue](https://github.com/QiHaoo/my-mall/blob/main/mall-admin-frontend/src/layouts/components/Navbar.vue) | 顶栏，折叠按钮（调 app store toggleSidebar）+ Breadcrumb |
+| [Breadcrumb.vue](https://github.com/QiHaoo/my-mall/blob/main/mall-admin-frontend/src/layouts/components/Breadcrumb.vue) | 从 `route.matched` 自动生成面包屑 |
+| [AppMain.vue](https://github.com/QiHaoo/my-mall/blob/main/mall-admin-frontend/src/layouts/components/AppMain.vue) | 内容区，`<router-view>` + `<transition>` 淡入过渡 |
 
 ### 6.3 侧边栏菜单生成
 
@@ -610,10 +610,10 @@ const menuItems = computed(() => {
 
 | 组件/Composable | 文件 | 职责 |
 |----------------|------|------|
-| PageTable | [components/PageTable/index.vue](../../mall-admin-frontend/src/components/PageTable/index.vue) | 通用分页表格：搜索栏 + 工具栏插槽 + el-table + el-pagination，内部自管理分页状态 |
-| FormDialog | [components/FormDialog/index.vue](../../mall-admin-frontend/src/components/FormDialog/index.vue) | 通用表单弹窗：el-dialog + el-form + 校验 + 提交 loading，泛型支持 |
-| useTable | [composables/useTable.ts](../../mall-admin-frontend/src/composables/useTable.ts) | 分页表格状态管理 composable |
-| useDialog | [composables/useDialog.ts](../../mall-admin-frontend/src/composables/useDialog.ts) | 弹窗状态管理 composable |
+| PageTable | [components/PageTable/index.vue](https://github.com/QiHaoo/my-mall/blob/main/mall-admin-frontend/src/components/PageTable/index.vue) | 通用分页表格：搜索栏 + 工具栏插槽 + el-table + el-pagination，内部自管理分页状态 |
+| FormDialog | [components/FormDialog/index.vue](https://github.com/QiHaoo/my-mall/blob/main/mall-admin-frontend/src/components/FormDialog/index.vue) | 通用表单弹窗：el-dialog + el-form + 校验 + 提交 loading，泛型支持 |
+| useTable | [composables/useTable.ts](https://github.com/QiHaoo/my-mall/blob/main/mall-admin-frontend/src/composables/useTable.ts) | 分页表格状态管理 composable |
+| useDialog | [composables/useDialog.ts](https://github.com/QiHaoo/my-mall/blob/main/mall-admin-frontend/src/composables/useDialog.ts) | 弹窗状态管理 composable |
 
 ### 7.2 计划中（随功能推进）
 
@@ -632,8 +632,8 @@ const menuItems = computed(() => {
 
 | 工具 | 文件 | 函数 | 说明 |
 |------|------|------|------|
-| request | [utils/request.ts](../../mall-admin-frontend/src/utils/request.ts) | `get/post/put/del` | Axios 封装，拦截器剥离 R\<T\> |
-| tree | [utils/tree.ts](../../mall-admin-frontend/src/utils/tree.ts) | `traverseTree` | 深度优先遍历树，回调返回 false 跳过子节点 |
+| request | [utils/request.ts](https://github.com/QiHaoo/my-mall/blob/main/mall-admin-frontend/src/utils/request.ts) | `get/post/put/del` | Axios 封装，拦截器剥离 R\<T\> |
+| tree | [utils/tree.ts](https://github.com/QiHaoo/my-mall/blob/main/mall-admin-frontend/src/utils/tree.ts) | `traverseTree` | 深度优先遍历树，回调返回 false 跳过子节点 |
 | tree | 同上 | `findNode` | 按条件查找第一个匹配节点 |
 | tree | 同上 | `getNodePath` | 获取从根到目标节点的路径数组 |
 | tree | 同上 | `isDescendant` | 判断 target 是否是 ancestor 的子孙（拖拽循环引用检测） |

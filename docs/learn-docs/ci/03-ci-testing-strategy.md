@@ -611,7 +611,7 @@ mvn verify -B -ntp -pl !mall-admin-frontend
 
 本章讲了 CI 中「测试与质量门禁」部分——`mvn verify` 产出的是测试结果和覆盖率报告。但 CI 还有一个重要产出物：**Docker 镜像**。
 
-下一章 [04 · 构建与镜像仓库](./04-build-and-registry.md) 会讲：
+下一章 [04 · 构建与镜像仓库](./04-ci-build-and-images.md) 会讲：
 - 测试通过后，CI 如何把 Java 应用打包成 Docker 镜像
 - 多阶段构建（multi-stage build）怎么减小镜像体积
 - 镜像推送到 Harbor 私有仓库的流程

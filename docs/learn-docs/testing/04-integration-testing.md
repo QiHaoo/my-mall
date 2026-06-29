@@ -180,7 +180,7 @@ static void configureFeignUrl(DynamicPropertyRegistry registry) {
 
 ## 四、完整实战
 
-参照项目的 [MemberControllerIT.java](../../../mall-member/src/test/java/com/mymall/member/controller/MemberControllerIT.java)：
+参照项目的 [MemberControllerIT.java](https://github.com/QiHaoo/my-mall/blob/main/mall-member/src/test/java/com/mymall/member/controller/MemberControllerIT.java)：
 
 ```java
 @SpringBootTest(webEnvironment = RANDOM_PORT, properties = {

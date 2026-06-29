@@ -228,7 +228,7 @@ void shouldReturnBizErrorWhenNotFound() throws Exception {
 
 ## 六、完整实战：参照项目真实测试
 
-看项目的 [CategoryControllerTest.java](../../../mall-product/src/test/java/com/mymall/product/controller/CategoryControllerTest.java) 结构：
+看项目的 [CategoryControllerTest.java](https://github.com/QiHaoo/my-mall/blob/main/mall-product/src/test/java/com/mymall/product/controller/CategoryControllerTest.java) 结构：
 
 ```java
 @WebMvcTest(CategoryController.class)

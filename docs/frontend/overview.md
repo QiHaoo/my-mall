@@ -113,7 +113,7 @@ mall-admin-frontend/
 
 ### 3.1 路由结构
 
-路由按模块分组，与后端服务划分对齐。当前路由配置（[router/index.ts](../../mall-admin-frontend/src/router/index.ts)）：
+路由按模块分组，与后端服务划分对齐。当前路由配置（[router/index.ts](https://github.com/QiHaoo/my-mall/blob/main/mall-admin-frontend/src/router/index.ts)）：
 
 ```typescript
 const routes: RouteRecordRaw[] = [
