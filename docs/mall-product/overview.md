@@ -33,18 +33,20 @@
 
 ## 二、功能域划分
 
-商品中心包含 5 个功能域，相互独立、单向依赖：
+商品中心包含 6 个功能域，相互独立、单向依赖：
 
 ```mermaid
 flowchart TD
     CAT["分类管理<br/>pms_category"]
     BRAND["品牌管理<br/>pms_brand / pms_category_brand_relation"]
-    ATTR["属性管理<br/>pms_attr / pms_attr_group / pms_attr_attrgroup_relation"]
+    ATTRGROUP["属性分组管理<br/>pms_attr_group / pms_attr_attrgroup_relation"]
+    ATTR["属性管理<br/>pms_attr"]
     SPU["SPU 管理<br/>pms_spu_info 及从属表"]
     SKU["SKU 管理<br/>pms_sku_info 及从属表"]
 
     CAT --> SPU
     BRAND --> SPU
+    ATTRGROUP --> ATTR
     ATTR --> SPU
     SPU --> SKU
 ```
@@ -53,7 +55,8 @@ flowchart TD
 |--------|------|------|
 | 分类管理 | 三级分类树、批量删除、拖拽排序 | [category-management.md](./category-management.md) |
 | 品牌管理 | 品牌 CRUD、品牌-分类多对多关联 | [brand-management.md](./brand-management.md) |
-| 属性管理 | 属性元数据（规格参数/销售属性）CRUD、属性分组、分组-属性关联 | [attr-management.md](./attr-management.md) |
+| 属性分组管理 | 属性分组 CRUD、分组-属性关联管理（1:1 业务约束） | [attrgroup-management.md](./attrgroup-management.md) |
+| 属性管理 | 规格参数/销售属性 CRUD、共用接口按 attrType 区分 | [attr-management.md](./attr-management.md) |
 | SPU 管理 | SPU CRUD、上下架、多表事务写入 | [spu-management.md](./spu-management.md) |
 | SKU 管理 | SKU CRUD、销售属性组合唯一性校验 | [sku-management.md](./sku-management.md) |
 
@@ -118,7 +121,7 @@ flowchart TD
 
 - 例：手机分类下有分组「主体」「显示屏」「网络」「电池」，每组下挂若干基本属性。
 - 属性分组**只针对基本属性**（规格参数），销售属性不分组（销售属性数量少，直接平铺为规格选择器）。
-- 分组通过 `pms_attr_attrgroup_relation` 与属性是**多对多**关系：一个分组下有多个属性，一个属性理论上也可归入多个分组（虽然实际多为一对一，但表结构支持多对多）。
+- 分组通过 `pms_attr_attrgroup_relation` 与属性关联：表结构支持**多对多**，但**业务层强制 1:1**——一个基本属性最多归属一个分组（避免详情页参数表重复展示、简化前端交互）。约束在 Service 层实现，表结构不变。
 - 分组归属一个**三级分类**（`catelog_id`）。
 
 ### 3.5 规格参数（基本属性）值 vs 销售属性值
@@ -148,7 +151,7 @@ flowchart TD
 |------|------|---------|------|
 | 分类 → 属性分组 | 1 : N | `pms_attr_group.catelog_id` | 一个分类下有多个属性分组 |
 | 分类 → 属性 | 1 : N | `pms_attr.catelog_id` | 一个分类下定义多个属性（基本+销售） |
-| 属性分组 ↔ 属性 | N : N | `pms_attr_attrgroup_relation` | 分组下挂多个基本属性 |
+| 属性分组 ↔ 属性 | N : N | `pms_attr_attrgroup_relation` | 表结构多对多；业务层强制 1:1（一个基本属性最多归属一个分组） |
 | 分类 → SPU | 1 : N | `pms_spu_info.catalog_id` | SPU 归属一个三级分类 |
 | 品牌 → SPU | 1 : N | `pms_spu_info.brand_id` | SPU 归属一个品牌 |
 | SPU → 商品介绍 | 1 : 1 | `pms_spu_info_desc.spu_id`（UK） | 富文本拆扩展表 |
@@ -275,8 +278,8 @@ flowchart LR
 | 表 | 归属功能域 | 关键字段 | 设计要点 |
 |----|-----------|---------|---------|
 | `pms_attr` | 属性管理 | `attr_type`、`catelog_id`、`value_select`、`search_type`、`show_desc` | 属性定义按分类归属；`attr_type` 区分基本/销售 |
-| `pms_attr_group` | 属性管理 | `attr_group_name`、`catelog_id`、`sort` | 分组按分类归属，仅组织基本属性 |
-| `pms_attr_attrgroup_relation` | 属性管理 | `attr_id`、`attr_group_id`、`attr_sort` | 多对多关联；`uk_attr_group(attr_id, attr_group_id)` 防重复 |
+| `pms_attr_group` | 属性分组管理 | `attr_group_name`、`catelog_id`、`sort` | 分组按分类归属，仅组织基本属性 |
+| `pms_attr_attrgroup_relation` | 属性分组管理 | `attr_id`、`attr_group_id`、`attr_sort` | 多对多关联；`uk_attr_group(attr_id, attr_group_id)` 防重复；业务层强制 1:1 |
 
 ### 5.3 SPU 四表
 
@@ -327,7 +330,8 @@ flowchart LR
 |------|--------|------|
 | 52001~52999 | 商品分类 | [category-management.md](./category-management.md) |
 | 53001~53999 | 商品品牌 | [brand-management.md](./brand-management.md) |
-| 54001~54012 | 属性管理（属性 + 属性分组） | [attr-management.md](./attr-management.md) |
+| 54001~54005 | 属性管理（规格参数/销售属性） | [attr-management.md](./attr-management.md) |
+| 54010~54015 | 属性分组管理（分组 + 分组-属性关联） | [attrgroup-management.md](./attrgroup-management.md) |
 | 54020~54024 | SPU 管理 | [spu-management.md](./spu-management.md) |
 | 54030~54033 | SKU 管理 | [sku-management.md](./sku-management.md) |
 

@@ -204,6 +204,7 @@
 | 新增分类 | POST | `/product/category` | 创建分类节点 |
 | 修改分类 | PUT | `/product/category` | 修改基础信息 |
 | 拖拽排序 | PUT | `/product/category/sort` | 拖拽调整层级/排序 |
+| 分类完整路径 | GET | `/product/category/{catelogId}/path` | 返回 `[一级id,二级id,三级id]`，供级联选择器回显（属性管理模块需要，见 [attr-management.md 第十章](./attr-management.md#十分类管理补充接口)） |
 
 > 所有接口经过网关（`localhost:1000`），前端 `baseUrl` 为 `/api`，网关将 `/api/product/**` 路由到 `mall-product` 服务（StripPrefix=1 去掉 `/api` 前缀）。
 

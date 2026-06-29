@@ -47,6 +47,7 @@
 | 2026-06-29 | 测试规范增强 + 测试学习文档 | — | testing-specification.md 生产级增强（覆盖率门禁 §9、CI 集成 §10、前端测试体系 §11、待补充行动清单 §14）；新增 learn-docs/testing/ 5 篇学习文档（测试金字塔、单元测试、切片测试、集成测试、学习地图） |
 | 2026-06-29 | CI/CD 持续集成方案设计 + 学习文档 | — | 新增 docs/standards/ci-cd/ 6 篇设计文档（overview/backend-ci/frontend-ci/docker-publish/harbor-setup/release-and-protection），覆盖可复用工作流组合架构、后端/前端 CI、多阶段 Dockerfile + Harbor 集成、Release 发布 + 分支保护；新增 docs/learn-docs/ci/ 7 篇学习文档（Docker 基础→CI 概念→测试策略→镜像构建→发布管理→项目方案解读）；AGENTS.md + mkdocs.yml 文档索引同步 |
 | 2026-06-29 | 文档体系审视 + 安全规范 + CI workflow 落地 | — | 文档体系全面审视，输出 docs/documentation-system-review.md（已有强项、三大缺口、四波落地计划）；新增 docs/standards/security-specification.md（OAuth2 流程、JWT 设计、RBAC 鉴权、敏感数据保护、密钥管理、攻击防护、mall-auth 接口设计）；CI 设计文档落地为实际 yaml（ci.yml 编排器 + backend-ci.yml + frontend-ci.yml + setup-java/setup-frontend composite action）；新增 PR 模板 + Bug/Feature Issue 模板；AGENTS.md 索引修复（git-workflow 路径）+ 合并 JDK21 路径约定 + 新增安全规范与审视报告索引 |
+| 2026-06-29 | 属性分组管理设计文档 + 属性管理文档增强 | — | 新增 docs/mall-product/attrgroup-management.md（属性分组 CRUD、分组-属性关联管理、1:1 业务约束）；attr-management.md 大幅增强（规格参数/销售属性 CRUD、分组关联接口）；overview.md 调整属性分组为独立功能域、错误码段拆分（54001~54005 属性 / 54010~54015 属性分组）；category-management.md 补充分类完整路径接口（供级联选择器回显）；接口设计.md 补充分组关联接口与发布商品流程 |
 
 ---
 
@@ -54,7 +55,7 @@
 
 | 事项 | 模块 | 状态说明 |
 |------|------|---------|
-| SPU/SKU/属性体系实现 | mall-product | 设计文档已完成（mall-product/overview.md + attr-management.md + spu-management.md + sku-management.md），Attr/Spu/Sku 相关 Service 仍为代码生成骨架，实现未开始 |
+| SPU/SKU/属性体系实现 | mall-product | 设计文档已完成（mall-product/overview.md + attr-management.md + attrgroup-management.md + spu-management.md + sku-management.md），Attr/Spu/Sku 相关 Service 仍为代码生成骨架，实现未开始 |
 
 ---
 
