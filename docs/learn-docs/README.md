@@ -15,6 +15,8 @@
 | 公共模块 | [common/README.md](./common/README.md) |
 | 前端开发 | [frontend/README.md](./frontend/README.md) |
 | 持续集成 | [ci/README.md](./ci/README.md) |
+| Spec Kit（SDD） | [spec-kit/README.md](./spec-kit/README.md) |
+| Superpowers | [superpowers/README.md](./superpowers/README.md) |
 
 ---
 
