@@ -38,7 +38,7 @@ CREATE TABLE pms_brand (
 | 策略 | **雪花算法（`ASSIGN_ID`）**，DDL **不写** `AUTO_INCREMENT` |
 | 理由 | 雪花 ID 对 InnoDB B+ 树插入性能与自增相当，且对 ShardingSphere 分库分表友好；自增 ID 不利于分片、暴露业务量、跨库冲突 |
 
-> 业务/外键列保留领域命名（如 `parent_cid`、`spu_id`、`cat_id` 作为外键引用），只有**主键列**标准化为 `id`。
+> 业务/外键列保留领域命名（如 `parent_id`、`spu_id`、`category_id` 作为外键引用），只有**主键列**标准化为 `id`。
 
 ### 1.2 审计与控制字段（所有表统一，不可省略）
 
@@ -107,7 +107,7 @@ ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 - 索引建在高频查询的 WHERE / ORDER BY / JOIN 字段上。
 - 单表索引不超过 5 个，避免影响写入性能。
 - 长字符串字段建索引用前缀索引（`INDEX idx_xxx (name(20))`）。
-- 外键列必须建索引（`parent_cid`、`spu_id` 等）。
+- 外键列必须建索引（`parent_id`、`spu_id` 等）。
 
 ---
 
@@ -117,8 +117,8 @@ ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 |------|------|------|
 | 库 | `mall_{业务}` 或沿用 `mymall_{业务}` | `mall_product`、`mymall_pms` |
 | 表 | `{前缀}_{实体}` 全小写下划线 | `pms_brand`、`pms_category` |
-| 列 | 全小写下划线 | `create_time`、`parent_cid` |
-| 索引 | `uk_`/`idx_` 前缀 | `uk_name`、`idx_parent_cid` |
+| 列 | 全小写下划线 | `create_time`、`parent_id` |
+| 索引 | `uk_`/`idx_` 前缀 | `uk_name`、`idx_parent_id` |
 | 表前缀 | 按业务域：`pms`(商品) `sms`(营销) `ums`(会员) `wms`(仓储) `oms`(订单) `mall_oss`(对象存储) | — |
 
 > 现有 `mymall_*` 库名为谷粒商城迁移遗留，可逐步过渡到 `mall_*`；表前缀 `pms/sms/...` 保留。

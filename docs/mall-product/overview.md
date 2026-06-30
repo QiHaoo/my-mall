@@ -104,7 +104,7 @@ flowchart TD
 |------|------|
 | `attr_name` | 属性名，如"颜色""屏幕尺寸" |
 | `attr_type` | **属性类型**：`0`-销售属性、`1`-基本属性（规格参数）、`2`-既是销售又是基本 |
-| `catelog_id` | 所属分类（属性按分类归属，不同分类可用不同属性） |
+| `category_id` | 所属分类（属性按分类归属，不同分类可用不同属性） |
 | `value_type` | 值类型：`0`-单值、`1`-多选值（如"支持频段"可多选） |
 | `value_select` | 可选值列表，逗号分隔，如"红,蓝,黑" |
 | `search_type` | 是否参与检索（`0`-否 `1`-是），决定是否同步到搜索引擎做筛选 |
@@ -122,7 +122,7 @@ flowchart TD
 - 例：手机分类下有分组「主体」「显示屏」「网络」「电池」，每组下挂若干基本属性。
 - 属性分组**只针对基本属性**（规格参数），销售属性不分组（销售属性数量少，直接平铺为规格选择器）。
 - 分组通过 `pms_attr_attrgroup_relation` 与属性关联：表结构支持**多对多**，但**业务层强制 1:1**——一个基本属性最多归属一个分组（避免详情页参数表重复展示、简化前端交互）。约束在 Service 层实现，表结构不变。
-- 分组归属一个**三级分类**（`catelog_id`）。
+- 分组归属一个**三级分类**（`category_id`）。
 
 ### 3.5 规格参数（基本属性）值 vs 销售属性值
 
@@ -149,10 +149,10 @@ flowchart TD
 
 | 关系 | 基数 | 外键字段 | 说明 |
 |------|------|---------|------|
-| 分类 → 属性分组 | 1 : N | `pms_attr_group.catelog_id` | 一个分类下有多个属性分组 |
-| 分类 → 属性 | 1 : N | `pms_attr.catelog_id` | 一个分类下定义多个属性（基本+销售） |
+| 分类 → 属性分组 | 1 : N | `pms_attr_group.category_id` | 一个分类下有多个属性分组 |
+| 分类 → 属性 | 1 : N | `pms_attr.category_id` | 一个分类下定义多个属性（基本+销售） |
 | 属性分组 ↔ 属性 | N : N | `pms_attr_attrgroup_relation` | 表结构多对多；业务层强制 1:1（一个基本属性最多归属一个分组） |
-| 分类 → SPU | 1 : N | `pms_spu_info.catalog_id` | SPU 归属一个三级分类 |
+| 分类 → SPU | 1 : N | `pms_spu_info.category_id` | SPU 归属一个三级分类 |
 | 品牌 → SPU | 1 : N | `pms_spu_info.brand_id` | SPU 归属一个品牌 |
 | SPU → 商品介绍 | 1 : 1 | `pms_spu_info_desc.spu_id`（UK） | 富文本拆扩展表 |
 | SPU → SPU 图片 | 1 : N | `pms_spu_images.spu_id` | SPU 的图片集 |
@@ -167,10 +167,10 @@ flowchart TD
 
 ```mermaid
 erDiagram
-    pms_category ||--o{ pms_attr_group : "catelog_id"
-    pms_category ||--o{ pms_attr : "catelog_id"
+    pms_category ||--o{ pms_attr_group : "category_id"
+    pms_category ||--o{ pms_attr : "category_id"
     pms_attr_group }o--o{ pms_attr : "pms_attr_attrgroup_relation"
-    pms_category ||--o{ pms_spu_info : "catalog_id"
+    pms_category ||--o{ pms_spu_info : "category_id"
     pms_brand ||--o{ pms_spu_info : "brand_id"
 
     pms_spu_info ||--o| pms_spu_info_desc : "spu_id (1:1 扩展)"
@@ -189,7 +189,7 @@ erDiagram
 **① 属性体系的"分类 → 分组 → 属性"三层**
 
 ```
-三级分类（cat_level=3）
+三级分类（level=3）
   ├─ 属性分组 A「主体」
   │    ├─ 基本属性：品牌型号、上市年份
   │    └─ 基本属性：机身颜色（参数，非销售）
@@ -229,7 +229,7 @@ SPU「iPhone 15」
 ```
 
 - SKU 的"身份"由其销售属性值组合唯一确定：同一 SPU 下，**销售属性值组合相同的 SKU 不应存在**（业务层去重，见 [SKU 管理](./sku-management.md)）。
-- SKU 的 `catalog_id` / `brand_id` 冗余自 SPU，便于按分类/品牌直接查 SKU（避免回联 SPU 表）。
+- SKU 的 `category_id` / `brand_id` 冗余自 SPU，便于按分类/品牌直接查 SKU（避免回联 SPU 表）。
 
 **④ 两张属性值表的对称结构**
 
@@ -269,23 +269,23 @@ flowchart LR
 
 | 表 | 归属功能域 | 关键字段 | 设计要点 |
 |----|-----------|---------|---------|
-| `pms_category` | 分类管理 | `parent_cid`、`cat_level`、`sort`、`show_status` | 三级分类树，逻辑删除用 `show_status` |
+| `pms_category` | 分类管理 | `parent_id`、`level`、`sort`、`show_status` | 三级分类树，逻辑删除用 `show_status` |
 | `pms_brand` | 品牌管理 | `name`、`logo`、`first_letter`、`show_status` | 品牌名全局唯一 |
-| `pms_category_brand_relation` | 品牌管理 | `brand_id`、`catelog_id`、冗余 `brand_name`/`catelog_name` | 品牌-分类多对多关联 |
+| `pms_category_brand_relation` | 品牌管理 | `brand_id`、`category_id`、冗余 `brand_name`/`category_name` | 品牌-分类多对多关联 |
 
 ### 5.2 属性元数据三表
 
 | 表 | 归属功能域 | 关键字段 | 设计要点 |
 |----|-----------|---------|---------|
-| `pms_attr` | 属性管理 | `attr_type`、`catelog_id`、`value_select`、`search_type`、`show_desc` | 属性定义按分类归属；`attr_type` 区分基本/销售 |
-| `pms_attr_group` | 属性分组管理 | `attr_group_name`、`catelog_id`、`sort` | 分组按分类归属，仅组织基本属性 |
+| `pms_attr` | 属性管理 | `attr_type`、`category_id`、`value_select`、`search_type`、`show_desc` | 属性定义按分类归属；`attr_type` 区分基本/销售 |
+| `pms_attr_group` | 属性分组管理 | `attr_group_name`、`category_id`、`sort` | 分组按分类归属，仅组织基本属性 |
 | `pms_attr_attrgroup_relation` | 属性分组管理 | `attr_id`、`attr_group_id`、`attr_sort` | 多对多关联；`uk_attr_group(attr_id, attr_group_id)` 防重复；业务层强制 1:1 |
 
 ### 5.3 SPU 四表
 
 | 表 | 归属功能域 | 关键字段 | 设计要点 |
 |----|-----------|---------|---------|
-| `pms_spu_info` | SPU 管理 | `catalog_id`、`brand_id`、`publish_status`、`weight` | 主表，索引 `idx_catalog_id` / `idx_brand_id` |
+| `pms_spu_info` | SPU 管理 | `category_id`、`brand_id`、`publish_status`、`weight` | 主表，索引 `idx_category_id` / `idx_brand_id` |
 | `pms_spu_info_desc` | SPU 管理 | `spu_id`（UK）、`decript` | 1:1 扩展表，富文本拆表 |
 | `pms_spu_images` | SPU 管理 | `spu_id`、`img_url`、`img_sort`、`default_img` | 图片集，按 `spu_id` 索引 |
 | `pms_product_attr_value` | SPU 管理 | `spu_id`、`attr_id`、`attr_name`、`attr_value`、`quick_show` | 规格参数值，冗余 `attr_name` |
@@ -294,13 +294,13 @@ flowchart LR
 
 | 表 | 归属功能域 | 关键字段 | 设计要点 |
 |----|-----------|---------|---------|
-| `pms_sku_info` | SKU 管理 | `spu_id`、`catalog_id`、`brand_id`、`price`、`sale_count` | 冗余分类/品牌便于直查；索引 `idx_spu_id` / `idx_catalog_id` / `idx_brand_id` |
+| `pms_sku_info` | SKU 管理 | `spu_id`、`category_id`、`brand_id`、`price`、`sale_count` | 冗余分类/品牌便于直查；索引 `idx_spu_id` / `idx_category_id` / `idx_brand_id` |
 | `pms_sku_images` | SKU 管理 | `sku_id`、`img_url`、`default_img` | SKU 图片集 |
 | `pms_sku_sale_attr_value` | SKU 管理 | `sku_id`、`attr_id`、`attr_name`、`attr_value` | 销售属性值，冗余 `attr_name`；索引 `idx_sku_id` / `idx_attr_id` |
 
 ### 5.5 索引补充建议
 
-- `pms_attr`：建议加 `idx_catelog_attr_type(catelog_id, attr_type)`，支撑"按分类查基本属性/销售属性"高频查询
+- `pms_attr`：建议加 `idx_category_attr_type(category_id, attr_type)`，支撑"按分类查基本属性/销售属性"高频查询
 - `pms_sku_sale_attr_value`：建议加 `uk_sku_attr(sku_id, attr_id)`，保证一个 SKU 在同一销售属性上只取一个值
 - 逻辑删除与唯一约束冲突的处理思路同 [品牌管理](./brand-management.md)
 

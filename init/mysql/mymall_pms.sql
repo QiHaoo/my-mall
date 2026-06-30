@@ -38,7 +38,7 @@ create table pms_attr
     value_select      varchar(512)           default null       comment '可选值列表[逗号分隔]',
     attr_type         tinyint       not null default 0          comment '属性类型[0-销售属性 1-基本属性 2-既是销售又是基本]',
     enable            tinyint       not null default 1          comment '启用状态[0-禁用 1-启用]',
-    catelog_id        bigint                 default null       comment '所属分类id',
+    category_id       bigint                 default null       comment '所属分类id',
     show_desc         tinyint       not null default 0          comment '快速展示[0-否 1-是]',
     create_time       datetime      not null default current_timestamp comment '创建时间',
     update_time       datetime      not null default current_timestamp on update current_timestamp comment '更新时间',
@@ -47,7 +47,7 @@ create table pms_attr
     is_deleted        tinyint       not null default 0          comment '逻辑删除[0-正常 1-删除]',
     version           int           not null default 0          comment '乐观锁版本号',
     primary key (id),
-    index idx_catelog_id (catelog_id)
+    index idx_category_id (category_id)
 ) engine=innodb default charset=utf8mb4 collate=utf8mb4_unicode_ci comment='商品属性';
 
 /*==============================================================*/
@@ -80,7 +80,7 @@ create table pms_attr_group
     sort              int           not null default 0          comment '排序',
     descript          varchar(512)           default null       comment '描述',
     icon              varchar(512)           default null       comment '组图标',
-    catelog_id        bigint                 default null       comment '所属分类id',
+    category_id       bigint                 default null       comment '所属分类id',
     create_time       datetime      not null default current_timestamp comment '创建时间',
     update_time       datetime      not null default current_timestamp on update current_timestamp comment '更新时间',
     create_by         bigint                 default null       comment '创建人用户id',
@@ -88,7 +88,7 @@ create table pms_attr_group
     is_deleted        tinyint       not null default 0          comment '逻辑删除[0-正常 1-删除]',
     version           int           not null default 0          comment '乐观锁版本号',
     primary key (id),
-    index idx_catelog_id (catelog_id)
+    index idx_category_id (category_id)
 ) engine=innodb default charset=utf8mb4 collate=utf8mb4_unicode_ci comment='属性分组';
 
 /*==============================================================*/
@@ -120,8 +120,8 @@ create table pms_category
 (
     id                bigint        not null                    comment '主键',
     name              varchar(64)   not null                    comment '分类名称',
-    parent_cid        bigint        not null default 0          comment '父分类id[0-一级分类]',
-    cat_level         int           not null default 1          comment '层级[1/2/3]',
+    parent_id         bigint        not null default 0          comment '父分类id[0-一级分类]',
+    level             int           not null default 1          comment '层级[1/2/3]',
     show_status       tinyint       not null default 1          comment '是否显示[0-不显示 1-显示]',
     sort              int           not null default 0          comment '排序',
     icon              varchar(512)           default null       comment '图标地址',
@@ -134,8 +134,8 @@ create table pms_category
     is_deleted        tinyint       not null default 0          comment '逻辑删除[0-正常 1-删除]',
     version           int           not null default 0          comment '乐观锁版本号',
     primary key (id),
-    index idx_parent (parent_cid, show_status, sort),
-    unique index uk_parent_name (parent_cid, name)
+    index idx_parent (parent_id, show_status, sort),
+    unique index uk_parent_name (parent_id, name)
 ) engine=innodb default charset=utf8mb4 collate=utf8mb4_unicode_ci comment='商品三级分类';
 
 /*==============================================================*/
@@ -145,9 +145,9 @@ create table pms_category_brand_relation
 (
     id                bigint        not null                    comment '主键',
     brand_id          bigint        not null                    comment '品牌id',
-    catelog_id        bigint        not null                    comment '分类id',
+    category_id       bigint        not null                    comment '分类id',
     brand_name        varchar(64)            default null       comment '品牌名（冗余）',
-    catelog_name      varchar(64)            default null       comment '分类名（冗余）',
+    category_name     varchar(64)            default null       comment '分类名（冗余）',
     create_time       datetime      not null default current_timestamp comment '创建时间',
     update_time       datetime      not null default current_timestamp on update current_timestamp comment '更新时间',
     create_by         bigint                 default null       comment '创建人用户id',
@@ -155,8 +155,8 @@ create table pms_category_brand_relation
     is_deleted        tinyint       not null default 0          comment '逻辑删除[0-正常 1-删除]',
     version           int           not null default 0          comment '乐观锁版本号',
     primary key (id),
-    unique key uk_brand_catelog (brand_id, catelog_id),
-    index idx_catelog_id (catelog_id)
+    unique key uk_brand_category (brand_id, category_id),
+    index idx_category_id (category_id)
 ) engine=innodb default charset=utf8mb4 collate=utf8mb4_unicode_ci comment='品牌分类关联';
 
 /*==============================================================*/
@@ -228,7 +228,7 @@ create table pms_sku_info
     spu_id            bigint        not null                    comment 'spu_id',
     sku_name          varchar(255)           default null       comment 'sku名称',
     sku_desc          varchar(1024)          default null       comment 'sku介绍描述',
-    catalog_id        bigint                 default null       comment '所属分类id',
+    category_id       bigint                 default null       comment '所属分类id',
     brand_id          bigint                 default null       comment '品牌id',
     sku_default_img   varchar(1024)          default null       comment '默认图片',
     sku_title         varchar(255)           default null       comment '标题',
@@ -243,7 +243,7 @@ create table pms_sku_info
     version           int           not null default 0          comment '乐观锁版本号',
     primary key (id),
     index idx_spu_id (spu_id),
-    index idx_catalog_id (catalog_id),
+    index idx_category_id (category_id),
     index idx_brand_id (brand_id)
 ) engine=innodb default charset=utf8mb4 collate=utf8mb4_unicode_ci comment='sku信息';
 
@@ -329,7 +329,7 @@ create table pms_spu_info
     id                bigint        not null                    comment '主键',
     spu_name          varchar(200)           default null       comment '商品名称',
     spu_description   varchar(1024)          default null       comment '商品描述',
-    catalog_id        bigint                 default null       comment '所属分类id',
+    category_id       bigint                 default null       comment '所属分类id',
     brand_id          bigint                 default null       comment '品牌id',
     weight            decimal(18,4)          default null       comment '重量',
     publish_status    tinyint       not null default 0          comment '上架状态[0-下架 1-上架]',
@@ -340,7 +340,7 @@ create table pms_spu_info
     is_deleted        tinyint       not null default 0          comment '逻辑删除[0-正常 1-删除]',
     version           int           not null default 0          comment '乐观锁版本号',
     primary key (id),
-    index idx_catalog_id (catalog_id),
+    index idx_category_id (category_id),
     index idx_brand_id (brand_id)
 ) engine=innodb default charset=utf8mb4 collate=utf8mb4_unicode_ci comment='spu信息';
 

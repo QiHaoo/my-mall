@@ -877,7 +877,7 @@ export function isDescendant<T extends Record<string, any>>(
 
 ```ts
 // 拖拽 node 到 target 下之前检查
-if (isDescendant(treeData, node.id, target.id, 'catId')) {
+if (isDescendant(treeData, node.id, target.id, 'id')) {
   ElMessage.error('不能将节点拖拽到其子节点下')
   return
 }
@@ -885,7 +885,7 @@ if (isDescendant(treeData, node.id, target.id, 'catId')) {
 
 > **后端类比**：类似检测有向图是否有环。树是特殊的有向无环图（DAG），拖拽操作可能引入环，isDescendant 就是在操作前做环检测。
 
-> **为什么用 idKey 而不是固定 'id'？** 因为不同业务的树主键字段名不同——分类用 `catId`，菜单用 `menuId`。用参数传入 idKey 让函数更通用。
+> **为什么用 idKey 而不是固定 'id'？** 因为不同业务的树主键字段名不同——分类用 `id`，菜单用 `menuId`。用参数传入 idKey 让函数更通用。
 
 ---
 

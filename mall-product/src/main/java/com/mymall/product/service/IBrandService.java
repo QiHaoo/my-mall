@@ -72,8 +72,8 @@ public interface IBrandService extends IService<Brand> {
     /**
      * 查询某三级分类下的品牌（前台检索用，仅返回显示中的品牌）
      *
-     * @param catelogId 三级分类ID
+     * @param categoryId 三级分类ID
      * @return 品牌精简列表
      */
-    List<BrandSimpleVO> listByCategory(Long catelogId);
+    List<BrandSimpleVO> listByCategory(Long categoryId);
 }

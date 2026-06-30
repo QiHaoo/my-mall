@@ -6,7 +6,7 @@
     <resultMap id="BaseResultMap" type="com.mymall.product.entity.SpuInfo">
         <result column="spu_name" property="spuName" />
         <result column="spu_description" property="spuDescription" />
-        <result column="catalog_id" property="catalogId" />
+        <result column="category_id" property="categoryId" />
         <result column="brand_id" property="brandId" />
         <result column="weight" property="weight" />
         <result column="publish_status" property="publishStatus" />

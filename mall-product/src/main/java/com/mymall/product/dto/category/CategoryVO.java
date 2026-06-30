@@ -15,16 +15,16 @@ import java.util.List;
 public class CategoryVO {
 
     @Schema(description = "分类ID")
-    private Long catId;
+    private Long id;
 
     @Schema(description = "分类名称")
     private String name;
 
     @Schema(description = "父分类ID")
-    private Long parentCid;
+    private Long parentId;
 
     @Schema(description = "层级（1/2/3）")
-    private Integer catLevel;
+    private Integer level;
 
     @Schema(description = "显示状态：0-隐藏，1-显示")
     private Integer showStatus;

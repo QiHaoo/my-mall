@@ -17,5 +17,5 @@ public class BrandCategoryRelationSaveDTO {
 
     @NotNull(message = "分类ID不能为空")
     @Schema(description = "三级分类ID")
-    private Long catelogId;
+    private Long categoryId;
 }

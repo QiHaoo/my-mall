@@ -34,7 +34,7 @@ const mode = ref<'create' | 'update'>('create')
 const lockedParent = ref(false) // 父级分类是否锁定（新增子分类时）
 const formData = ref<CategorySaveDTO & Partial<CategoryUpdateDTO>>({
   name: '',
-  parentCid: '0',
+  parentId: '0',
   sort: 0,
   icon: '',
   productUnit: ''
@@ -46,7 +46,7 @@ const rules: FormRules = {
     { required: true, message: '分类名称不能为空', trigger: 'blur' },
     { max: 50, message: '分类名称最长 50 字符', trigger: 'blur' }
   ],
-  parentCid: [
+  parentId: [
     { required: true, message: '上级分类不能为空', trigger: 'change' }
   ]
 }
@@ -63,7 +63,7 @@ async function openCreate(parentNode?: CategoryVO) {
   lockedParent.value = !!parentNode
   formData.value = {
     name: '',
-    parentCid: parentNode ? parentNode.catId : '0',
+    parentId: parentNode ? parentNode.id : '0',
     sort: 0,
     icon: '',
     productUnit: ''
@@ -80,9 +80,9 @@ async function openEdit(node: CategoryVO) {
   mode.value = 'update'
   lockedParent.value = true // 编辑时父级只读
   formData.value = {
-    catId: node.catId,
+    id: node.id,
     name: node.name,
-    parentCid: node.parentCid,
+    parentId: node.parentId,
     sort: node.sort,
     icon: node.icon || '',
     productUnit: node.productUnit || ''
@@ -107,12 +107,12 @@ async function handleSubmit() {
     await formRef.value.validate()
     submitting.value = true
     if (mode.value === 'create') {
-      const { name, parentCid, sort, icon, productUnit } = formData.value
-      await createCategory({ name, parentCid, sort, icon, productUnit })
+      const { name, parentId, sort, icon, productUnit } = formData.value
+      await createCategory({ name, parentId, sort, icon, productUnit })
       ElMessage.success('新增成功')
     } else {
-      const { catId, name, sort, icon, productUnit } = formData.value
-      await updateCategory({ catId: catId!, name, sort, icon, productUnit })
+      const { id, name, sort, icon, productUnit } = formData.value
+      await updateCategory({ id: id!, name, sort, icon, productUnit })
       ElMessage.success('修改成功')
     }
     visible.value = false
@@ -156,21 +156,21 @@ defineExpose({ openCreate, openEdit })
         <el-input v-model="formData.name" placeholder="请输入分类名称" maxlength="50" show-word-limit />
       </el-form-item>
 
-      <el-form-item label="上级分类" prop="parentCid">
+      <el-form-item label="上级分类" prop="parentId">
         <el-tree-select
-          v-model="formData.parentCid"
+          v-model="formData.parentId"
           :data="treeData"
-          :props="{ label: 'name', value: 'catId', children: 'children' }"
+          :props="{ label: 'name', value: 'id', children: 'children' }"
           :disabled="lockedParent || mode === 'update'"
           check-strictly
-          node-key="catId"
+          node-key="id"
           placeholder="请选择上级分类"
           style="width: 100%"
         >
           <template #default="{ data: node }">
             <span>{{ node.name }}</span>
-            <span v-if="node.catLevel" style="color: #909399; font-size: 12px; margin-left: 4px;">
-              ({{ node.catLevel }}级)
+            <span v-if="node.level" style="color: #909399; font-size: 12px; margin-left: 4px;">
+              ({{ node.level }}级)
             </span>
           </template>
         </el-tree-select>

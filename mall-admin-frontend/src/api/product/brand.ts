@@ -43,11 +43,11 @@ export function getBrandRelations(brandId: string) {
 }
 
 /** 新增品牌-分类关联 */
-export function createBrandRelation(brandId: string, catelogId: string) {
-  return post<void>('/product/brand/category', { brandId, catelogId })
+export function createBrandRelation(brandId: string, categoryId: string) {
+  return post<void>('/product/brand/category', { brandId, categoryId })
 }
 
 /** 移除品牌-分类关联 */
-export function deleteBrandRelation(brandId: string, catelogId: string) {
-  return del<void>(`/product/brand/${brandId}/category/${catelogId}`)
+export function deleteBrandRelation(brandId: string, categoryId: string) {
+  return del<void>(`/product/brand/${brandId}/category/${categoryId}`)
 }

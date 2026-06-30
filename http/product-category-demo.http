@@ -15,19 +15,19 @@ Content-Type: application/json
 
 {
     "name": "图书、音像、电子书刊",
-    "parentCid": 0,
+    "parentId": 0,
     "sort": 1,
     "icon": "https://example.com/book.png",
     "productUnit": "件"
 }
 
-### 新增二级分类（parentCid 替换为实际的一级分类 ID）
+### 新增二级分类（parentId 替换为实际的一级分类 ID）
 POST http://localhost:1000/api/product/category
 Content-Type: application/json
 
 {
     "name": "电子书刊",
-    "parentCid": 1,
+    "parentId": 1,
     "sort": 1,
     "productUnit": "本"
 }
@@ -38,7 +38,7 @@ Content-Type: application/json
 
 {
     "name": "电子书",
-    "parentCid": 2,
+    "parentId": 2,
     "sort": 1
 }
 
@@ -48,7 +48,7 @@ Content-Type: application/json
 
 {
     "name": "",
-    "parentCid": 0
+    "parentId": 0
 }
 
 ### ========== 3. 修改分类 ==========
@@ -58,7 +58,7 @@ PUT http://localhost:1000/api/product/category
 Content-Type: application/json
 
 {
-    "catId": 1,
+    "id": 1,
     "name": "图书音像",
     "sort": 2
 }
@@ -68,7 +68,7 @@ PUT http://localhost:1000/api/product/category
 Content-Type: application/json
 
 {
-    "catId": 1,
+    "id": 1,
     "icon": "https://example.com/new-icon.png"
 }
 
@@ -81,15 +81,15 @@ Content-Type: application/json
 {
     "categories": [
         {
-            "catId": 5,
-            "parentCid": 2,
-            "catLevel": 2,
+            "id": 5,
+            "parentId": 2,
+            "level": 2,
             "sort": 1
         },
         {
-            "catId": 6,
-            "parentCid": 2,
-            "catLevel": 2,
+            "id": 6,
+            "parentId": 2,
+            "level": 2,
             "sort": 2
         }
     ]

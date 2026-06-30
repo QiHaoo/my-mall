@@ -35,7 +35,7 @@ public class CategoryController {
     @Operation(summary = "新增分类")
     @PostMapping
     public R<Void> save(@Validated @RequestBody CategorySaveDTO dto) {
-        log.info("新增分类: name={}, parentCid={}", dto.getName(), dto.getParentCid());
+        log.info("新增分类: name={}, parentId={}", dto.getName(), dto.getParentId());
         categoryService.saveCategory(dto);
         return R.ok(null);
     }
@@ -43,7 +43,7 @@ public class CategoryController {
     @Operation(summary = "修改分类")
     @PutMapping
     public R<Void> update(@Validated @RequestBody CategoryUpdateDTO dto) {
-        log.info("修改分类: catId={}", dto.getCatId());
+        log.info("修改分类: id={}", dto.getId());
         categoryService.updateCategory(dto);
         return R.ok(null);
     }

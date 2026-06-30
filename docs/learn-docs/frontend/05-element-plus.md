@@ -214,7 +214,7 @@ await ElMessageBox.confirm(
   '删除确认',
   { type: 'warning', confirmButtonText: '确定删除', cancelButtonText: '取消' }
 )
-await batchDeleteCategories([data.catId])
+await batchDeleteCategories([data.id])
 ElMessage.success('删除成功')   // 轻量提示
 ```
 
@@ -279,13 +279,13 @@ ElMessage.success('删除成功')   // 轻量提示
 ```vue
 <!-- mall-admin-frontend/src/views/product/brand/components/BrandRelationDialog.vue -->
 <el-tree-select
-  v-model="selectedCatelogId"
+  v-model="selectedCategoryId"
   :data="categoryTree"
   :props="{
     label: 'name',
-    value: 'catId',
+    value: 'id',
     children: 'children',
-    disabled: (data) => data.catLevel !== 3   <!-- 只有三级分类可选 -->
+    disabled: (data) => data.level !== 3   <!-- 只有三级分类可选 -->
   }"
   check-strictly
   placeholder="请选择三级分类"
@@ -345,7 +345,7 @@ const rules: FormRules = {
     { required: true, message: '请输入分类名称', trigger: 'blur' },
     { min: 2, max: 20, message: '长度 2-20 个字符', trigger: 'blur' },
   ],
-  catLevel: [
+  level: [
     { required: true, message: '请选择层级', trigger: 'change' },
   ],
 }
@@ -413,10 +413,10 @@ watch(() => props.modelValue, async (val) => {
 
 ```ts
 interface CategoryVO {
-  catId: string
+  id: string
   name: string
-  catLevel: number       // 1/2/3 级
-  parentCid: string
+  level: number       // 1/2/3 级
+  parentId: string
   children?: CategoryVO[]  // 子分类（递归嵌套）
 }
 ```
@@ -425,7 +425,7 @@ interface CategoryVO {
 <el-tree
   :data="treeData"
   :props="{ label: 'name', children: 'children' }"
-  node-key="catId"
+  node-key="id"
 />
 ```
 
@@ -471,13 +471,13 @@ function allowDrop(draggingNode: Node, dropNode: Node, type: 'before' | 'after' 
   const dropData = dropNode.data as CategoryVO
 
   // 计算拖拽后的目标层级
-  const targetLevel = type === 'inner' ? dropData.catLevel + 1 : dropData.catLevel
+  const targetLevel = type === 'inner' ? dropData.level + 1 : dropData.level
 
   // 层级不能超过 3
   if (targetLevel > 3) return false
 
   // 不能拖到自己子节点下（会循环引用）
-  if (type === 'inner' && isDescendant(treeData.value, draggingData.catId, dropData.catId, 'catId')) {
+  if (type === 'inner' && isDescendant(treeData.value, draggingData.id, dropData.id, 'id')) {
     return false
   }
   return true
@@ -488,15 +488,15 @@ function allowDrop(draggingNode: Node, dropNode: Node, type: 'before' | 'after' 
 
 ```ts
 async function handleDrop(draggingNode: Node, dropNode: Node, dropType: 'before' | 'after' | 'inner') {
-  // 计算新的 parentCid 和 catLevel
-  const newParentCid = dropType === 'inner' ? dropData.catId : dropData.parentCid
-  const newLevel = dropType === 'inner' ? dropData.catLevel + 1 : dropData.catLevel
+  // 计算新的 parentId 和 level
+  const newParentId = dropType === 'inner' ? dropData.id : dropData.parentId
+  const newLevel = dropType === 'inner' ? dropData.level + 1 : dropData.level
 
   // 收集新父节点下所有子节点（按 DOM 顺序重新排序）
   const sortItems = newParentNode.childNodes.map((child, index) => ({
-    catId: child.data.catId,
-    parentCid: newParentCid,
-    catLevel: newLevel,
+    id: child.data.id,
+    parentId: newParentId,
+    level: newLevel,
     sort: index,
   }))
 
@@ -537,7 +537,7 @@ function expandAll() {
 
 ```ts
 // 默认展开所有一级分类
-defaultExpandedKeys.value = treeData.value.map((item) => item.catId)
+defaultExpandedKeys.value = treeData.value.map((item) => item.id)
 ```
 
 ## 7. 小结

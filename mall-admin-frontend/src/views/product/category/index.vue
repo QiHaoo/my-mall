@@ -34,7 +34,7 @@ async function loadTree() {
   try {
     treeData.value = await getCategoryTree()
     // 默认展开一级分类
-    defaultExpandedKeys.value = treeData.value.map((item) => item.catId)
+    defaultExpandedKeys.value = treeData.value.map((item) => item.id)
   } catch {
     // 错误已由拦截器处理
   } finally {
@@ -92,7 +92,7 @@ async function handleDelete(data: CategoryVO) {
       '删除确认',
       { type: 'warning', confirmButtonText: '确定删除', cancelButtonText: '取消' }
     )
-    await batchDeleteCategories([data.catId])
+    await batchDeleteCategories([data.id])
     ElMessage.success('删除成功')
     loadTree()
   } catch (err) {
@@ -109,7 +109,7 @@ async function handleBatchDelete() {
       '批量删除确认',
       { type: 'warning', confirmButtonText: '确定删除', cancelButtonText: '取消' }
     )
-    const ids = checkedNodes.value.map((n) => n.catId)
+    const ids = checkedNodes.value.map((n) => n.id)
     await batchDeleteCategories(ids)
     ElMessage.success('删除成功')
     checkedNodes.value = []
@@ -142,9 +142,9 @@ function allowDrop(draggingNode: Node, dropNode: Node, type: 'before' | 'after' 
   // 计算拖拽后的目标层级
   let targetLevel: number
   if (type === 'inner') {
-    targetLevel = dropData.catLevel + 1
+    targetLevel = dropData.level + 1
   } else {
-    targetLevel = dropData.catLevel
+    targetLevel = dropData.level
   }
 
   // 层级不能超过 3
@@ -154,7 +154,7 @@ function allowDrop(draggingNode: Node, dropNode: Node, type: 'before' | 'after' 
   let maxChildLevel = 0
   if (draggingData.children) {
     traverseTree(draggingData.children, (node) => {
-      const relativeLevel = node.catLevel - draggingData.catLevel
+      const relativeLevel = node.level - draggingData.level
       if (relativeLevel > maxChildLevel) maxChildLevel = relativeLevel
     })
   }
@@ -162,7 +162,7 @@ function allowDrop(draggingNode: Node, dropNode: Node, type: 'before' | 'after' 
 
   // 不能拖到自己子节点下（循环引用）
   if (type === 'inner') {
-    if (isDescendant(treeData.value, draggingData.catId, dropData.catId, 'catId')) {
+    if (isDescendant(treeData.value, draggingData.id, dropData.id, 'id')) {
       return false
     }
   }
@@ -181,68 +181,68 @@ async function handleDrop(
   const dropData = dropNode.data as CategoryVO
 
   // 计算变更
-  let newParentCid: string
+  let newParentId: string
   let newLevel: number
 
   if (dropType === 'inner') {
-    newParentCid = dropData.catId
-    newLevel = dropData.catLevel + 1
+    newParentId = dropData.id
+    newLevel = dropData.level + 1
   } else {
-    newParentCid = dropData.parentCid
-    newLevel = dropData.catLevel
+    newParentId = dropData.parentId
+    newLevel = dropData.level
   }
 
   // 构造变更预览信息
-  const fromParentName = draggingData.parentCid === '0'
+  const fromParentName = draggingData.parentId === '0'
     ? '顶级'
-    : (treeRef.value?.store?.getNode(draggingData.parentCid)?.data?.name || '未知')
-  const toParentName = newParentCid === '0'
+    : (treeRef.value?.store?.getNode(draggingData.parentId)?.data?.name || '未知')
+  const toParentName = newParentId === '0'
     ? '顶级'
-    : (treeRef.value?.store?.getNode(newParentCid)?.data?.name || dropData.name)
+    : (treeRef.value?.store?.getNode(newParentId)?.data?.name || dropData.name)
 
   // 收集受影响节点（新父节点下的所有同层级节点，按当前 DOM 顺序重新排序）
   const store = treeRef.value?.store
   if (!store) return
 
-  const newParentNode = newParentCid === 0 ? store.root : store.getNode(newParentCid)
+  const newParentNode = newParentId === 0 ? store.root : store.getNode(newParentId)
   if (!newParentNode) return
 
   const sortItems: CategorySortItem[] = newParentNode.childNodes.map(
     (child: any, index: number) => ({
-      catId: child.data.catId,
-      parentCid: newParentCid,
-      catLevel: newLevel,
+      id: child.data.id,
+      parentId: newParentId,
+      level: newLevel,
       sort: index
     })
   )
 
-  // 如果有子节点层级也需要更新（跨层级拖拽时子节点 catLevel 变化）
-  if (draggingData.catLevel !== newLevel) {
-    const levelDiff = newLevel - draggingData.catLevel
+  // 如果有子节点层级也需要更新（跨层级拖拽时子节点 level 变化）
+  if (draggingData.level !== newLevel) {
+    const levelDiff = newLevel - draggingData.level
     // 递归收集拖拽节点的所有子孙节点
     const collectDescendants = (node: CategoryVO, currentLevel: number) => {
       sortItems.push({
-        catId: node.catId,
-        parentCid: node.parentCid,
-        catLevel: currentLevel,
+        id: node.id,
+        parentId: node.parentId,
+        level: currentLevel,
         sort: node.sort
       })
       if (node.children) {
         node.children.forEach((child) => {
-          collectDescendants(child, currentLevel + (child.catLevel - node.catLevel) + levelDiff)
+          collectDescendants(child, currentLevel + (child.level - node.level) + levelDiff)
         })
       }
     }
-    // 注：这里子孙节点的 parentCid 不变，只 catLevel 变
-    // 简化处理：拖拽节点自身的 sort 已在上面包含，子孙节点只需更新 catLevel
+    // 注：这里子孙节点的 parentId 不变，只 level 变
+    // 简化处理：拖拽节点自身的 sort 已在上面包含，子孙节点只需更新 level
     if (draggingData.children) {
       const updateChildrenLevel = (nodes: CategoryVO[], oldParentLevel: number) => {
         nodes.forEach((child) => {
           const newChildLevel = oldParentLevel + 1
           sortItems.push({
-            catId: child.catId,
-            parentCid: child.parentCid,
-            catLevel: newChildLevel,
+            id: child.id,
+            parentId: child.parentId,
+            level: newChildLevel,
             sort: child.sort
           })
           if (child.children) {
@@ -305,7 +305,7 @@ onMounted(() => {
         ref="treeRef"
         :data="treeData"
         :props="{ label: 'name', children: 'children' }"
-        node-key="catId"
+        node-key="id"
         :default-expanded-keys="defaultExpandedKeys"
         show-checkbox
         :draggable="dragEnabled"

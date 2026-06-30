@@ -72,10 +72,10 @@ public class BrandServiceImpl extends ServiceImpl<BrandMapper, Brand> implements
     }
 
     @Override
-    public List<BrandSimpleVO> listByCategory(Long catelogId) {
+    public List<BrandSimpleVO> listByCategory(Long categoryId) {
         List<CategoryBrandRelation> relations = categoryBrandRelationMapper.selectList(
                 new LambdaQueryWrapper<CategoryBrandRelation>()
-                        .eq(CategoryBrandRelation::getCatelogId, catelogId));
+                        .eq(CategoryBrandRelation::getCategoryId, categoryId));
         if (CollectionUtils.isEmpty(relations)) {
             return Collections.emptyList();
         }

@@ -133,7 +133,7 @@ class CategoryServiceTest {
             // Given
             CategorySaveDTO dto = new CategorySaveDTO();
             dto.setName("新分类");
-            dto.setParentCid(0L);
+            dto.setParentId(0L);
             dto.setSort(1);
 
             // Mock count 返回 0（无重复名称）
@@ -151,7 +151,7 @@ class CategoryServiceTest {
             // Given
             CategorySaveDTO dto = new CategorySaveDTO();
             dto.setName("子分类");
-            dto.setParentCid(999L);
+            dto.setParentId(999L);
 
             when(categoryMapper.selectById(999L)).thenReturn(null);
 
@@ -171,7 +171,7 @@ class CategoryServiceTest {
 
             CategorySaveDTO dto = new CategorySaveDTO();
             dto.setName("四级分类");
-            dto.setParentCid(1L);
+            dto.setParentId(1L);
 
             // When & Then
             assertThatThrownBy(() -> categoryService.saveCategory(dto))
@@ -192,7 +192,7 @@ class CategoryServiceTest {
         void shouldThrowWhenCategoryNotFound() {
             // Given
             CategoryUpdateDTO dto = new CategoryUpdateDTO();
-            dto.setCatId(999L);
+            dto.setId(999L);
             dto.setName("新名称");
 
             when(categoryMapper.selectById(999L)).thenReturn(null);
@@ -209,7 +209,7 @@ class CategoryServiceTest {
         void shouldSyncRelationCatelogNameWhenRenamed() {
             // Given
             CategoryUpdateDTO dto = new CategoryUpdateDTO();
-            dto.setCatId(1L);
+            dto.setId(1L);
             dto.setName("新名称");
 
             Category existing = buildCategory(1L, "旧名称", 0L, 1, 0);
@@ -221,7 +221,7 @@ class CategoryServiceTest {
             categoryService.updateCategory(dto);
 
             // Then
-            verify(categoryBrandRelationService).updateCatelogName(1L, "新名称");
+            verify(categoryBrandRelationService).updateCategoryName(1L, "新名称");
         }
     }
 
@@ -336,15 +336,15 @@ class CategoryServiceTest {
             // 批量拖拽：D 移到 C 下，B 移到 D 下
             // 结果会形成 B->D->C->B 循环
             CategorySortDTO.SortItem item1 = new CategorySortDTO.SortItem();
-            item1.setCatId(4L);   // D
-            item1.setParentCid(3L); // 移到 C 下
-            item1.setCatLevel(4);
+            item1.setId(4L);   // D
+            item1.setParentId(3L); // 移到 C 下
+            item1.setLevel(4);
             item1.setSort(0);
 
             CategorySortDTO.SortItem item2 = new CategorySortDTO.SortItem();
-            item2.setCatId(2L);   // B
-            item2.setParentCid(4L); // 移到 D 下
-            item2.setCatLevel(3);
+            item2.setId(2L);   // B
+            item2.setParentId(4L); // 移到 D 下
+            item2.setLevel(3);
             item2.setSort(1);
 
             CategorySortDTO dto = new CategorySortDTO();
@@ -360,12 +360,12 @@ class CategoryServiceTest {
 
     // ==================== 辅助方法 ====================
 
-    private Category buildCategory(Long id, String name, Long parentCid, int catLevel, int sort) {
+    private Category buildCategory(Long id, String name, Long parentId, int level, int sort) {
         Category category = new Category();
         category.setId(id);
         category.setName(name);
-        category.setParentCid(parentCid);
-        category.setCatLevel(catLevel);
+        category.setParentId(parentId);
+        category.setLevel(level);
         category.setSort(sort);
         category.setShowStatus(1);
         category.setProductCount(0);

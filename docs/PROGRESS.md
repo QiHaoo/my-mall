@@ -48,6 +48,9 @@
 | 2026-06-29 | CI/CD 持续集成方案设计 + 学习文档 | — | 新增 docs/standards/ci-cd/ 6 篇设计文档（overview/backend-ci/frontend-ci/docker-publish/harbor-setup/release-and-protection），覆盖可复用工作流组合架构、后端/前端 CI、多阶段 Dockerfile + Harbor 集成、Release 发布 + 分支保护；新增 docs/learn-docs/ci/ 7 篇学习文档（Docker 基础→CI 概念→测试策略→镜像构建→发布管理→项目方案解读）；AGENTS.md + mkdocs.yml 文档索引同步 |
 | 2026-06-29 | 文档体系审视 + 安全规范 + CI workflow 落地 | — | 文档体系全面审视，输出 docs/documentation-system-review.md（已有强项、三大缺口、四波落地计划）；新增 docs/standards/security-specification.md（OAuth2 流程、JWT 设计、RBAC 鉴权、敏感数据保护、密钥管理、攻击防护、mall-auth 接口设计）；CI 设计文档落地为实际 yaml（ci.yml 编排器 + backend-ci.yml + frontend-ci.yml + setup-java/setup-frontend composite action）；新增 PR 模板 + Bug/Feature Issue 模板；AGENTS.md 索引修复（git-workflow 路径）+ 合并 JDK21 路径约定 + 新增安全规范与审视报告索引 |
 | 2026-06-29 | 属性分组管理设计文档 + 属性管理文档增强 | — | 新增 docs/mall-product/attrgroup-management.md（属性分组 CRUD、分组-属性关联管理、1:1 业务约束）；attr-management.md 大幅增强（规格参数/销售属性 CRUD、分组关联接口）；overview.md 调整属性分组为独立功能域、错误码段拆分（54001~54005 属性 / 54010~54015 属性分组）；category-management.md 补充分类完整路径接口（供级联选择器回显）；接口设计.md 补充分组关联接口与发布商品流程 |
+| 2026-07-01 | 商品分类字段命名规范化 | — | 全链路统一字段命名，消除历史遗留不一致：`catId`→`id`（主键对齐 BaseEntity）、`parentCid`→`parentId`、`catLevel`→`level`、`catelogId`→`categoryId`（修正拼写 "catelog"）、`catalogId`→`categoryId`（统一 catalog→category）、`catelogName`→`categoryName`。涉及 6 张表 SQL（字段+索引）+ 6 实体 + 6 DTO/VO + Service/Controller/Mapper + 3 测试类（61 用例全绿）+ 前端 5 组件 + 7 篇模块文档 + 2 篇规范文档。 |
+| 2026-07-01 | 日志输出规范文档 | — | 新增 docs/standards/logging-specification.md（日志架构、MDC 链路追踪、logback-spring.xml 配置模板、各环境差异、文件滚动归档、MyBatis SQL 日志、Loki 采集、敏感信息脱敏）；AGENTS.md 索引补充 |
+| 2026-07-01 | Spec Kit / Superpowers 学习文档 | — | 新增 docs/learn-docs/spec-kit/（7 篇，SDD 规范驱动开发方法论：SDD 概念/快速上手/模板与质量门禁/宪法/定制系统/集成架构）+ docs/learn-docs/superpowers/（6 篇，AI Agent Skills 方法论：概览/架构/Skills 库/工作流/Skill 设计）；docs/learn-docs/README.md 索引补充 |
 
 ---
 

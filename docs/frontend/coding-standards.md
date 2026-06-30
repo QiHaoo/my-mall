@@ -125,13 +125,13 @@ const handleSearch = () => { ... }
 ```typescript
 // ✅ 正确
 export interface CategoryVO {
-  catId: string
-  parentCid: string
+  id: string
+  parentId: string
 }
 
 // ❌ 错误（19 位雪花 ID 超过 Number.MAX_SAFE_INTEGER）
 export interface CategoryVO {
-  catId: number
+  id: number
 }
 ```
 

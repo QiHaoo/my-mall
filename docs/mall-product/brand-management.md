@@ -17,7 +17,7 @@
 |---------|---|------|------|
 | 商品 | `pms_spu_info` | `brand_id` | SPU 归属品牌 |
 | 商品分类 | `pms_category_brand_relation` | `brand_id` | 品牌-分类关联 |
-| 检索 | `pms_category_brand_relation` | `catelog_id` | 前台按分类筛品牌 |
+| 检索 | `pms_category_brand_relation` | `category_id` | 前台按分类筛品牌 |
 
 品牌的变更（删除、改名）必须评估对以上模块的影响：
 - 删除品牌前检查是否有 SPU 引用
@@ -101,20 +101,20 @@
 
 - 路径参数为品牌 ID
 - 查询 `pms_category_brand_relation`（`brand_id = ?` 且 `is_deleted = 0`）
-- 返回关联记录列表，含 `brandId` / `brandName` / `catelogId` / `catelogName`（冗余字段直接取自关联表，避免联表）
+- 返回关联记录列表，含 `brandId` / `brandName` / `categoryId` / `categoryName`（冗余字段直接取自关联表，避免联表）
 - 按 `id` 升序排列
 
 #### F9 新增品牌-分类关联
 
-- 请求体含 `brandId` + `catelogId`
+- 请求体含 `brandId` + `categoryId`
 - 校验品牌存在（`is_deleted = 0`），不存在抛 `BRAND_NOT_FOUND`
-- 校验分类存在且为三级分类（`cat_level = 3`），否则抛 `BRAND_CATEGORY_INVALID`
-- 校验关联不重复（`uk_brand_catelog`），重复抛 `BRAND_RELATION_DUPLICATE`
+- 校验分类存在且为三级分类（`level = 3`），否则抛 `BRAND_CATEGORY_INVALID`
+- 校验关联不重复（`uk_brand_category`），重复抛 `BRAND_RELATION_DUPLICATE`
 - 写入 `pms_category_brand_relation`，冗余存储当前 `brand.name` 与 `category.name`（由 `MyMetaObjectHandler` 填充审计字段）
 
 #### F10 移除品牌-分类关联
 
-- 路径参数为 `brandId` + `catelogId`
+- 路径参数为 `brandId` + `categoryId`
 - 校验关联记录存在（`is_deleted = 0`），不存在抛 `BRAND_RELATION_NOT_FOUND`
 - 逻辑删除该条关联（`is_deleted = 1`）
 
@@ -175,7 +175,7 @@
 |------|------|---------|
 | BrandList | 列表页主体：筛选 + 表格 + 分页 + 批量删除 | GET /product/brand，DELETE /product/brand/batch |
 | BrandForm | 新增/编辑表单弹窗（仅基础信息，不含关联分类） | POST/PUT /product/brand，GET /product/brand/{id} |
-| BrandRelationDialog | 关联分类管理弹窗（查询/新增/移除品牌-分类关联） | GET /product/brand/{brandId}/category，POST /product/brand/category，DELETE /product/brand/{brandId}/category/{catelogId} |
+| BrandRelationDialog | 关联分类管理弹窗（查询/新增/移除品牌-分类关联） | GET /product/brand/{brandId}/category，POST /product/brand/category，DELETE /product/brand/{brandId}/category/{categoryId} |
 | BrandStatusSwitch | 表格行内显示状态切换 | PUT /product/brand/{id}/show-status |
 | LogoUpload | logo 上传（OSS 直传 MinIO） | mall-oss Presigned URL 接口 |
 
@@ -190,7 +190,7 @@
 - **删除**：确认弹窗 → `DELETE /product/brand/{id}`；若后端返回 `53003 BRAND_HAS_PRODUCTS`，前端提示"品牌下存在关联商品，无法删除"
 - **删除后列表刷新**：删除成功后停留在当前页，若当前页已无数据则回退到上一页
 
-> 前台检索页（按分类筛品牌）消费 `GET /product/brand/by-category/{catelogId}`，属于前台展示模块，不在本管理后台页面范围内，待前台检索模块设计时统一规划。
+> 前台检索页（按分类筛品牌）消费 `GET /product/brand/by-category/{categoryId}`，属于前台展示模块，不在本管理后台页面范围内，待前台检索模块设计时统一规划。
 
 ---
 
@@ -218,15 +218,15 @@
 |------|------|------|------|
 | `id` | bigint | PK | 主键 |
 | `brand_id` | bigint | 是 | 品牌 ID |
-| `catelog_id` | bigint | 是 | 分类 ID（三级） |
+| `category_id` | bigint | 是 | 分类 ID（三级） |
 | `brand_name` | varchar(64) | 否 | 品牌名（冗余，便于关联查询展示） |
-| `catelog_name` | varchar(64) | 否 | 分类名（冗余） |
+| `category_name` | varchar(64) | 否 | 分类名（冗余） |
 | `create_time` / `update_time` | datetime | 是 | 审计字段 |
 | `create_by` / `update_by` | bigint | 否 | 审计字段 |
 | `is_deleted` | tinyint | 是 | 逻辑删除 |
 | `version` | int | 是 | 乐观锁 |
 
-> `brand_name` / `catelog_name` 为冗余字段：品牌/分类改名时需同步刷新，避免联表查询。
+> `brand_name` / `category_name` 为冗余字段：品牌/分类改名时需同步刷新，避免联表查询。
 
 ### 4.3 索引
 
@@ -242,8 +242,8 @@
 | 索引 | 字段 | 类型 | 说明 |
 |------|------|------|------|
 | PK | `id` | PRIMARY | 主键 |
-| UK_BRAND_CATELOG | `brand_id, catelog_id` | UNIQUE | 防止重复关联 |
-| IDX_CATELOG_ID | `catelog_id` | NORMAL | 按分类查品牌 |
+| UK_BRAND_CATEGORY | `brand_id, category_id` | UNIQUE | 防止重复关联 |
+| IDX_CATEGORY_ID | `category_id` | NORMAL | 按分类查品牌 |
 
 > **生产环境建议（逻辑删除与唯一约束冲突）**：`uk_name` 在逻辑删除后仍会阻塞新建同名品牌。若业务允许复用同名，建议将唯一索引改为包含 `is_deleted`：
 > ```sql
@@ -267,14 +267,14 @@
 | 更新显示状态 | PUT | `/product/brand/{id}/show-status` | 切换显示/隐藏 |
 | 删除品牌 | DELETE | `/product/brand/{id}` | 逻辑删除 + 引用检查 |
 | 批量删除品牌 | DELETE | `/product/brand/batch` | 批量逻辑删除 + 逐个引用检查 |
-| 分类下品牌 | GET | `/product/brand/by-category/{catelogId}` | 前台检索用 |
+| 分类下品牌 | GET | `/product/brand/by-category/{categoryId}` | 前台检索用 |
 | 查询品牌关联分类 | GET | `/product/brand/{brandId}/category` | 关联分类弹窗初始化 |
 | 新增品牌-分类关联 | POST | `/product/brand/category` | 单条新增关联，冗余存储品牌名/分类名 |
-| 移除品牌-分类关联 | DELETE | `/product/brand/{brandId}/category/{catelogId}` | 单条逻辑删除关联 |
+| 移除品牌-分类关联 | DELETE | `/product/brand/{brandId}/category/{categoryId}` | 单条逻辑删除关联 |
 
 > 所有接口经过网关（`localhost:1000`），前端 `baseUrl` 为 `/api`，网关将 `/api/product/**` 路由到 `mall-product` 服务（`StripPrefix=1`）。
 >
-> **关联分类独立管理**：品牌新增/修改接口不处理关联分类，关联分类的增删查由独立接口承担（对应前端「关联分类」弹窗）。品牌改名、分类改名时分别通过关联关系 service 内部方法 `updateBrandName` / `updateCatelogName` 同步刷新冗余字段（见 5.10）。
+> **关联分类独立管理**：品牌新增/修改接口不处理关联分类，关联分类的增删查由独立接口承担（对应前端「关联分类」弹窗）。品牌改名、分类改名时分别通过关联关系 service 内部方法 `updateBrandName` / `updateCategoryName` 同步刷新冗余字段（见 5.10）。
 
 ### 5.2 分页查询品牌
 
@@ -492,7 +492,7 @@
 
 ### 5.8 查询分类下的品牌
 
-**GET** `/product/brand/by-category/{catelogId}`
+**GET** `/product/brand/by-category/{categoryId}`
 
 **响应**：
 
@@ -513,7 +513,7 @@
    SELECT b.id, b.name, b.logo, b.first_letter
    FROM pms_brand b
    INNER JOIN pms_category_brand_relation r ON r.brand_id = b.id
-   WHERE r.catelog_id = ? AND r.is_deleted = 0
+   WHERE r.category_id = ? AND r.is_deleted = 0
      AND b.is_deleted = 0 AND b.show_status = 1
    ORDER BY b.sort ASC, b.id ASC
 2. 返回精简 BrandVO 列表（前台展示用，不带 descript 等大字段）
@@ -536,15 +536,15 @@
             "id": 11,
             "brandId": 1,
             "brandName": "小米",
-            "catelogId": 225,
-            "catelogName": "手机"
+            "categoryId": 225,
+            "categoryName": "手机"
         },
         {
             "id": 12,
             "brandId": 1,
             "brandName": "小米",
-            "catelogId": 226,
-            "catelogName": "平板电脑"
+            "categoryId": 226,
+            "categoryName": "平板电脑"
         }
     ]
 }
@@ -555,7 +555,7 @@
 ```
 1. 校验品牌存在（is_deleted = 0），不存在抛 BRAND_NOT_FOUND
 2. 查询 pms_category_brand_relation WHERE brand_id=? AND is_deleted=0 ORDER BY id ASC
-3. 直接映射为 BrandRelationVO 列表（brandName / catelogName 取冗余字段）
+3. 直接映射为 BrandRelationVO 列表（brandName / categoryName 取冗余字段）
 ```
 
 ### 5.10 新增品牌-分类关联
@@ -567,14 +567,14 @@
 ```json
 {
     "brandId": 1,
-    "catelogId": 225
+    "categoryId": 225
 }
 ```
 
 | 字段 | 类型 | 必填 | 校验规则 |
 |------|------|------|---------|
 | `brandId` | Long | 是 | `@NotNull`，品牌需存在 |
-| `catelogId` | Long | 是 | `@NotNull`，需为三级分类 |
+| `categoryId` | Long | 是 | `@NotNull`，需为三级分类 |
 
 **响应**：
 
@@ -596,25 +596,25 @@
 
 ```
 1. 校验品牌存在（is_deleted = 0），不存在抛 BRAND_NOT_FOUND
-2. 校验分类存在且 cat_level = 3，否则抛 BRAND_CATEGORY_INVALID
-3. 校验关联不重复（is_deleted = 0 的记录中不存在同 brandId+catelogId），重复抛 BRAND_RELATION_DUPLICATE
+2. 校验分类存在且 level = 3，否则抛 BRAND_CATEGORY_INVALID
+3. 校验关联不重复（is_deleted = 0 的记录中不存在同 brandId+categoryId），重复抛 BRAND_RELATION_DUPLICATE
 4. 组装 pms_category_brand_relation 记录：
    - brand_name 取当前 pms_brand.name
-   - catelog_name 取当前 pms_category.name
+   - category_name 取当前 pms_category.name
 5. 插入关联表（审计字段由 MyMetaObjectHandler 填充）
 ```
 
 > **冗余字段同步接口（供内部调用，非 HTTP 接口）**：在 `CategoryBrandRelationService` 中提供两个内部方法，供品牌/分类改名时调用：
 > - `updateBrandName(Long brandId, String newName)`：刷新该品牌所有未删除关联的 `brand_name`
-> - `updateCatelogName(Long catelogId, String newCatelogName)`：刷新该分类所有未删除关联的 `catelog_name`
+> - `updateCategoryName(Long categoryId, String newCategoryName)`：刷新该分类所有未删除关联的 `category_name`
 >
 > 调用方：
 > - `BrandServiceImpl.update()` 改名时调用 `updateBrandName`
-> - `CategoryServiceImpl.update()` 改名时通过 Feign/直接调用 `updateCatelogName`（分类管理模块实现时补充调用点）
+> - `CategoryServiceImpl.update()` 改名时通过 Feign/直接调用 `updateCategoryName`（分类管理模块实现时补充调用点）
 
 ### 5.11 移除品牌-分类关联
 
-**DELETE** `/product/brand/{brandId}/category/{catelogId}`
+**DELETE** `/product/brand/{brandId}/category/{categoryId}`
 
 **响应**：
 
@@ -629,7 +629,7 @@
 **业务逻辑**：
 
 ```
-1. 查询 pms_category_brand_relation WHERE brand_id=? AND catelog_id=? AND is_deleted=0
+1. 查询 pms_category_brand_relation WHERE brand_id=? AND category_id=? AND is_deleted=0
 2. 不存在抛 BRAND_RELATION_NOT_FOUND
 3. 逻辑删除：UPDATE ... SET is_deleted=1 WHERE id=?
 ```
@@ -816,7 +816,7 @@ public class BrandCategoryRelationSaveDTO {
 
     @NotNull(message = "分类ID不能为空")
     @Schema(description = "三级分类ID")
-    private Long catelogId;
+    private Long categoryId;
 }
 ```
 
@@ -829,8 +829,8 @@ public class BrandRelationVO {
     private Long id;
     private Long brandId;
     private String brandName;
-    private Long catelogId;
-    private String catelogName;
+    private Long categoryId;
+    private String categoryName;
 }
 ```
 
@@ -858,9 +858,9 @@ public class BrandBatchDeleteDTO {
 | 53001 | `BRAND_NOT_FOUND` | 品牌不存在 | ID 查询不到 |
 | 53002 | `BRAND_NAME_DUPLICATE` | 品牌名已存在 | 新增/改名时名称重复 |
 | 53003 | `BRAND_HAS_PRODUCTS` | 品牌下存在关联商品，无法删除 | 删除时 `pms_spu_info` 有引用 |
-| 53004 | `BRAND_CATEGORY_INVALID` | 关联分类不存在或非三级分类 | 新增关联时 `catelogId` 校验失败 |
+| 53004 | `BRAND_CATEGORY_INVALID` | 关联分类不存在或非三级分类 | 新增关联时 `categoryId` 校验失败 |
 | 53005 | `BRAND_SHOW_STATUS_INVALID` | 显示状态值非法 | `showStatus` 非 0/1 |
-| 53006 | `BRAND_RELATION_DUPLICATE` | 品牌-分类关联已存在 | 新增关联违反 `uk_brand_catelog` |
+| 53006 | `BRAND_RELATION_DUPLICATE` | 品牌-分类关联已存在 | 新增关联违反 `uk_brand_category` |
 | 53007 | `BRAND_RELATION_NOT_FOUND` | 品牌-分类关联不存在 | 移除关联时记录不存在 |
 | 53008 | `BRAND_BATCH_DELETE_EMPTY` | 批量删除 id 列表不能为空 | `ids` 为空 |
 
@@ -973,7 +973,7 @@ Content-Type: application/json
 
 {
     "brandId": 1,
-    "catelogId": 225
+    "categoryId": 225
 }
 
 ### 11. 移除品牌-分类关联
@@ -986,14 +986,14 @@ DELETE http://localhost:1000/api/product/brand/1/category/225
 
 | 项目 | 要求 |
 |------|------|
-| 性能 | 分页查询 < 200ms（命中 `idx_catelog_id` / `uk_name`）；分类下品牌查询走关联表索引 |
+| 性能 | 分页查询 < 200ms（命中 `idx_category_id` / `uk_name`）；分类下品牌查询走关联表索引 |
 | 并发 | 品牌为低频写操作，乐观锁（`@Version`）即可，无需分布式锁 |
 | 缓存 | 品牌列表变更低频，可缓存分类下品牌到 Redis（TTL 30 分钟），写操作后主动失效 |
 | 事务 | 新增/修改品牌仅写主表；删除/批量删除涉及 `pms_brand` + `pms_category_brand_relation` 双表，必须 `@Transactional` |
 | 安全 | 管理接口需管理员权限（网关 JWT 鉴权，待实现）；`by-category` 接口可匿名访问 |
 | 日志 | 写操作记录操作人 + 变更内容（审计需要），查询不记录 |
 | 幂等 | 新增靠 `uk_name` 唯一约束兜底重复提交；其余为覆盖写，天然幂等 |
-| 一致性 | 品牌改名 → 同步刷新 `pms_category_brand_relation.brand_name`；分类改名 → 同步刷新 `pms_category_brand_relation.catelog_name`（均通过关联关系 service 的 `updateBrandName` / `updateCatelogName` 内部方法） |
+| 一致性 | 品牌改名 → 同步刷新 `pms_category_brand_relation.brand_name`；分类改名 → 同步刷新 `pms_category_brand_relation.category_name`（均通过关联关系 service 的 `updateBrandName` / `updateCategoryName` 内部方法） |
 
 ---
 
@@ -1007,9 +1007,9 @@ DELETE http://localhost:1000/api/product/brand/1/category/225
 | 4 | 创建 CategoryBrandRelationMapper | `mall-product/.../mapper/CategoryBrandRelationMapper.java` |
 | 5 | 扩展 IBrandService 接口方法（含批量删除） | `mall-product/.../service/IBrandService.java` |
 | 6 | 实现 BrandServiceImpl（含事务，改名时调用关联 service 刷新冗余） | `mall-product/.../service/impl/BrandServiceImpl.java` |
-| 7 | 创建 ICategoryBrandRelationService 接口（含 updateBrandName / updateCatelogName 内部方法） | `mall-product/.../service/ICategoryBrandRelationService.java` |
+| 7 | 创建 ICategoryBrandRelationService 接口（含 updateBrandName / updateCategoryName 内部方法） | `mall-product/.../service/ICategoryBrandRelationService.java` |
 | 8 | 实现 CategoryBrandRelationServiceImpl | `mall-product/.../service/impl/CategoryBrandRelationServiceImpl.java` |
 | 9 | 创建 BrandController（含品牌 CRUD + 批量删除 + 关联分类三个接口） | `mall-product/.../controller/BrandController.java` |
 | 10 | 创建 HTTP 调试文件 | `http/product-brand-demo.http` |
 | 11 | 补充逻辑删除唯一索引 SQL（可选） | `init/mysql/mymall_pms.sql` |
-| 12 | 分类管理模块实现 update 分类时，调用关联 service 的 `updateCatelogName` 同步冗余字段 | `mall-product/.../service/impl/CategoryServiceImpl.java`（分类管理实现时补充） |
+| 12 | 分类管理模块实现 update 分类时，调用关联 service 的 `updateCategoryName` 同步冗余字段 | `mall-product/.../service/impl/CategoryServiceImpl.java`（分类管理实现时补充） |

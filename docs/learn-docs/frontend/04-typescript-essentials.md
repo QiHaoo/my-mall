@@ -178,16 +178,16 @@ public class BrandVO {
 
 ```ts
 interface CategoryVO {
-  catId: string
+  id: string
   name: string
   /** 可选属性：可能不存在 */
   icon?: string
   /** 只读属性：赋值后不能再改 */
-  readonly catLevel: number
+  readonly level: number
 }
 
-const cat: CategoryVO = { catId: '1', name: '手机', catLevel: 1 }
-// cat.catLevel = 2   // ❌ 只读属性不能重新赋值
+const cat: CategoryVO = { id: '1', name: '手机', level: 1 }
+// cat.level = 2   // ❌ 只读属性不能重新赋值
 ```
 
 项目里的 `CategoryUpdateDTO` 大量使用可选属性——更新时只传需要改的字段：
@@ -195,7 +195,7 @@ const cat: CategoryVO = { catId: '1', name: '手机', catLevel: 1 }
 ```ts
 // src/api/types/product.ts
 export interface CategoryUpdateDTO {
-  catId: string        // 必传：知道改谁
+  id: string        // 必传：知道改谁
   name?: string        // 可选：不改就不传
   sort?: number
   icon?: string

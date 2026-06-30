@@ -240,8 +240,8 @@ update_time DATETIME NOT NULL  DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMES
 
 ### 4.3 字段命名
 
-- 数据库字段：下划线命名（`spu_name`, `catalog_id`）
-- Java 字段：驼峰命名（`spuName`, `catalogId`）
+- 数据库字段：下划线命名（`spu_name`, `category_id`）
+- Java 字段：驼峰命名（`spuName`, `categoryId`）
 - MyBatis-Plus 自动完成下划线 ↔ 驼峰映射，无需手写 `@TableField`
 
 ---
@@ -331,7 +331,7 @@ public class SpuInfoEntity {
 
     private String spuName;
     private String spuDescription;
-    private Long catalogId;
+    private Long categoryId;
     private Long brandId;
     private BigDecimal weight;
     private Integer publishStatus;
@@ -458,7 +458,7 @@ public class SpuInfoController {
 public R<Page<SpuInfoEntity>> search(
         @RequestParam(defaultValue = "1") Integer pageNum,
         @RequestParam(defaultValue = "10") Integer pageSize,
-        @RequestParam(required = false) Long catalogId,
+        @RequestParam(required = false) Long categoryId,
         @RequestParam(required = false) Long brandId,
         @RequestParam(required = false) Integer status,
         @RequestParam(required = false) String keyword) {
@@ -467,7 +467,7 @@ public R<Page<SpuInfoEntity>> search(
     LambdaQueryWrapper<SpuInfoEntity> wrapper = new LambdaQueryWrapper<>();
 
     // 条件式拼接：参数非空才加入查询条件
-    wrapper.eq(catalogId != null, SpuInfoEntity::getCatalogId, catalogId)
+    wrapper.eq(categoryId != null, SpuInfoEntity::getCategoryId, categoryId)
            .eq(brandId != null, SpuInfoEntity::getBrandId, brandId)
            .eq(status != null, SpuInfoEntity::getPublishStatus, status)
            .like(keyword != null && !keyword.isEmpty(), SpuInfoEntity::getSpuName, keyword)

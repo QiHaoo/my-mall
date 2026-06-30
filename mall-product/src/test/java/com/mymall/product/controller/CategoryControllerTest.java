@@ -70,10 +70,10 @@ class CategoryControllerTest {
         void shouldReturnTreeData() throws Exception {
             // Given
             CategoryVO vo = new CategoryVO();
-            vo.setCatId(1L);
+            vo.setId(1L);
             vo.setName("图书");
-            vo.setParentCid(0L);
-            vo.setCatLevel(1);
+            vo.setParentId(0L);
+            vo.setLevel(1);
             vo.setShowStatus(1);
             vo.setSort(0);
             vo.setChildren(Collections.emptyList());
@@ -83,7 +83,7 @@ class CategoryControllerTest {
             mockMvc.perform(get("/product/category/tree"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.code").value(200))
-                    .andExpect(jsonPath("$.data[0].catId").value(1))
+                    .andExpect(jsonPath("$.data[0].id").value(1))
                     .andExpect(jsonPath("$.data[0].name").value("图书"));
         }
     }
@@ -101,7 +101,7 @@ class CategoryControllerTest {
             String body = """
                     {
                         "name": "手机通讯",
-                        "parentCid": 0,
+                        "parentId": 0,
                         "sort": 1
                     }
                     """;
@@ -123,7 +123,7 @@ class CategoryControllerTest {
             String body = """
                     {
                         "name": "",
-                        "parentCid": 0
+                        "parentId": 0
                     }
                     """;
 
@@ -136,7 +136,7 @@ class CategoryControllerTest {
         }
 
         @Test
-        @DisplayName("parentCid 为 null 时应返回参数错误")
+        @DisplayName("parentId 为 null 时应返回参数错误")
         void shouldReturn400WhenParentCidNull() throws Exception {
             // Given
             String body = """
@@ -166,7 +166,7 @@ class CategoryControllerTest {
             // Given
             String body = """
                     {
-                        "catId": 1,
+                        "id": 1,
                         "name": "新名称"
                     }
                     """;
@@ -182,7 +182,7 @@ class CategoryControllerTest {
         }
 
         @Test
-        @DisplayName("catId 为 null 时应返回参数错误")
+        @DisplayName("id 为 null 时应返回参数错误")
         void shouldReturn400WhenCatIdNull() throws Exception {
             // Given
             String body = """
@@ -278,8 +278,8 @@ class CategoryControllerTest {
             String body = """
                     {
                         "categories": [
-                            {"catId": 5, "parentCid": 2, "catLevel": 2, "sort": 1},
-                            {"catId": 6, "parentCid": 2, "catLevel": 2, "sort": 2}
+                            {"id": 5, "parentId": 2, "level": 2, "sort": 1},
+                            {"id": 6, "parentId": 2, "level": 2, "sort": 2}
                         ]
                     }
                     """;

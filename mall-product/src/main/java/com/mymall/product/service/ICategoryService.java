@@ -21,7 +21,7 @@ public interface ICategoryService extends IService<Category> {
     /**
      * 新增分类
      * <p>
-     * catLevel 由 parentCid 自动计算，前端不传。
+     * level 由 parentId 自动计算，前端不传。
      *
      * @param dto 新增参数
      */
@@ -47,7 +47,7 @@ public interface ICategoryService extends IService<Category> {
      * 拖拽排序（调整父节点、层级、排序值）
      * <p>
      * 支持批量节点同时拖拽。前端必须将本次受影响的子孙节点一并传入，
-     * 并携带正确的 catLevel，服务端不做级联更新。
+     * 并携带正确的 level，服务端不做级联更新。
      *
      * @param dto 排序参数
      */

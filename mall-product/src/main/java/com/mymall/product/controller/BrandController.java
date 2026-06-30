@@ -93,9 +93,9 @@ public class BrandController {
     }
 
     @Operation(summary = "查询分类下的品牌")
-    @GetMapping("/by-category/{catelogId}")
-    public R<List<BrandSimpleVO>> listByCategory(@PathVariable Long catelogId) {
-        return R.ok(brandService.listByCategory(catelogId));
+    @GetMapping("/by-category/{categoryId}")
+    public R<List<BrandSimpleVO>> listByCategory(@PathVariable Long categoryId) {
+        return R.ok(brandService.listByCategory(categoryId));
     }
 
     @Operation(summary = "查询品牌关联分类列表")
@@ -107,16 +107,16 @@ public class BrandController {
     @Operation(summary = "新增品牌-分类关联")
     @PostMapping("/category")
     public R<Void> saveRelation(@Validated @RequestBody BrandCategoryRelationSaveDTO dto) {
-        log.info("新增品牌-分类关联: brandId={}, catelogId={}", dto.getBrandId(), dto.getCatelogId());
+        log.info("新增品牌-分类关联: brandId={}, categoryId={}", dto.getBrandId(), dto.getCategoryId());
         categoryBrandRelationService.saveRelation(dto);
         return R.ok();
     }
 
     @Operation(summary = "移除品牌-分类关联")
-    @DeleteMapping("/{brandId}/category/{catelogId}")
-    public R<Void> removeRelation(@PathVariable Long brandId, @PathVariable Long catelogId) {
-        log.info("移除品牌-分类关联: brandId={}, catelogId={}", brandId, catelogId);
-        categoryBrandRelationService.removeRelation(brandId, catelogId);
+    @DeleteMapping("/{brandId}/category/{categoryId}")
+    public R<Void> removeRelation(@PathVariable Long brandId, @PathVariable Long categoryId) {
+        log.info("移除品牌-分类关联: brandId={}, categoryId={}", brandId, categoryId);
+        categoryBrandRelationService.removeRelation(brandId, categoryId);
         return R.ok();
     }
 }

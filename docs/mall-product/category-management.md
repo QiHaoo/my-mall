@@ -14,7 +14,7 @@
 | 引用模块 | 表 | 字段 |
 |---------|---|------|
 | 商品 | `pms_spu_info` | `category_id` |
-| 品牌 | `pms_category_brand_relation` | `catelog_id` |
+| 品牌 | `pms_category_brand_relation` | `category_id` |
 | 优惠券 | `sms_coupon_spu_category_relation` | `category_id` |
 
 分类的变更（删除、层级调整）必须评估对以上模块的影响。
@@ -37,7 +37,7 @@
 #### F1 分类树查询
 
 - 仅返回 `show_status = 1` 的分类
-- 按 `sort` 升序排列（sort 相同时按 `cat_id` 升序）
+- 按 `sort` 升序排列（sort 相同时按 `id` 升序）
 - 前端树形控件需要 `children` 字段嵌套子分类
 - 三级分类最大深度为 3，超过不允许
 
@@ -45,25 +45,25 @@
 
 - **引用检查**：被删除的分类（含子分类）下不能有关联数据
   - 不能有关联商品（`pms_spu_info.category_id`）
-  - 不能有关联品牌（`pms_category_brand_relation.catelog_id`）
+  - 不能有关联品牌（`pms_category_brand_relation.category_id`）
   - 不能有关联优惠券分类（`sms_coupon_spu_category_relation.category_id`）
 - **级联子分类**：删除父分类时，其所有子孙分类必须一并检查引用
 - **逻辑删除**：不物理删除记录，将 `show_status` 置为 `0`（隐藏）
-- **根分类保护**：`parent_cid = 0` 的一级分类不允许删除（防止误操作清空整个分类树）
+- **根分类保护**：`parent_id = 0` 的一级分类不允许删除（防止误操作清空整个分类树）
 
 #### F3 新增分类
 
-- 分类名称在同级下唯一（同一 `parent_cid` 下 `name` 不能重复）
-- `cat_level` 由父分类 `catLevel + 1` 自动计算，前端不传
-- 层级限制：`cat_level` 最大为 3（不允许创建四级分类）
+- 分类名称在同级下唯一（同一 `parent_id` 下 `name` 不能重复）
+- `level` 由父分类 `level + 1` 自动计算，前端不传
+- 层级限制：`level` 最大为 3（不允许创建四级分类）
 - `sort` 默认值 0，前端可指定
 
 #### F4 修改分类
 
 - **基础信息修改**：名称、图标、排序、计量单位等
-- **拖拽排序**：前端拖拽节点到新位置，传入新的 `parent_cid`、`cat_level`、`sort`
+- **拖拽排序**：前端拖拽节点到新位置，传入新的 `parent_id`、`level`、`sort`
 - **批量拖拽**：多个节点同时拖拽，传入排序列表
-- 拖拽后需重新计算受影响分类的 `cat_level`（子分类的层级跟随父分类变化）
+- 拖拽后需重新计算受影响分类的 `level`（子分类的层级跟随父分类变化）
 - 拖拽限制：不能将自己拖拽为自己的子节点（循环引用）
 
 ---
@@ -120,7 +120,7 @@
 | 图标 | el-input（URL 输入） | 图标地址，最大 255 字符；非必填，可结合 OSS 直传填充 |
 | 计量单位 | el-input | 最大 50 字符，非必填 |
 
-> 表单字段与 `CategorySaveDTO` / `CategoryUpdateDTO` 保持对齐：新增/编辑均包含 name、parentCid（编辑只读）、sort、icon、productUnit。编辑时不传 parentCid（后端 DTO 无此字段），层级调整统一走拖拽排序接口。
+> 表单字段与 `CategorySaveDTO` / `CategoryUpdateDTO` 保持对齐：新增/编辑均包含 name、parentId（编辑只读）、sort、icon、productUnit。编辑时不传 parentId（后端 DTO 无此字段），层级调整统一走拖拽排序接口。
 
 **拖拽确认**：拖拽结束后不立即提交，弹出轻量提示框显示变更预览（如"将'空调'从'大家电'移动到'家用电器'下"），用户确认后调用排序接口；取消则回弹到原位置。
 
@@ -136,12 +136,12 @@
 ### 关键交互
 
 - **加载分类树**：进入页面调用 `GET /product/category/tree`，全量加载（数据量 < 1000 条），用 `v-loading` 遮罩；加载失败弹 `el-notification` 提示
-- **新增一级分类**：点击工具栏按钮 → 打开弹窗 → 上级分类默认"顶级分类"（parentCid=0）→ 提交调用 `POST /product/category` → 成功后刷新树并展开到新节点位置
+- **新增一级分类**：点击工具栏按钮 → 打开弹窗 → 上级分类默认"顶级分类"（parentId=0）→ 提交调用 `POST /product/category` → 成功后刷新树并展开到新节点位置
 - **新增子分类**：点击行内 `[+]` → 打开弹窗 → 上级分类锁定为当前节点（不可改）→ 提交 → 成功后展开父节点、刷新树
 - **编辑分类**：点击行内 `[✎]` → 打开弹窗回填数据（上级分类 disabled 只读）→ 提交调用 `PUT /product/category` → 成功后刷新树（保证图标、计量单位等字段与服务端一致）
 - **删除单个分类**：二级/三级节点点击 `[🗑]` → 弹确认框（"确定删除分类 [xxx] 及其子分类？"）→ 确认后加入批量删除队列调用 `POST /product/category/batch-delete`
 - **批量删除**：勾选多个节点 → 点击批量删除 → 弹确认框显示选中数量和名称列表 → 确认调用 `POST /product/category/batch-delete` → 成功后刷新树；后端返回引用错误（如 `51002 CATEGORY_HAS_PRODUCTS`）时前端展示具体被引用的分类名
-- **拖拽排序**：开启拖拽开关 → 拖放节点到目标位置 → 弹确认浮层显示变更预览 → 确认后前端计算所有受影响节点的 `parentCid` / `catLevel` / `sort` → 调用 `PUT /product/category/sort` → 成功后刷新树；失败（如循环引用 `51006`、超过三级 `51004`）弹错误提示并回弹
+- **拖拽排序**：开启拖拽开关 → 拖放节点到目标位置 → 弹确认浮层显示变更预览 → 确认后前端计算所有受影响节点的 `parentId` / `level` / `sort` → 调用 `PUT /product/category/sort` → 成功后刷新树；失败（如循环引用 `51006`、超过三级 `51004`）弹错误提示并回弹
 - **展开/折叠**：单个节点点击箭头切换；工具栏按钮遍历树节点设置 `expanded` 状态
 - **一级分类保护**：前端层面不显示一级分类的删除按钮；即使通过接口直接调用，后端也会返回 `51007 CATEGORY_ROOT_DELETE` 拒绝删除
 - **表单校验**：前端校验名称必填、名称同级唯一（提交时由后端最终校验，返回 `51005` 时定位到名称字段提示）
@@ -167,10 +167,10 @@
 
 | 字段 | 类型 | 必填 | 说明 |
 |------|------|------|------|
-| `cat_id` | bigint AUTO_INCREMENT | PK | 分类 ID |
+| `id` | bigint AUTO_INCREMENT | PK | 分类 ID |
 | `name` | char(50) | 是 | 分类名称 |
-| `parent_cid` | bigint | 是 | 父分类 ID，一级分类为 0 |
-| `cat_level` | int | 是 | 层级（1/2/3） |
+| `parent_id` | bigint | 是 | 父分类 ID，一级分类为 0 |
+| `level` | int | 是 | 层级（1/2/3） |
 | `show_status` | tinyint | 是 | 显示状态：0-隐藏，1-显示 |
 | `sort` | int | 是 | 排序值，越小越靠前 |
 | `icon` | char(255) | 否 | 图标地址 |
@@ -181,14 +181,14 @@
 
 | 索引 | 字段 | 类型 | 说明 |
 |------|------|------|------|
-| PK | `cat_id` | PRIMARY | 主键 |
-| IDX_PARENT | `parent_cid, show_status, sort` | NORMAL | 子分类查询（覆盖排序） |
-| UK_PARENT_NAME | `parent_cid, name` | UNIQUE | 同级名称唯一 |
+| PK | `id` | PRIMARY | 主键 |
+| IDX_PARENT | `parent_id, show_status, sort` | NORMAL | 子分类查询（覆盖排序） |
+| UK_PARENT_NAME | `parent_id, name` | UNIQUE | 同级名称唯一 |
 
 > 生产环境需执行索引创建 SQL：
 > ```sql
-> ALTER TABLE pms_category ADD INDEX idx_parent (parent_cid, show_status, sort);
-> ALTER TABLE pms_category ADD UNIQUE INDEX uk_parent_name (parent_cid, name);
+> ALTER TABLE pms_category ADD INDEX idx_parent (parent_id, show_status, sort);
+> ALTER TABLE pms_category ADD UNIQUE INDEX uk_parent_name (parent_id, name);
 > ```
 
 ---
@@ -204,7 +204,7 @@
 | 新增分类 | POST | `/product/category` | 创建分类节点 |
 | 修改分类 | PUT | `/product/category` | 修改基础信息 |
 | 拖拽排序 | PUT | `/product/category/sort` | 拖拽调整层级/排序 |
-| 分类完整路径 | GET | `/product/category/{catelogId}/path` | 返回 `[一级id,二级id,三级id]`，供级联选择器回显（属性管理模块需要，见 [attr-management.md 第十章](./attr-management.md#十分类管理补充接口)） |
+| 分类完整路径 | GET | `/product/category/{categoryId}/path` | 返回 `[一级id,二级id,三级id]`，供级联选择器回显（属性管理模块需要，见 [attr-management.md 第十章](./attr-management.md#十分类管理补充接口)） |
 
 > 所有接口经过网关（`localhost:1000`），前端 `baseUrl` 为 `/api`，网关将 `/api/product/**` 路由到 `mall-product` 服务（StripPrefix=1 去掉 `/api` 前缀）。
 
@@ -222,10 +222,10 @@
     "msg": "success",
     "data": [
         {
-            "catId": 1,
+            "id": 1,
             "name": "图书、音像、电子书刊",
-            "parentCid": 0,
-            "catLevel": 1,
+            "parentId": 0,
+            "level": 1,
             "showStatus": 1,
             "sort": 0,
             "icon": "https://xxx.com/icon1.png",
@@ -233,10 +233,10 @@
             "productCount": 128,
             "children": [
                 {
-                    "catId": 2,
+                    "id": 2,
                     "name": "电子书刊",
-                    "parentCid": 1,
-                    "catLevel": 2,
+                    "parentId": 1,
+                    "level": 2,
                     "showStatus": 1,
                     "sort": 0,
                     "icon": null,
@@ -244,10 +244,10 @@
                     "productCount": 36,
                     "children": [
                         {
-                            "catId": 3,
+                            "id": 3,
                             "name": "电子书",
-                            "parentCid": 2,
-                            "catLevel": 3,
+                            "parentId": 2,
+                            "level": 3,
                             "showStatus": 1,
                             "sort": 0,
                             "icon": null,
@@ -266,7 +266,7 @@
 **实现要点**：
 - 一次查询所有 `show_status = 1` 的分类（数据量小，不超过 1000 条，不需要分页）
 - Java 内存中组装树形结构（Stream API）
-- 按 `sort` 升序 → `catId` 升序排列
+- 按 `sort` 升序 → `id` 升序排列
 
 ### 5.3 批量删除
 
@@ -298,15 +298,15 @@
 
 ```
 1. 查询 ids 对应的所有分类
-2. 检查是否为一级分类（parent_cid = 0），是则拒绝
+2. 检查是否为一级分类（parent_id = 0），是则拒绝
 3. 递归查询每个分类的所有子孙分类 ID
 4. 合并所有待删除分类 ID（含子孙）
 5. 检查引用：
    a. pms_spu_info 中是否有 category_id 在待删除列表中
-   b. pms_category_brand_relation 中是否有 catelog_id 在待删除列表中
+   b. pms_category_brand_relation 中是否有 category_id 在待删除列表中
    c. sms_coupon_spu_category_relation 中是否有 category_id 在待删除列表中
 6. 任一引用存在 → 抛 BizException，返回具体被引用的分类名
-7. 无引用 → UPDATE pms_category SET show_status = 0 WHERE cat_id IN (...)
+7. 无引用 → UPDATE pms_category SET show_status = 0 WHERE id IN (...)
 ```
 
 ### 5.4 新增分类
@@ -318,7 +318,7 @@
 ```json
 {
     "name": "手机通讯",
-    "parentCid": 1,
+    "parentId": 1,
     "sort": 5,
     "icon": "https://xxx.com/icon.png",
     "productUnit": "台"
@@ -328,12 +328,12 @@
 | 字段 | 类型 | 必填 | 校验规则 |
 |------|------|------|---------|
 | `name` | String | 是 | `@NotBlank`，最大 50 字符 |
-| `parentCid` | Long | 是 | `@NotNull`，一级分类传 0 |
+| `parentId` | Long | 是 | `@NotNull`，一级分类传 0 |
 | `sort` | Integer | 否 | 默认 0，`@Min(0)` |
 | `icon` | String | 否 | URL 格式，最大 255 字符 |
 | `productUnit` | String | 否 | 最大 50 字符 |
 
-> `catLevel` 由后端根据 `parentCid` 自动计算（父分类 `catLevel + 1`），前端不传。
+> `level` 由后端根据 `parentId` 自动计算（父分类 `level + 1`），前端不传。
 
 **响应**：
 
@@ -344,12 +344,12 @@
 **业务逻辑**：
 
 ```
-1. 如果 parentCid != 0：
+1. 如果 parentId != 0：
    a. 查询父分类，不存在则抛异常
-   b. 计算 catLevel = 父分类.catLevel + 1
-   c. 如果 catLevel > 3，抛异常"分类最多支持三级"
-2. 如果 parentCid == 0，catLevel = 1
-3. 检查同级名称唯一（同 parentCid 下 name 不重复）
+   b. 计算 level = 父分类.level + 1
+   c. 如果 level > 3，抛异常"分类最多支持三级"
+2. 如果 parentId == 0，level = 1
+3. 检查同级名称唯一（同 parentId 下 name 不重复）
 4. 设置 showStatus = 1，productCount = 0
 5. 插入记录
 ```
@@ -362,7 +362,7 @@
 
 ```json
 {
-    "catId": 5,
+    "id": 5,
     "name": "智能手机",
     "sort": 3,
     "icon": "https://xxx.com/icon2.png",
@@ -372,7 +372,7 @@
 
 | 字段 | 类型 | 必填 | 校验规则 |
 |------|------|------|---------|
-| `catId` | Long | 是 | `@NotNull` |
+| `id` | Long | 是 | `@NotNull` |
 | `name` | String | 否 | 最大 50 字符，传则校验非空 |
 | `sort` | Integer | 否 | `@Min(0)` |
 | `icon` | String | 否 | 最大 255 字符 |
@@ -402,21 +402,21 @@
 {
     "categories": [
         {
-            "catId": 5,
-            "parentCid": 2,
-            "catLevel": 2,
+            "id": 5,
+            "parentId": 2,
+            "level": 2,
             "sort": 1
         },
         {
-            "catId": 6,
-            "parentCid": 2,
-            "catLevel": 2,
+            "id": 6,
+            "parentId": 2,
+            "level": 2,
             "sort": 2
         },
         {
-            "catId": 7,
-            "parentCid": 1,
-            "catLevel": 2,
+            "id": 7,
+            "parentId": 1,
+            "level": 2,
             "sort": 1
         }
     ]
@@ -426,9 +426,9 @@
 | 字段 | 类型 | 必填 | 校验规则 |
 |------|------|------|---------|
 | `categories` | `List<SortItem>` | 是 | `@NotEmpty`，最多 100 |
-| `categories[].catId` | Long | 是 | `@NotNull` |
-| `categories[].parentCid` | Long | 是 | `@NotNull` |
-| `categories[].catLevel` | Integer | 是 | `@NotNull`，范围 1~3 |
+| `categories[].id` | Long | 是 | `@NotNull` |
+| `categories[].parentId` | Long | 是 | `@NotNull` |
+| `categories[].level` | Integer | 是 | `@NotNull`，范围 1~3 |
 | `categories[].sort` | Integer | 是 | `@NotNull`，`@Min(0)` |
 
 **响应**：
@@ -441,11 +441,11 @@
 
 ```
 1. 遍历 categories 列表：
-   a. 检查 catId 对应的分类是否存在
-   b. 如果 parentCid 有变化，检查不能形成循环引用
+   a. 检查 id 对应的分类是否存在
+   b. 如果 parentId 有变化，检查不能形成循环引用
       （自己不能成为自己的祖先）
-   c. 如果 catLevel 有变化，递归更新所有子孙分类的 catLevel
-2. 批量更新 parent_cid、cat_level、sort 字段
+   c. 如果 level 有变化，递归更新所有子孙分类的 level
+2. 批量更新 parent_id、level、sort 字段
 ```
 
 ---
@@ -467,10 +467,10 @@ com.mymall.product.dto.category/
 @Data
 @Schema(description = "分类树节点")
 public class CategoryVO {
-    private Long catId;
+    private Long id;
     private String name;
-    private Long parentCid;
-    private Integer catLevel;
+    private Long parentId;
+    private Integer level;
     private Integer showStatus;
     private Integer sort;
     private String icon;
@@ -495,7 +495,7 @@ public class CategorySaveDTO {
 
     @NotNull(message = "父分类ID不能为空")
     @Schema(description = "父分类ID，一级分类传 0", example = "1")
-    private Long parentCid;
+    private Long parentId;
 
     @Min(value = 0, message = "排序值不能小于 0")
     @Schema(description = "排序值", example = "5")
@@ -519,7 +519,7 @@ public class CategorySaveDTO {
 public class CategoryUpdateDTO {
     @NotNull(message = "分类ID不能为空")
     @Schema(description = "分类ID", example = "5")
-    private Long catId;
+    private Long id;
 
     @Size(max = 50, message = "分类名称最长 50 字符")
     @Schema(description = "分类名称")
@@ -553,13 +553,13 @@ public class CategorySortDTO {
     @Data
     public static class SortItem {
         @NotNull
-        private Long catId;
+        private Long id;
 
         @NotNull
-        private Long parentCid;
+        private Long parentId;
 
         @NotNull @Min(1) @Max(3)
-        private Integer catLevel;
+        private Integer level;
 
         @NotNull @Min(0)
         private Integer sort;
@@ -592,7 +592,7 @@ public class CategoryBatchDeleteDTO {
 | 50002 | `CATEGORY_HAS_CHILDREN` | 分类下存在子分类，无法删除 | 删除时有子分类被引用 |
 | 50003 | `CATEGORY_HAS_PRODUCTS` | 分类下存在关联商品，无法删除 | 删除时 `pms_spu_info` 有引用 |
 | 50004 | `CATEGORY_HAS_BRANDS` | 分类下存在关联品牌，无法删除 | 删除时品牌关联表有引用 |
-| 50005 | `CATEGORY_LEVEL_EXCEEDED` | 分类最多支持三级 | 新增/拖拽时 catLevel > 3 |
+| 50005 | `CATEGORY_LEVEL_EXCEEDED` | 分类最多支持三级 | 新增/拖拽时 level > 3 |
 | 50006 | `CATEGORY_NAME_DUPLICATE` | 同级分类名称已存在 | 新增/修改时名称重复 |
 | 50007 | `CATEGORY_CIRCULAR_REF` | 不能将分类移动到自身的子节点下 | 拖拽循环引用 |
 | 50008 | `CATEGORY_ROOT_DELETE` | 一级分类不允许删除 | 批量删除一级分类 |
@@ -647,7 +647,7 @@ Content-Type: application/json
 
 {
     "name": "测试一级分类",
-    "parentCid": 0,
+    "parentId": 0,
     "sort": 100,
     "icon": "https://example.com/icon.png",
     "productUnit": "件"
@@ -659,7 +659,7 @@ Content-Type: application/json
 
 {
     "name": "测试二级分类",
-    "parentCid": {{parentId}},
+    "parentId": {{parentId}},
     "sort": 1,
     "productUnit": "个"
 }
@@ -669,19 +669,19 @@ PUT http://localhost:1000/api/product/category
 Content-Type: application/json
 
 {
-    "catId": {{catId}},
+    "id": {{id}},
     "name": "修改后的名称",
     "sort": 2
 }
 
-### 5. 拖拽排序（将 catId=5 从一级移动到二级）
+### 5. 拖拽排序（将 id=5 从一级移动到二级）
 PUT http://localhost:1000/api/product/category/sort
 Content-Type: application/json
 
 {
     "categories": [
-        { "catId": 5, "parentCid": 2, "catLevel": 2, "sort": 1 },
-        { "catId": 6, "parentCid": 2, "catLevel": 2, "sort": 2 }
+        { "id": 5, "parentId": 2, "level": 2, "sort": 1 },
+        { "id": 6, "parentId": 2, "level": 2, "sort": 2 }
     ]
 }
 

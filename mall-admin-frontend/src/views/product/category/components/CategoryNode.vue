@@ -38,8 +38,8 @@ const levelLabel = computed(() => {
 <template>
   <div class="category-node">
     <span class="node-name">{{ data.name }}</span>
-    <el-tag :type="levelTagType(data.catLevel)" size="small" class="node-level">
-      {{ levelLabel(data.catLevel) }}
+    <el-tag :type="levelTagType(data.level)" size="small" class="node-level">
+      {{ levelLabel(data.level) }}
     </el-tag>
     <span v-if="data.productCount" class="node-count">商品: {{ data.productCount }}</span>
     <span class="node-actions">
@@ -50,7 +50,7 @@ const levelLabel = computed(() => {
         <el-icon><Edit /></el-icon> 编辑
       </el-button>
       <el-button
-        v-if="data.catLevel > 1"
+        v-if="data.level > 1"
         link
         type="danger"
         size="small"

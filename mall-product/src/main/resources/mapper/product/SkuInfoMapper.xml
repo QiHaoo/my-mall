@@ -7,7 +7,7 @@
         <result column="spu_id" property="spuId" />
         <result column="sku_name" property="skuName" />
         <result column="sku_desc" property="skuDesc" />
-        <result column="catalog_id" property="catalogId" />
+        <result column="category_id" property="categoryId" />
         <result column="brand_id" property="brandId" />
         <result column="sku_default_img" property="skuDefaultImg" />
         <result column="sku_title" property="skuTitle" />

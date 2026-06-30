@@ -47,11 +47,11 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category> i
                 .map(this::toVO)
                 .toList();
 
-        // 3. 按 parentCid 分组
+        // 3. 按 parentId 分组
         Map<Long, List<CategoryVO>> parentMap = allVOs.stream()
-                .collect(Collectors.groupingBy(CategoryVO::getParentCid));
+                .collect(Collectors.groupingBy(CategoryVO::getParentId));
 
-        // 4. 递归组装树（一级分类的 parentCid = 0）
+        // 4. 递归组装树（一级分类的 parentId = 0）
         return buildTree(parentMap, 0L);
     }
 
@@ -60,31 +60,31 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category> i
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void saveCategory(CategorySaveDTO dto) {
-        int catLevel;
+        int level;
 
-        if (dto.getParentCid() == 0L) {
+        if (dto.getParentId() == 0L) {
             // 一级分类
-            catLevel = 1;
+            level = 1;
         } else {
             // 查询父分类
-            Category parent = getById(dto.getParentCid());
+            Category parent = getById(dto.getParentId());
             if (parent == null) {
                 throw new BizException(ResultCode.CATEGORY_NOT_FOUND, "父分类不存在");
             }
-            catLevel = parent.getCatLevel() + 1;
-            if (catLevel > 3) {
+            level = parent.getLevel() + 1;
+            if (level > 3) {
                 throw new BizException(ResultCode.CATEGORY_LEVEL_EXCEEDED);
             }
         }
 
         // 检查同级名称唯一
-        checkNameUnique(dto.getParentCid(), dto.getName(), null);
+        checkNameUnique(dto.getParentId(), dto.getName(), null);
 
         // 构建实体并插入
         Category category = new Category();
         category.setName(dto.getName());
-        category.setParentCid(dto.getParentCid());
-        category.setCatLevel(catLevel);
+        category.setParentId(dto.getParentId());
+        category.setLevel(level);
         category.setSort(dto.getSort() != null ? dto.getSort() : 0);
         category.setIcon(dto.getIcon());
         category.setProductUnit(dto.getProductUnit());
@@ -99,8 +99,8 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category> i
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void updateCategory(CategoryUpdateDTO dto) {
-        Long catId = dto.getCatId();
-        Category existing = getById(catId);
+        Long id = dto.getId();
+        Category existing = getById(id);
         if (existing == null) {
             throw new BizException(ResultCode.CATEGORY_NOT_FOUND);
         }
@@ -108,7 +108,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category> i
         boolean nameChanged = dto.getName() != null && !dto.getName().equals(existing.getName());
         // 如果名称有变化，检查同级唯一
         if (nameChanged) {
-            checkNameUnique(existing.getParentCid(), dto.getName(), catId);
+            checkNameUnique(existing.getParentId(), dto.getName(), id);
         }
 
         // 只更新非 null 字段
@@ -119,9 +119,9 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category> i
 
         updateById(existing);
 
-        // 分类名变更 → 同步刷新关联表冗余 catelog_name
+        // 分类名变更 → 同步刷新关联表冗余 category_name
         if (nameChanged) {
-            categoryBrandRelationService.updateCatelogName(catId, existing.getName());
+            categoryBrandRelationService.updateCategoryName(id, existing.getName());
         }
     }
 
@@ -138,7 +138,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category> i
 
         // 2. 检查一级分类保护
         for (Category cat : categories) {
-            if (cat.getParentCid() == 0L) {
+            if (cat.getParentId() == 0L) {
                 throw new BizException(ResultCode.CATEGORY_ROOT_DELETE,
                         "一级分类 [" + cat.getName() + "] 不允许删除");
             }
@@ -147,7 +147,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category> i
         // 3. 查出所有分类（用于递归子孙）
         List<Category> allCategories = list();
         Map<Long, List<Category>> childrenMap = allCategories.stream()
-                .collect(Collectors.groupingBy(Category::getParentCid));
+                .collect(Collectors.groupingBy(Category::getParentId));
 
         // 4. 递归收集所有子孙分类 ID
         Set<Long> allIdsToDelete = new LinkedHashSet<>(ids);
@@ -177,17 +177,17 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category> i
         // 5.1 商品引用检查：pms_spu_info.category_id（@TableLogic 自动过滤已删除 SPU）
         long productCount = spuInfoMapper.selectCount(
                 new LambdaQueryWrapper<SpuInfo>()
-                        .in(SpuInfo::getCatalogId, allIdsToDelete));
+                        .in(SpuInfo::getCategoryId, allIdsToDelete));
         if (productCount > 0) {
             throw new BizException(ResultCode.CATEGORY_HAS_PRODUCTS,
                     "分类下存在关联商品，无法删除");
         }
 
-        // 5.2 品牌关联检查：pms_category_brand_relation.catelog_id
+        // 5.2 品牌关联检查：pms_category_brand_relation.category_id
         for (Long id : allIdsToDelete) {
             long relationCount = categoryBrandRelationMapper.selectCount(
                     new LambdaQueryWrapper<CategoryBrandRelation>()
-                            .eq(CategoryBrandRelation::getCatelogId, id));
+                            .eq(CategoryBrandRelation::getCategoryId, id));
             if (relationCount > 0) {
                 throw new BizException(ResultCode.CATEGORY_HAS_BRANDS,
                         "分类 [" + getCategoryNameById(id, allIdsToDelete) + "] 下存在关联品牌，无法删除");
@@ -222,32 +222,32 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category> i
 
         // 构建全局 parentMap，再叠加本次批次中所有待变更的父节点，检测批量内的隐式循环
         Map<Long, Long> parentMap = allCategories.stream()
-                .collect(Collectors.toMap(Category::getId, Category::getParentCid));
+                .collect(Collectors.toMap(Category::getId, Category::getParentId));
         Map<Long, Long> workingParentMap = new HashMap<>(parentMap);
         for (CategorySortDTO.SortItem item : dto.getCategories()) {
-            workingParentMap.put(item.getCatId(), item.getParentCid());
+            workingParentMap.put(item.getId(), item.getParentId());
         }
 
         List<Category> toUpdate = new ArrayList<>();
 
         for (CategorySortDTO.SortItem item : dto.getCategories()) {
-            Long catId = item.getCatId();
-            Category existing = categoryMap.get(catId);
+            Long id = item.getId();
+            Category existing = categoryMap.get(id);
             if (existing == null) {
                 throw new BizException(ResultCode.CATEGORY_NOT_FOUND,
-                        "分类ID [" + catId + "] 不存在");
+                        "分类ID [" + id + "] 不存在");
             }
 
             // 检查循环引用：新父节点不能是自己的子孙（基于叠加后的 workingParentMap）
-            if (item.getParentCid() != 0L) {
-                checkCircularReference(catId, item.getParentCid(), workingParentMap);
+            if (item.getParentId() != 0L) {
+                checkCircularReference(id, item.getParentId(), workingParentMap);
             }
 
             // 构建更新对象
             Category update = new Category();
-            update.setId(catId);
-            update.setParentCid(item.getParentCid());
-            update.setCatLevel(item.getCatLevel());
+            update.setId(id);
+            update.setParentId(item.getParentId());
+            update.setLevel(item.getLevel());
             update.setSort(item.getSort());
             toUpdate.add(update);
         }
@@ -260,13 +260,13 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category> i
     /**
      * 检查同级名称唯一
      *
-     * @param parentCid 父分类 ID
+     * @param parentId 父分类 ID
      * @param name      分类名称
      * @param excludeId 排除的分类 ID（修改时排除自己）
      */
-    private void checkNameUnique(Long parentCid, String name, Long excludeId) {
+    private void checkNameUnique(Long parentId, String name, Long excludeId) {
         LambdaQueryWrapper<Category> wrapper = new LambdaQueryWrapper<Category>()
-                .eq(Category::getParentCid, parentCid)
+                .eq(Category::getParentId, parentId)
                 .eq(Category::getName, name);
         if (excludeId != null) {
             wrapper.ne(Category::getId, excludeId);
@@ -313,7 +313,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category> i
     private List<CategoryVO> buildTree(Map<Long, List<CategoryVO>> parentMap, Long parentId) {
         List<CategoryVO> children = parentMap.getOrDefault(parentId, Collections.emptyList());
         for (CategoryVO child : children) {
-            child.setChildren(buildTree(parentMap, child.getCatId()));
+            child.setChildren(buildTree(parentMap, child.getId()));
         }
         return children;
     }
@@ -323,10 +323,10 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category> i
      */
     private CategoryVO toVO(Category entity) {
         CategoryVO vo = new CategoryVO();
-        vo.setCatId(entity.getId());
+        vo.setId(entity.getId());
         vo.setName(entity.getName());
-        vo.setParentCid(entity.getParentCid());
-        vo.setCatLevel(entity.getCatLevel());
+        vo.setParentId(entity.getParentId());
+        vo.setLevel(entity.getLevel());
         vo.setShowStatus(entity.getShowStatus() != null ? entity.getShowStatus().intValue() : 1);
         vo.setSort(entity.getSort());
         vo.setIcon(entity.getIcon());

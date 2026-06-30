@@ -51,7 +51,7 @@ public class CategoryBrandRelationServiceImpl extends ServiceImpl<CategoryBrandR
     @Transactional(rollbackFor = Exception.class)
     public void saveRelation(BrandCategoryRelationSaveDTO dto) {
         Long brandId = dto.getBrandId();
-        Long catelogId = dto.getCatelogId();
+        Long categoryId = dto.getCategoryId();
 
         // 1. 校验品牌存在
         Brand brand = brandMapper.selectById(brandId);
@@ -60,17 +60,17 @@ public class CategoryBrandRelationServiceImpl extends ServiceImpl<CategoryBrandR
         }
 
         // 2. 校验分类存在且为三级
-        Category category = categoryMapper.selectById(catelogId);
-        if (category == null || category.getCatLevel() == null || category.getCatLevel() != 3) {
+        Category category = categoryMapper.selectById(categoryId);
+        if (category == null || category.getLevel() == null || category.getLevel() != 3) {
             throw new BizException(ResultCode.BRAND_CATEGORY_INVALID,
-                    "关联分类 [" + catelogId + "] 不存在或非三级分类");
+                    "关联分类 [" + categoryId + "] 不存在或非三级分类");
         }
 
         // 3. 校验关联不重复（@TableLogic 自动过滤已逻辑删除记录）
         long existCount = baseMapper.selectCount(
                 new LambdaQueryWrapper<CategoryBrandRelation>()
                         .eq(CategoryBrandRelation::getBrandId, brandId)
-                        .eq(CategoryBrandRelation::getCatelogId, catelogId));
+                        .eq(CategoryBrandRelation::getCategoryId, categoryId));
         if (existCount > 0) {
             throw new BizException(ResultCode.BRAND_RELATION_DUPLICATE);
         }
@@ -78,19 +78,19 @@ public class CategoryBrandRelationServiceImpl extends ServiceImpl<CategoryBrandR
         // 4. 写入关联，冗余存储当前品牌名/分类名
         CategoryBrandRelation relation = new CategoryBrandRelation();
         relation.setBrandId(brandId);
-        relation.setCatelogId(catelogId);
+        relation.setCategoryId(categoryId);
         relation.setBrandName(brand.getName());
-        relation.setCatelogName(category.getName());
+        relation.setCategoryName(category.getName());
         baseMapper.insert(relation);
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void removeRelation(Long brandId, Long catelogId) {
+    public void removeRelation(Long brandId, Long categoryId) {
         CategoryBrandRelation relation = baseMapper.selectOne(
                 new LambdaQueryWrapper<CategoryBrandRelation>()
                         .eq(CategoryBrandRelation::getBrandId, brandId)
-                        .eq(CategoryBrandRelation::getCatelogId, catelogId));
+                        .eq(CategoryBrandRelation::getCategoryId, categoryId));
         if (relation == null) {
             throw new BizException(ResultCode.BRAND_RELATION_NOT_FOUND);
         }
@@ -107,10 +107,10 @@ public class CategoryBrandRelationServiceImpl extends ServiceImpl<CategoryBrandR
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void updateCatelogName(Long catelogId, String newCatelogName) {
+    public void updateCategoryName(Long categoryId, String newCategoryName) {
         baseMapper.update(null, new LambdaUpdateWrapper<CategoryBrandRelation>()
-                .eq(CategoryBrandRelation::getCatelogId, catelogId)
-                .set(CategoryBrandRelation::getCatelogName, newCatelogName));
+                .eq(CategoryBrandRelation::getCategoryId, categoryId)
+                .set(CategoryBrandRelation::getCategoryName, newCategoryName));
     }
 
     private BrandRelationVO toVO(CategoryBrandRelation relation) {
@@ -118,8 +118,8 @@ public class CategoryBrandRelationServiceImpl extends ServiceImpl<CategoryBrandR
         vo.setId(relation.getId());
         vo.setBrandId(relation.getBrandId());
         vo.setBrandName(relation.getBrandName());
-        vo.setCatelogId(relation.getCatelogId());
-        vo.setCatelogName(relation.getCatelogName());
+        vo.setCategoryId(relation.getCategoryId());
+        vo.setCategoryName(relation.getCategoryName());
         return vo;
     }
 }

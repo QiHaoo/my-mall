@@ -37,7 +37,7 @@ const relations = ref<BrandRelationVO[]>([])
 // 新增关联相关
 const showAddForm = ref(false)
 const categoryTree = ref<CategoryVO[]>([])
-const selectedCatelogId = ref<string | undefined>(undefined)
+const selectedCategoryId = ref<string | undefined>(undefined)
 
 // 加载关联列表
 async function loadRelations() {
@@ -63,7 +63,7 @@ async function loadCategoryTree() {
 // 打开新增关联表单
 async function handleShowAdd() {
   showAddForm.value = true
-  selectedCatelogId.value = undefined
+  selectedCategoryId.value = undefined
   if (categoryTree.value.length === 0) {
     await loadCategoryTree()
   }
@@ -71,15 +71,15 @@ async function handleShowAdd() {
 
 // 确认新增关联
 async function handleAddRelation() {
-  if (!selectedCatelogId.value) {
+  if (!selectedCategoryId.value) {
     ElMessage.warning('请选择三级分类')
     return
   }
   try {
-    await createBrandRelation(props.brandId, selectedCatelogId.value)
+    await createBrandRelation(props.brandId, selectedCategoryId.value)
     ElMessage.success('关联成功')
     showAddForm.value = false
-    selectedCatelogId.value = undefined
+    selectedCategoryId.value = undefined
     loadRelations()
   } catch {
     // 错误已由拦截器处理
@@ -90,11 +90,11 @@ async function handleAddRelation() {
 async function handleRemoveRelation(row: BrandRelationVO) {
   try {
     await ElMessageBox.confirm(
-      `确定移除品牌「${row.brandName}」与分类「${row.catelogName}」的关联吗？`,
+      `确定移除品牌「${row.brandName}」与分类「${row.categoryName}」的关联吗？`,
       '移除确认',
       { type: 'warning', confirmButtonText: '确定移除', cancelButtonText: '取消' }
     )
-    await deleteBrandRelation(props.brandId, row.catelogId)
+    await deleteBrandRelation(props.brandId, row.categoryId)
     ElMessage.success('移除成功')
     loadRelations()
   } catch (err) {
@@ -130,11 +130,11 @@ watch(visible, (val) => {
     <!-- 新增关联表单 -->
     <div v-if="showAddForm" class="add-form">
       <el-tree-select
-        v-model="selectedCatelogId"
+        v-model="selectedCategoryId"
         :data="categoryTree"
-        :props="{ label: 'name', value: 'catId', children: 'children', disabled: (data: CategoryVO) => data.catLevel !== 3 }"
+        :props="{ label: 'name', value: 'id', children: 'children', disabled: (data: CategoryVO) => data.level !== 3 }"
         check-strictly
-        node-key="catId"
+        node-key="id"
         placeholder="请选择三级分类"
         style="width: 100%"
       />
@@ -148,7 +148,7 @@ watch(visible, (val) => {
     <el-table v-loading="loading" :data="relations" border stripe style="width: 100%">
       <el-table-column type="index" label="#" width="50" align="center" />
       <el-table-column prop="brandName" label="品牌名" width="120" />
-      <el-table-column prop="catelogName" label="分类名" />
+      <el-table-column prop="categoryName" label="分类名" />
       <el-table-column label="操作" width="100" align="center">
         <template #default="{ row }">
           <el-button link type="danger" size="small" @click="handleRemoveRelation(row)">

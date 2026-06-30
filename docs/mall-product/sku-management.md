@@ -11,7 +11,7 @@
 
 SKU（Stock Keeping Unit）是可售卖、可库存的最小单位，对应一种具体的规格组合。SKU 由 SPU + 销售属性组合派生，有独立的价格、库存、销量、图片。
 
-SKU 依赖 SPU 存在，`catalog_id` / `brand_id` 冗余自 SPU，便于按分类/品牌直接查 SKU（避免回联 SPU 表）。
+SKU 依赖 SPU 存在，`category_id` / `brand_id` 冗余自 SPU，便于按分类/品牌直接查 SKU（避免回联 SPU 表）。
 
 > **概念详解**：SPU/SKU/属性的概念与实体关系见 [商品中心概述](./overview.md)。
 
@@ -55,7 +55,7 @@ SKU 的变更（删除、价格调整）必须评估对以上模块的影响。
 
 #### D3 新增 SKU
 
-- `spu_id` 必须存在；`catalog_id` / `brand_id` 冗余自 SPU，由后端填充，前端不传
+- `spu_id` 必须存在；`category_id` / `brand_id` 冗余自 SPU，由后端填充，前端不传
 - **组合唯一性校验**：销售属性值组合（`attr_id` → `attr_value` 集合）在同一 SPU 下**必须唯一**，否则抛 `SKU_ATTR_COMBO_DUPLICATE`
 - 销售属性值：仅 `attr_type ∈ {0,2}` 的属性可用；`attr_id` 必须属于 SPU 分类下的销售属性
 - `price` 必须 > 0；`sku_default_img` 必填（若无单独默认图，取 `pms_sku_images` 中 `default_img=1` 的图）
@@ -83,7 +83,7 @@ SKU 的变更（删除、价格调整）必须评估对以上模块的影响。
 
 | 表 | 关键字段 | 设计要点 |
 |----|---------|---------|
-| `pms_sku_info` | `spu_id`、`catalog_id`、`brand_id`、`price`、`sale_count` | 冗余分类/品牌便于直查；索引 `idx_spu_id` / `idx_catalog_id` / `idx_brand_id` |
+| `pms_sku_info` | `spu_id`、`category_id`、`brand_id`、`price`、`sale_count` | 冗余分类/品牌便于直查；索引 `idx_spu_id` / `idx_category_id` / `idx_brand_id` |
 | `pms_sku_images` | `sku_id`、`img_url`、`default_img` | SKU 图片集 |
 | `pms_sku_sale_attr_value` | `sku_id`、`attr_id`、`attr_name`、`attr_value` | 销售属性值，冗余 `attr_name`；索引 `idx_sku_id` / `idx_attr_id` |
 
@@ -135,7 +135,7 @@ SKU 的变更（删除、价格调整）必须评估对以上模块的影响。
 **业务逻辑**：
 
 ```
-1. 查 SPU，不存在抛 SPU_NOT_FOUND；取 catalog_id / brand_id 冗余写入 SKU
+1. 查 SPU，不存在抛 SPU_NOT_FOUND；取 category_id / brand_id 冗余写入 SKU
 2. 校验 saleAttrs 中每个 attrId 属于该分类且 attr_type ∈ {0,2}
 3. 组合唯一性校验：该 SPU 下已存在相同销售属性值组合的 SKU → 抛 SKU_ATTR_COMBO_DUPLICATE
 4. 插入 pms_sku_info

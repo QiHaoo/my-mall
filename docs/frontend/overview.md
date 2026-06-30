@@ -248,10 +248,10 @@ export interface PageQuery {
 ```typescript
 // src/api/types/product.ts（分类部分）
 export interface CategoryVO {
-  catId: string          // 雪花 ID，用 string 接收避免精度丢失
+  id: string          // 雪花 ID，用 string 接收避免精度丢失
   name: string
-  parentCid: string
-  catLevel: number
+  parentId: string
+  level: number
   showStatus: number
   sort: number
   icon?: string

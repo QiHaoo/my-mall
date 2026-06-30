@@ -4,10 +4,9 @@
 
     <!-- 通用查询映射结果 -->
     <resultMap id="BaseResultMap" type="com.mymall.product.entity.Category">
-        <id column="cat_id" property="catId" />
         <result column="name" property="name" />
-        <result column="parent_cid" property="parentCid" />
-        <result column="cat_level" property="catLevel" />
+        <result column="parent_id" property="parentId" />
+        <result column="level" property="level" />
         <result column="show_status" property="showStatus" />
         <result column="sort" property="sort" />
         <result column="icon" property="icon" />

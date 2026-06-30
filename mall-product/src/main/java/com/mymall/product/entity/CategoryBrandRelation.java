@@ -23,7 +23,7 @@ public class CategoryBrandRelation extends BaseEntity {
     /**
      * 分类id
      */
-    private Long catelogId;
+    private Long categoryId;
 
     /**
      * 品牌名（冗余）
@@ -33,5 +33,5 @@ public class CategoryBrandRelation extends BaseEntity {
     /**
      * 分类名（冗余）
      */
-    private String catelogName;
+    private String categoryName;
 }

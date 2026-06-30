@@ -64,7 +64,7 @@ async function loadTree() {
   try {
     treeData.value = await getCategoryTree()
     // 默认展开一级分类，避免进来看到一堆折叠节点
-    defaultExpandedKeys.value = treeData.value.map((item) => item.catId)
+    defaultExpandedKeys.value = treeData.value.map((item) => item.id)
   } catch {
     // 错误已由拦截器处理（见 09 篇）
   } finally {
@@ -73,7 +73,7 @@ async function loadTree() {
 }
 ```
 
-`getCategoryTree()` 后端直接返回完整的嵌套树（`CategoryVO.children`），前端不做二次组装。`defaultExpandedKeys` 取所有一级分类的 `catId`，配合 `el-tree` 的 `:default-expanded-keys` 实现「进来默认展开一级」。
+`getCategoryTree()` 后端直接返回完整的嵌套树（`CategoryVO.children`），前端不做二次组装。`defaultExpandedKeys` 取所有一级分类的 `id`，配合 `el-tree` 的 `:default-expanded-keys` 实现「进来默认展开一级」。
 
 > **为什么用 `default-expanded-keys` 而不是 `default-expand-all`？** 三级分类全展开节点太多，体验差；只展开一级，用户按需往下点。而且 `default-expand-all` 在数据动态加载时行为不稳定。
 
@@ -84,7 +84,7 @@ async function loadTree() {
   ref="treeRef"
   :data="treeData"
   :props="{ label: 'name', children: 'children' }"
-  node-key="catId"
+  node-key="id"
   :default-expanded-keys="defaultExpandedKeys"
   show-checkbox
   :draggable="dragEnabled"
@@ -94,7 +94,7 @@ async function loadTree() {
 >
 ```
 
-- `node-key="catId"`：指定节点唯一标识，拖拽、勾选、`getNode()` 都靠它
+- `node-key="id"`：指定节点唯一标识，拖拽、勾选、`getNode()` 都靠它
 - `:props`：把后端字段 `name` / `children` 映射成 tree 期望的 `label` / `children`
 - `show-checkbox`：开启勾选框，批量删除用
 - `:draggable` 绑定一个开关 `dragEnabled`，默认关闭——拖拽是危险操作，不能默认开着
@@ -130,7 +130,7 @@ const levelTagType = (level: number) => {
 **一级分类不显示删除**：删除一级分类会连带删掉整棵子树，风险大，UI 上直接隐藏入口：
 
 ```vue
-<el-button v-if="data.catLevel > 1" link type="danger" @click.stop="emit('delete', data)">
+<el-button v-if="data.level > 1" link type="danger" @click.stop="emit('delete', data)">
   删除
 </el-button>
 ```
@@ -149,7 +149,7 @@ async function openCreate(parentNode?: CategoryVO) {
   lockedParent.value = !!parentNode          // 传了父节点 → 锁定父级选择器
   formData.value = {
     name: '',
-    parentCid: parentNode ? parentNode.catId : '0',  // 不传 → 顶级（parentCid='0'）
+    parentId: parentNode ? parentNode.id : '0',  // 不传 → 顶级（parentId='0'）
     sort: 0, icon: '', productUnit: ''
   }
   await loadTreeData()    // 加载分类树供父级选择
@@ -159,7 +159,7 @@ async function openCreate(parentNode?: CategoryVO) {
 async function openEdit(node: CategoryVO) {
   mode.value = 'update'
   lockedParent.value = true   // 编辑时父级永远只读（改层级走拖拽，不走表单）
-  formData.value = { catId: node.catId, name: node.name, parentCid: node.parentCid, ... }
+  formData.value = { id: node.id, name: node.name, parentId: node.parentId, ... }
   await loadTreeData()
   visible.value = true
 }
@@ -181,7 +181,7 @@ function handleEdit(data: CategoryVO)    { formRef.value?.openEdit(data) }    //
 
 ```vue
 <el-tree-select
-  v-model="formData.parentCid"
+  v-model="formData.parentId"
   :disabled="lockedParent || mode === 'update'"
   ...
 />
@@ -191,15 +191,15 @@ function handleEdit(data: CategoryVO)    { formRef.value?.openEdit(data) }    //
 - 编辑时 `mode==='update'`（层级调整走拖拽，不在表单改）
 - 只有「新增一级分类」时 `lockedParent=false` 且 `mode==='create'`，可以选择任意父级
 
-**提交时区分模式**：编辑模式刻意不带 `parentCid`，因为后端 `CategoryUpdateDTO` 也不含该字段——层级调整只能走拖拽接口：
+**提交时区分模式**：编辑模式刻意不带 `parentId`，因为后端 `CategoryUpdateDTO` 也不含该字段——层级调整只能走拖拽接口：
 
 ```typescript
 if (mode.value === 'create') {
-  const { name, parentCid, sort, icon, productUnit } = formData.value
-  await createCategory({ name, parentCid, sort, icon, productUnit })
+  const { name, parentId, sort, icon, productUnit } = formData.value
+  await createCategory({ name, parentId, sort, icon, productUnit })
 } else {
-  const { catId, name, sort, icon, productUnit } = formData.value  // 不取 parentCid
-  await updateCategory({ catId: catId!, name, sort, icon, productUnit })
+  const { id, name, sort, icon, productUnit } = formData.value  // 不取 parentId
+  await updateCategory({ id: id!, name, sort, icon, productUnit })
 }
 ```
 
@@ -246,9 +246,9 @@ function allowDrop(draggingNode, dropNode, type: 'before' | 'after' | 'inner') {
   // ① 计算拖拽后的目标层级
   let targetLevel: number
   if (type === 'inner') {
-    targetLevel = dropData.catLevel + 1   // 拖进 dropNode 内部 → 子级
+    targetLevel = dropData.level + 1   // 拖进 dropNode 内部 → 子级
   } else {
-    targetLevel = dropData.catLevel       // 拖到 dropNode 前/后 → 同级
+    targetLevel = dropData.level       // 拖到 dropNode 前/后 → 同级
   }
 
   // ② 层级不能超过 3
@@ -258,7 +258,7 @@ function allowDrop(draggingNode, dropNode, type: 'before' | 'after' | 'inner') {
   let maxChildLevel = 0
   if (draggingData.children) {
     traverseTree(draggingData.children, (node) => {
-      const relativeLevel = node.catLevel - draggingData.catLevel  // 相对拖拽节点的深度差
+      const relativeLevel = node.level - draggingData.level  // 相对拖拽节点的深度差
       if (relativeLevel > maxChildLevel) maxChildLevel = relativeLevel
     })
   }
@@ -266,7 +266,7 @@ function allowDrop(draggingNode, dropNode, type: 'before' | 'after' | 'inner') {
 
   // ④ 不能拖到自己子节点下（循环引用）
   if (type === 'inner') {
-    if (isDescendant(treeData.value, draggingData.catId, dropData.catId, 'catId')) {
+    if (isDescendant(treeData.value, draggingData.id, dropData.id, 'id')) {
       return false
     }
   }
@@ -279,13 +279,13 @@ function allowDrop(draggingNode, dropNode, type: 'before' | 'after' | 'inner') {
 
 | type | 含义 | 目标层级 |
 |------|------|----------|
-| `inner` | 拖成 dropNode 的子节点 | `dropData.catLevel + 1` |
-| `before` | 放到 dropNode 前面（同级） | `dropData.catLevel` |
-| `after` | 放到 dropNode 后面（同级） | `dropData.catLevel` |
+| `inner` | 拖成 dropNode 的子节点 | `dropData.level + 1` |
+| `before` | 放到 dropNode 前面（同级） | `dropData.level` |
+| `after` | 放到 dropNode 后面（同级） | `dropData.level` |
 
 **第 ③ 点最容易漏**：假设拖拽节点是个二级分类，它下面还挂着三级子孙。如果把它拖到另一个一级分类内部（变成二级），逻辑上没问题（`targetLevel=2`）。但如果拖拽节点本身是二级、下面挂着三级，你把它拖到一个三级节点**内部**（`targetLevel=4`），子孙就会变成 5 级——所以必须算子孙的最大相对深度一起判断。`traverseTree` 是项目 `utils/tree.ts` 提供的深度优先遍历工具。
 
-**第 ④ 点循环引用**：把节点 A 拖到它自己的子孙 B 内部，会形成 A→B→A 的环。`isDescendant(tree, ancestorId, targetId, idKey)` 判断 `targetId` 是不是 `ancestorId` 的子孙——这里判断 `dropData.catId` 是否是 `draggingData.catId` 的子孙，是就禁止。只有 `type==='inner'` 才需要查（before/after 是同级，不会产生父子环）。
+**第 ④ 点循环引用**：把节点 A 拖到它自己的子孙 B 内部，会形成 A→B→A 的环。`isDescendant(tree, ancestorId, targetId, idKey)` 判断 `targetId` 是不是 `ancestorId` 的子孙——这里判断 `dropData.id` 是否是 `draggingData.id` 的子孙，是就禁止。只有 `type==='inner'` 才需要查（before/after 是同级，不会产生父子环）。
 
 #### 2.5.3 handleDrop：收集变更 + 落地
 
@@ -297,24 +297,24 @@ async function handleDrop(draggingNode, dropNode, dropType) {
   const dropData = dropNode.data as CategoryVO
 
   // ① 算新父节点和新层级
-  let newParentCid: string
+  let newParentId: string
   let newLevel: number
   if (dropType === 'inner') {
-    newParentCid = dropData.catId
-    newLevel = dropData.catLevel + 1
+    newParentId = dropData.id
+    newLevel = dropData.level + 1
   } else {
-    newParentCid = dropData.parentCid   // 同级 → 父级也是 dropNode 的父级
-    newLevel = dropData.catLevel
+    newParentId = dropData.parentId   // 同级 → 父级也是 dropNode 的父级
+    newLevel = dropData.level
   }
 
   // ② 从 el-tree 的 store 拿到「新父节点」下的所有子节点（已按 DOM 顺序排好）
   const store = treeRef.value?.store
-  const newParentNode = newParentCid === '0' ? store.root : store.getNode(newParentCid)
+  const newParentNode = newParentId === '0' ? store.root : store.getNode(newParentId)
   const sortItems: CategorySortItem[] = newParentNode.childNodes.map(
     (child: any, index: number) => ({
-      catId: child.data.catId,
-      parentCid: newParentCid,
-      catLevel: newLevel,
+      id: child.data.id,
+      parentId: newParentId,
+      level: newLevel,
       sort: index                     // 按当前 DOM 顺序重新编号 0,1,2...
     })
   )
@@ -322,18 +322,18 @@ async function handleDrop(draggingNode, dropNode, dropType) {
 
 **关键点：sort 怎么算？** 拖完后，新父节点下的子节点在 DOM 里已经有顺序了（`el-tree` 自动排好），`newParentNode.childNodes` 就是这个顺序。直接遍历取下标当 `sort` 值即可——后端按 `sort` 字段持久化，刷新后顺序一致。
 
-**跨层级拖拽要更新子孙的 catLevel**：
+**跨层级拖拽要更新子孙的 level**：
 
 ```typescript
-  // ③ 如果拖拽节点层级变了，它带着的子孙 catLevel 也要跟着变
-  if (draggingData.catLevel !== newLevel) {
+  // ③ 如果拖拽节点层级变了，它带着的子孙 level 也要跟着变
+  if (draggingData.level !== newLevel) {
     const updateChildrenLevel = (nodes: CategoryVO[], oldParentLevel: number) => {
       nodes.forEach((child) => {
         const newChildLevel = oldParentLevel + 1
         sortItems.push({
-          catId: child.catId,
-          parentCid: child.parentCid,   // 子孙的父级不变
-          catLevel: newChildLevel,      // 只改层级
+          id: child.id,
+          parentId: child.parentId,   // 子孙的父级不变
+          level: newChildLevel,      // 只改层级
           sort: child.sort
         })
         if (child.children) {
@@ -345,7 +345,7 @@ async function handleDrop(draggingNode, dropNode, dropType) {
   }
 ```
 
-举个例子：把一个二级分类（`catLevel=2`）拖到另一个一级分类内部，它变成二级（`newLevel=2`，没变）——这种情况子孙不用动。但如果把它拖到顶级（`newLevel=1`），它变成一级，原来挂在它下面的三级子孙要变成二级，递归往下。`updateChildrenLevel` 就是干这个的。
+举个例子：把一个二级分类（`level=2`）拖到另一个一级分类内部，它变成二级（`newLevel=2`，没变）——这种情况子孙不用动。但如果把它拖到顶级（`newLevel=1`），它变成一级，原来挂在它下面的三级子孙要变成二级，递归往下。`updateChildrenLevel` 就是干这个的。
 
 **确认框 + 调接口 + 失败回弹**：
 
@@ -381,7 +381,7 @@ function handleCheckChange() {
 async function handleBatchDelete() {
   const names = checkedNodes.value.map((n) => n.name).join('、')
   await ElMessageBox.confirm(`已选中 ${checkedNodes.value.length} 个分类：${names}，确定删除吗？`, ...)
-  const ids = checkedNodes.value.map((n) => n.catId)
+  const ids = checkedNodes.value.map((n) => n.id)
   await batchDeleteCategories(ids)
   ElMessage.success('删除成功')
   checkedNodes.value = []   // 清空选中
@@ -632,14 +632,14 @@ await updateBrand(formData.value)   // 携带 version 触发后端乐观锁
 
   <!-- 新增表单（点击后才显示） -->
   <div v-if="showAddForm" class="add-form">
-    <el-tree-select v-model="selectedCatelogId" :data="categoryTree" ... />
+    <el-tree-select v-model="selectedCategoryId" :data="categoryTree" ... />
     <el-button @click="handleAddRelation">确认关联</el-button>
   </div>
 
   <!-- 已关联列表 -->
   <el-table :data="relations" ...>
     <el-table-column prop="brandName" label="品牌名" />
-    <el-table-column prop="catelogName" label="分类名" />
+    <el-table-column prop="categoryName" label="分类名" />
     <el-table-column label="操作">移除</el-table-column>
   </el-table>
 </el-dialog>
@@ -680,21 +680,21 @@ async function loadRelations() {
 
 ```vue
 <el-tree-select
-  v-model="selectedCatelogId"
+  v-model="selectedCategoryId"
   :data="categoryTree"
   :props="{
     label: 'name',
-    value: 'catId',
+    value: 'id',
     children: 'children',
-    disabled: (data: CategoryVO) => data.catLevel !== 3   // 非三级 → 灰掉
+    disabled: (data: CategoryVO) => data.level !== 3   // 非三级 → 灰掉
   }"
   check-strictly
-  node-key="catId"
+  node-key="id"
   placeholder="请选择三级分类"
 />
 ```
 
-`disabled` 是个函数，每个节点都会调一次，返回 `true` 就禁用该节点。这里 `data.catLevel !== 3` 把一、二级分类全灰掉，用户只能点三级叶子。
+`disabled` 是个函数，每个节点都会调一次，返回 `true` 就禁用该节点。这里 `data.level !== 3` 把一、二级分类全灰掉，用户只能点三级叶子。
 
 > **`check-strictly` 的作用**：`el-tree-select` 默认父子联动勾选，但这里父节点已经 disabled 了，且业务上只选单个三级节点，配 `check-strictly` 让选择行为独立，不级联。
 
@@ -717,7 +717,7 @@ async function loadCategoryTree() {
 ```typescript
 async function handleShowAdd() {
   showAddForm.value = true
-  selectedCatelogId.value = undefined
+  selectedCategoryId.value = undefined
   if (categoryTree.value.length === 0) {   // 只在没加载过时拉
     await loadCategoryTree()
   }
@@ -731,11 +731,11 @@ async function handleShowAdd() {
 ```typescript
 async function handleRemoveRelation(row: BrandRelationVO) {
   await ElMessageBox.confirm(
-    `确定移除品牌「${row.brandName}」与分类「${row.catelogName}」的关联吗？`,
+    `确定移除品牌「${row.brandName}」与分类「${row.categoryName}」的关联吗？`,
     '移除确认',
     { type: 'warning', ... }
   )
-  await deleteBrandRelation(props.brandId, row.catelogId)
+  await deleteBrandRelation(props.brandId, row.categoryId)
   ElMessage.success('移除成功')
   loadRelations()   // 刷新列表
 }
@@ -867,7 +867,7 @@ async function handleSubmit() {
 | 自定义树节点 | `#default` 插槽 + flex 布局 + `@click.stop` | `CategoryNode.vue` |
 | 弹窗模式 | `defineExpose({ openCreate, openEdit })` + 父组件 ref 调用 | `CategoryForm` / `BrandForm` |
 | 拖拽校验 | `allowDrop` 拦层级 + 拦循环引用 | 分类页 `allowDrop` |
-| 拖拽落地 | 从 `el-tree` store 读 DOM 顺序算 sort，跨层级更新子孙 catLevel | 分类页 `handleDrop` |
+| 拖拽落地 | 从 `el-tree` store 读 DOM 顺序算 sort，跨层级更新子孙 level | 分类页 `handleDrop` |
 | 失败回弹 | `:model-value` + `@change` 不改 row → switch 自动回弹 | 品牌页状态切换 |
 | 删空回退 | 删前判断当前页是否将空，`pageNum--` 后 refresh | 品牌页删除 |
 | 乐观锁 | 编辑先拉详情拿 `version`，提交带上 | `BrandForm.openEdit` |

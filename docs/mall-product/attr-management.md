@@ -53,13 +53,13 @@
 
 属性管理模块在新增/修改规格参数时，通过调用 `IAttrAttrgroupRelationService.upsertRelation()` 自动维护分组关系（详见 [6.3 新增属性](#63-新增属性)、[6.4 修改属性](#64-修改属性)）。
 
-### 2.3 "查所有"机制：catelogId 可选
+### 2.3 "查所有"机制：categoryId 可选
 
-属性列表的 `catelogId` 参数为**可选**：
+属性列表的 `categoryId` 参数为**可选**：
 - 传了 → 按该三级分类过滤
 - 不传 → 查全部分类（仍分页）
 
-避免 `catelogId=0` 魔数语义。前端逻辑：用户选中三级分类时传 catelogId，未选中时不传。
+避免 `categoryId=0` 魔数语义。前端逻辑：用户选中三级分类时传 categoryId，未选中时不传。
 
 ### 2.4 分类路径（catelogPath）
 
@@ -73,9 +73,9 @@
 
 | 编号 | 功能 | 说明 |
 |------|------|------|
-| B1 | 属性分页查询 | `attrType` 必传、`catelogId` 可选、`key` 模糊，响应含分组名/分类名 |
-| B2 | 属性详情 | 含 `groupId`、`groupName`、`catelogId`、`catelogName`、`catelogPath` |
-| B3 | 新增属性 | `attrType`+`icon`+`catelogId` 必填，`attrGroupId` 可选；选了分组自动建关联 |
+| B1 | 属性分页查询 | `attrType` 必传、`categoryId` 可选、`key` 模糊，响应含分组名/分类名 |
+| B2 | 属性详情 | 含 `groupId`、`groupName`、`categoryId`、`categoryName`、`catelogPath` |
+| B3 | 新增属性 | `attrType`+`icon`+`categoryId` 必填，`attrGroupId` 可选；选了分组自动建关联 |
 | B4 | 修改属性 | 分组关系 upsert：无→新增、变了→先删旧再建新、没变→不动 |
 | B5 | 批量删除属性 | 校验 `pms_product_attr_value` / `pms_sku_sale_attr_value` 引用 |
 
@@ -83,7 +83,7 @@
 
 ### 3.2 业务规则
 
-- 属性名在同一分类下唯一（`uk_catelog_name(catelog_id, attr_name, is_deleted)`）
+- 属性名在同一分类下唯一（`uk_category_name(category_id, attr_name, is_deleted)`）
 - `attrType` 决定属性归属层：`1`-规格参数、`0`-销售属性、`2`-两者皆是
 - `attrType=1` 时 `attrGroupId` 可选；`attrType=0` 时 `attrGroupId` 必须为 null
 - `valueSelect` 逗号分隔的可选值；前端录入商品时下拉选择，也可自定义输入
@@ -147,7 +147,7 @@
 
 ### 4.4 关键交互
 
-- **分类过滤**：左侧分类树点击三级分类 → 右侧表格带 `catelogId` 重新查询；未选中则不带 `catelogId`（查所有）
+- **分类过滤**：左侧分类树点击三级分类 → 右侧表格带 `categoryId` 重新查询；未选中则不带 `categoryId`（查所有）
 - **多字段模糊搜索**：`key` 参数同时对属性名/可选值模糊匹配
 - **属性类型切换**：新增规格参数页 `attrType=1` 固定不可改；新增销售属性页 `attrType=0` 固定不可改；编辑页可改但需谨慎（改 type 影响属性值归属层）
 - **分组关系联动**：规格参数表单中选了「所属分组」→ 提交时后端自动建关联；改了分组 → 后端 upsert 关联
@@ -161,7 +161,7 @@
 
 | 表 | 关键字段 | 设计要点 |
 |----|---------|---------|
-| `pms_attr` | `attr_type`、`catelog_id`、`value_select`、`search_type`、`show_desc` | 属性定义按分类归属；`attr_type` 区分基本/销售 |
+| `pms_attr` | `attr_type`、`category_id`、`value_select`、`search_type`、`show_desc` | 属性定义按分类归属；`attr_type` 区分基本/销售 |
 
 > 属性与分组的关联表 `pms_attr_attrgroup_relation` 见 [属性分组管理 - 5.3 节](./attrgroup-management.md#53-表结构-pms_attr_attrgroup_relation)。
 
@@ -177,7 +177,7 @@
 | `value_select` | varchar(512) | 否 | 可选值列表，逗号分隔 |
 | `attr_type` | tinyint | 是 | 属性类型：0-销售，1-基本，2-两者皆是 |
 | `enable` | tinyint | 是 | 启用状态：0-禁用，1-启用，默认 1 |
-| `catelog_id` | bigint | 是 | 所属分类 ID（三级） |
+| `category_id` | bigint | 是 | 所属分类 ID（三级） |
 | `show_desc` | tinyint | 是 | 快速展示：0-否，1-是，默认 0 |
 | `create_time` / `update_time` | datetime | 是 | 审计字段（BaseEntity） |
 | `create_by` / `update_by` | bigint | 否 | 审计字段（BaseEntity） |
@@ -191,14 +191,14 @@
 | 索引 | 字段 | 类型 | 说明 |
 |------|------|------|------|
 | PK | `id` | PRIMARY | 主键 |
-| IDX_CATELOG_ID | `catelog_id` | NORMAL | 按分类查属性（已有） |
-| IDX_CATELOG_ATTR_TYPE | `catelog_id, attr_type` | NORMAL | 按分类+类型高频查询（补充） |
-| UK_CATELOG_NAME | `catelog_id, attr_name, is_deleted` | UNIQUE | 同分类属性名唯一（补充） |
+| IDX_CATEGORY_ID | `category_id` | NORMAL | 按分类查属性（已有） |
+| IDX_CATEGORY_ATTR_TYPE | `category_id, attr_type` | NORMAL | 按分类+类型高频查询（补充） |
+| UK_CATEGORY_NAME | `category_id, attr_name, is_deleted` | UNIQUE | 同分类属性名唯一（补充） |
 
 > 生产环境补充索引 SQL：
 > ```sql
-> ALTER TABLE pms_attr ADD INDEX idx_catelog_attr_type (catelog_id, attr_type);
-> ALTER TABLE pms_attr ADD UNIQUE INDEX uk_catelog_name (catelog_id, attr_name, is_deleted);
+> ALTER TABLE pms_attr ADD INDEX idx_category_attr_type (category_id, attr_type);
+> ALTER TABLE pms_attr ADD UNIQUE INDEX uk_category_name (category_id, attr_name, is_deleted);
 > ```
 
 ---
@@ -209,7 +209,7 @@
 
 | 接口 | 方法 | 路径 | 说明 |
 |------|------|------|------|
-| 属性分页查询 | GET | `/product/attr/list` | `attrType` 必传、`catelogId` 可选、`key` 模糊 |
+| 属性分页查询 | GET | `/product/attr/list` | `attrType` 必传、`categoryId` 可选、`key` 模糊 |
 | 属性详情 | GET | `/product/attr/{id}` | 含 groupId/groupName/catelogPath |
 | 新增属性 | POST | `/product/attr` | attrGroupId 可选，选了自动建关联 |
 | 修改属性 | PUT | `/product/attr` | 分组关系 upsert |
@@ -221,14 +221,14 @@
 
 ### 6.2 属性分页查询
 
-**GET** `/product/attr/list?attrType=1&catelogId=225&key=屏幕&pageNum=1&pageSize=10`
+**GET** `/product/attr/list?attrType=1&categoryId=225&key=屏幕&pageNum=1&pageSize=10`
 
 **请求参数**（Query，`AttrQueryDTO`）：
 
 | 参数 | 类型 | 必填 | 说明 |
 |------|------|------|------|
 | `attrType` | Integer | 是 | 0-销售属性，1-规格参数，2-两者皆是 |
-| `catelogId` | Long | 否 | 三级分类 ID，不传则查所有分类 |
+| `categoryId` | Long | 否 | 三级分类 ID，不传则查所有分类 |
 | `key` | String | 否 | 模糊匹配属性名 + 可选值 |
 | `pageNum` | Integer | 否 | 默认 1 |
 | `pageSize` | Integer | 否 | 默认 10，最大 100 |
@@ -251,8 +251,8 @@
                 "searchType": 1,
                 "showDesc": 0,
                 "enable": 1,
-                "catelogId": 225,
-                "catelogName": "手机",
+                "categoryId": 225,
+                "categoryName": "手机",
                 "groupId": 1,
                 "groupName": "主体"
             }
@@ -270,11 +270,11 @@
 - `attrType` 必传，按类型过滤（`attr_type=2` 的属性同时属于规格参数和销售属性）：
   - `attrType=1`（规格参数）→ `in(attrType, 1, 2)`
   - `attrType=0`（销售属性）→ `in(attrType, 0, 2)`
-- `catelogId` 非空时 `eq`，为空时不加条件
+- `categoryId` 非空时 `eq`，为空时不加条件
 - `key` 非空时 `like(attrName, key).or().like(valueSelect, key)`
 - 排序：`order by sort asc, id asc`
-- 响应中 `catelogName`、`groupId`、`groupName` 需补充查询：
-  - `catelogName`：批量查 `pms_category`
+- 响应中 `categoryName`、`groupId`、`groupName` 需补充查询：
+  - `categoryName`：批量查 `pms_category`
   - `groupId` / `groupName`：左联 `pms_attr_attrgroup_relation` + `pms_attr_group`（1:1 下每个 attr 最多一条关联）
 
 ### 6.3 属性详情
@@ -297,8 +297,8 @@
         "searchType": 1,
         "showDesc": 0,
         "enable": 1,
-        "catelogId": 225,
-        "catelogName": "手机",
+        "categoryId": 225,
+        "categoryName": "手机",
         "catelogPath": [1, 37, 225],
         "groupId": 1,
         "groupName": "主体"
@@ -308,8 +308,8 @@
 
 **实现要点**：
 - 查属性主记录，不存在抛 `ATTR_NOT_FOUND`
-- `catelogName`：查 `pms_category`
-- `catelogPath`：调用 `ICategoryService.getCatelogPath(catelogId)`
+- `categoryName`：查 `pms_category`
+- `catelogPath`：调用 `ICategoryService.getCatelogPath(categoryId)`
 - `groupId` / `groupName`：查 `pms_attr_attrgroup_relation`（1:1 最多一条）+ `pms_attr_group`
 - 销售属性（`attrType=0`）的 `groupId` / `groupName` 为 null
 
@@ -329,7 +329,7 @@
     "searchType": 1,
     "showDesc": 0,
     "enable": 1,
-    "catelogId": 225,
+    "categoryId": 225,
     "attrGroupId": 1
 }
 ```
@@ -345,7 +345,7 @@
 | `searchType` | Integer | 否 | 0-否，1-是，默认 0 |
 | `showDesc` | Integer | 否 | 0-否，1-是，默认 0 |
 | `enable` | Integer | 否 | 0-禁用，1-启用，默认 1 |
-| `catelogId` | Long | 是 | `@NotNull`，需为三级分类 |
+| `categoryId` | Long | 是 | `@NotNull`，需为三级分类 |
 | `attrGroupId` | Long | 否 | 所属分组；`attrType=0` 时必须为 null |
 | `version` | Integer | 修改时必填 | 乐观锁版本号 |
 
@@ -365,13 +365,13 @@
 **业务逻辑**：
 
 ```
-1. 校验分类存在且 cat_level = 3，否则抛 ATTR_CATELOG_INVALID
+1. 校验分类存在且 level = 3，否则抛 ATTR_CATELOG_INVALID
 2. 校验同分类下属性名唯一（排除逻辑删除），重复抛 ATTR_NAME_DUPLICATE
 3. attrType=0 时若 attrGroupId 非 null，抛 ATTR_TYPE_INVALID（销售属性不可关联分组）
 4. 插入 pms_attr（审计字段自动填充）
 5. 若 attrGroupId 非空（仅 attrType=1/2）：
    a. 1:1 校验：该 attr 不能已归属其他分组（新增场景下 attr 刚创建，必然无关联，可省略）
-   b. 校验 attrGroupId 所属分类与 attr.catelogId 一致
+   b. 校验 attrGroupId 所属分类与 attr.categoryId 一致
    c. 调用 IAttrAttrgroupRelationService.upsertRelation(attrId, attrGroupId) 建立关联
    （第 4、5 步在同一事务 @Transactional）
 ```
@@ -393,7 +393,7 @@
     "searchType": 1,
     "showDesc": 1,
     "enable": 1,
-    "catelogId": 225,
+    "categoryId": 225,
     "attrGroupId": 2,
     "version": 0
 }
@@ -404,7 +404,7 @@
 ```
 1. 查询属性，不存在抛 ATTR_NOT_FOUND
 2. 属性名变更时校验同分类唯一（排除自身 + 逻辑删除）
-3. catelogId 变更时校验新分类为三级分类
+3. categoryId 变更时校验新分类为三级分类
 4. attrType=0 时若 attrGroupId 非 null，抛 ATTR_TYPE_INVALID
 5. updateById（携带 version 触发乐观锁）
 6. 分组关系处理（仅 attrType=1/2）：调用 IAttrAttrgroupRelationService.upsertRelation(attrId, attrGroupId)
@@ -471,8 +471,8 @@ com.mymall.product.dto.attr/
 └── AttrBatchDeleteDTO.java            // 批量删除属性
 
 com.mymall.product.vo.attr/
-├── AttrVO.java                        // 属性详情（含 groupId/groupName/catelogName/catelogPath）
-└── AttrListVO.java                    // 属性列表项（含 catelogName/groupId/groupName）
+├── AttrVO.java                        // 属性详情（含 groupId/groupName/categoryName/catelogPath）
+└── AttrListVO.java                    // 属性列表项（含 categoryName/groupId/groupName）
 ```
 
 ### 7.1 AttrSaveDTO
@@ -519,7 +519,7 @@ public class AttrSaveDTO {
 
     @NotNull(message = "所属分类ID不能为空")
     @Schema(description = "所属三级分类ID")
-    private Long catelogId;
+    private Long categoryId;
 
     @Schema(description = "所属分组ID（attrType=0 时必须为 null）")
     private Long attrGroupId;
@@ -544,7 +544,7 @@ public class AttrQueryDTO extends PageQuery {
     private Integer attrType;
 
     @Schema(description = "三级分类ID（不传则查所有分类）")
-    private Long catelogId;
+    private Long categoryId;
 
     @Schema(description = "模糊匹配属性名 + 可选值")
     private String key;
@@ -579,8 +579,8 @@ public class AttrVO {
     private Integer searchType;
     private Integer showDesc;
     private Integer enable;
-    private Long catelogId;
-    private String catelogName;
+    private Long categoryId;
+    private String categoryName;
     /** 分类完整路径：[一级id, 二级id, 三级id] */
     private List<Long> catelogPath;
     /** 所属分组ID（销售属性为 null） */
@@ -605,8 +605,8 @@ public class AttrListVO {
     private Integer searchType;
     private Integer showDesc;
     private Integer enable;
-    private Long catelogId;
-    private String catelogName;
+    private Long categoryId;
+    private String categoryName;
     private Long groupId;
     private String groupName;
 }
@@ -621,10 +621,10 @@ public class AttrListVO {
 ```java
 public interface IAttrService extends IService<Attr> {
 
-    /** 属性分页查询（attrType 必传，catelogId 可选） */
+    /** 属性分页查询（attrType 必传，categoryId 可选） */
     PageVO<AttrListVO> pageQuery(AttrQueryDTO query);
 
-    /** 属性详情（含 catelogName + catelogPath + groupId + groupName） */
+    /** 属性详情（含 categoryName + catelogPath + groupId + groupName） */
     AttrVO getAttrDetail(Long id);
 
     /** 新增属性（若传 attrGroupId 自动建关联） */
@@ -700,7 +700,7 @@ ATTR_BATCH_DELETE_EMPTY(54005, "批量删除 id 列表不能为空"),
 ### ==================== 规格参数 / 销售属性 ====================
 
 ### 1. 规格参数分页查询
-GET http://localhost:1000/api/product/attr/list?attrType=1&catelogId=225&pageNum=1&pageSize=10
+GET http://localhost:1000/api/product/attr/list?attrType=1&categoryId=225&pageNum=1&pageSize=10
 
 ### 2. 销售属性分页查询
 GET http://localhost:1000/api/product/attr/list?attrType=0&pageNum=1&pageSize=10
@@ -721,7 +721,7 @@ Content-Type: application/json
     "searchType": 1,
     "showDesc": 0,
     "enable": 1,
-    "catelogId": 225,
+    "categoryId": 225,
     "attrGroupId": 1
 }
 
@@ -738,7 +738,7 @@ Content-Type: application/json
     "searchType": 1,
     "showDesc": 0,
     "enable": 1,
-    "catelogId": 225
+    "categoryId": 225
 }
 
 ### 6. 修改属性（切换分组）
@@ -755,7 +755,7 @@ Content-Type: application/json
     "searchType": 1,
     "showDesc": 1,
     "enable": 1,
-    "catelogId": 225,
+    "categoryId": 225,
     "attrGroupId": 2,
     "version": 0
 }
@@ -777,7 +777,7 @@ Content-Type: application/json
 
 | 项目 | 要求 |
 |------|------|
-| 性能 | 分页查询 < 200ms（命中 `idx_catelog_id` / `idx_catelog_attr_type`）；详情聚合查询 < 300ms |
+| 性能 | 分页查询 < 200ms（命中 `idx_category_id` / `idx_category_attr_type`）；详情聚合查询 < 300ms |
 | 并发 | 属性为低频写操作，乐观锁（`@Version`）即可 |
 | 缓存 | 属性定义按分类缓存到 Redis（TTL 30 分钟），写操作后主动失效 |
 | 事务 | 新增属性跨 `pms_attr` + `pms_attr_attrgroup_relation` 双表，修改属性跨 3 表（含冗余刷新），必须 `@Transactional` |
@@ -799,4 +799,4 @@ Content-Type: application/json
 | 4 | 扩展 IAttrService + 实现 AttrServiceImpl（含分组关系处理 + 改名刷新冗余） | `mall-product/.../service/` |
 | 5 | 创建 AttrController（属性 CRUD 5 个接口） | `mall-product/.../controller/AttrController.java` |
 | 6 | 创建 HTTP 调试文件 | `http/product-attr-demo.http` |
-| 7 | 补充索引 SQL（uk_catelog_name / idx_catelog_attr_type） | `init/mysql/mymall_pms.sql` |
+| 7 | 补充索引 SQL（uk_category_name / idx_category_attr_type） | `init/mysql/mymall_pms.sql` |

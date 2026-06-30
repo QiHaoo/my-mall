@@ -30,10 +30,10 @@ public interface ICategoryBrandRelationService extends IService<CategoryBrandRel
     /**
      * 移除品牌-分类关联（逻辑删除）
      *
-     * @param brandId   品牌ID
-     * @param catelogId 分类ID
+     * @param brandId    品牌ID
+     * @param categoryId 分类ID
      */
-    void removeRelation(Long brandId, Long catelogId);
+    void removeRelation(Long brandId, Long categoryId);
 
     /**
      * 品牌改名时同步刷新关联表冗余品牌名
@@ -46,8 +46,8 @@ public interface ICategoryBrandRelationService extends IService<CategoryBrandRel
     /**
      * 分类改名时同步刷新关联表冗余分类名
      *
-     * @param catelogId     分类ID
-     * @param newCatelogName 新分类名
+     * @param categoryId    分类ID
+     * @param newCategoryName 新分类名
      */
-    void updateCatelogName(Long catelogId, String newCatelogName);
+    void updateCategoryName(Long categoryId, String newCategoryName);
 }

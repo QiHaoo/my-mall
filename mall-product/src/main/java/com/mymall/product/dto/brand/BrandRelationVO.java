@@ -20,8 +20,8 @@ public class BrandRelationVO {
     private String brandName;
 
     @Schema(description = "分类ID")
-    private Long catelogId;
+    private Long categoryId;
 
     @Schema(description = "分类名（冗余）")
-    private String catelogName;
+    private String categoryName;
 }

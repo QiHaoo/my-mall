@@ -21,7 +21,7 @@ public class CategorySaveDTO {
 
     @NotNull(message = "父分类ID不能为空")
     @Schema(description = "父分类ID，一级分类传 0", example = "1")
-    private Long parentCid;
+    private Long parentId;
 
     @Min(value = 0, message = "排序值不能小于 0")
     @Schema(description = "排序值，越小越靠前", example = "5")

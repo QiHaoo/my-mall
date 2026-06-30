@@ -27,12 +27,12 @@ public class Category extends BaseEntity {
     /**
      * 父分类id[0-一级分类]
      */
-    private Long parentCid;
+    private Long parentId;
 
     /**
      * 层级[1/2/3]
      */
-    private Integer catLevel;
+    private Integer level;
 
     /**
      * 是否显示[0-不显示 1-显示]

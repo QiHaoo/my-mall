@@ -6,10 +6,10 @@
  * 避免雪花 ID（19 位）在 JS 中精度丢失。
  */
 export interface CategoryVO {
-  catId: string
+  id: string
   name: string
-  parentCid: string
-  catLevel: number
+  parentId: string
+  level: number
   showStatus: number
   sort: number
   icon?: string
@@ -23,7 +23,7 @@ export interface CategoryVO {
  */
 export interface CategorySaveDTO {
   name: string
-  parentCid: string
+  parentId: string
   sort?: number
   icon?: string
   productUnit?: string
@@ -33,7 +33,7 @@ export interface CategorySaveDTO {
  * 修改分类 DTO（对应后端 CategoryUpdateDTO）
  */
 export interface CategoryUpdateDTO {
-  catId: string
+  id: string
   name?: string
   sort?: number
   icon?: string
@@ -44,9 +44,9 @@ export interface CategoryUpdateDTO {
  * 拖拽排序项（对应后端 CategorySortDTO.SortItem）
  */
 export interface CategorySortItem {
-  catId: string
-  parentCid: string
-  catLevel: number
+  id: string
+  parentId: string
+  level: number
   sort: number
 }
 
@@ -100,6 +100,6 @@ export interface BrandRelationVO {
   id: string
   brandId: string
   brandName: string
-  catelogId: string
-  catelogName: string
+  categoryId: string
+  categoryName: string
 }

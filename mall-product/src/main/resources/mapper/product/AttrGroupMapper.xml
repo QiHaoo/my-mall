@@ -8,7 +8,7 @@
         <result column="sort" property="sort" />
         <result column="descript" property="descript" />
         <result column="icon" property="icon" />
-        <result column="catelog_id" property="catelogId" />
+        <result column="category_id" property="categoryId" />
     </resultMap>
 
 </mapper>

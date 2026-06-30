@@ -356,7 +356,7 @@ class BrandControllerTest {
     // ==================== 分类下品牌 ====================
 
     @Nested
-    @DisplayName("GET /product/brand/by-category/{catelogId}")
+    @DisplayName("GET /product/brand/by-category/{categoryId}")
     class ListByCategory {
 
         @Test

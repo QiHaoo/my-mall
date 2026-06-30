@@ -12,7 +12,7 @@
 SPU（Standard Product Unit）是商品信息聚合的最小单位，描述"这一类商品"的共同特征。SPU 不可直接售卖，没有价格和库存，只是"商品档案"。
 
 SPU 依赖分类、品牌、属性三类基础数据：
-- 归属一个**三级分类**（`catalog_id`），决定可用属性范围
+- 归属一个**三级分类**（`category_id`），决定可用属性范围
 - 归属一个**品牌**（`brand_id`），品牌必须属于该分类
 - 挂载多个**规格参数值**（基本属性取值），属性必须属于该分类
 
@@ -48,7 +48,7 @@ SPU 的变更（删除、上下架）必须评估对以上模块的影响。
 #### C1 SPU 分页查询
 
 - 仅返回 `is_deleted = 0` 的 SPU
-- 支持按 `catalog_id`、`brand_id`、`publish_status`、`spu_name`（模糊）筛选
+- 支持按 `category_id`、`brand_id`、`publish_status`、`spu_name`（模糊）筛选
 - 按 `id` 降序排列（最新商品在前）
 - `pageNum` 默认 1，`pageSize` 默认 10、最大 100
 
@@ -59,7 +59,7 @@ SPU 的变更（删除、上下架）必须评估对以上模块的影响。
 
 #### C3 新增 SPU
 
-- `catalog_id` 必须为三级分类，`brand_id` 必须存在且属于该分类（查 `pms_category_brand_relation`）
+- `category_id` 必须为三级分类，`brand_id` 必须存在且属于该分类（查 `pms_category_brand_relation`）
 - 规格参数值：仅 `attr_type ∈ {1,2}` 的属性可填；`attr_id` 必须属于 SPU 的分类
 - SPU 默认 `publish_status=0`（下架），需手动上架后才可被检索/购买
 - 主表 + 介绍（`pms_spu_info_desc`）+ 图片集 + 规格参数值，**同一事务**写入
@@ -92,7 +92,7 @@ SPU 的变更（删除、上下架）必须评估对以上模块的影响。
 
 | 表 | 关键字段 | 设计要点 |
 |----|---------|---------|
-| `pms_spu_info` | `catalog_id`、`brand_id`、`publish_status`、`weight` | 主表，索引 `idx_catalog_id` / `idx_brand_id` |
+| `pms_spu_info` | `category_id`、`brand_id`、`publish_status`、`weight` | 主表，索引 `idx_category_id` / `idx_brand_id` |
 | `pms_spu_info_desc` | `spu_id`（UK）、`decript` | 1:1 扩展表，富文本拆表 |
 | `pms_spu_images` | `spu_id`、`img_url`、`img_sort`、`default_img` | 图片集，按 `spu_id` 索引 |
 | `pms_product_attr_value` | `spu_id`、`attr_id`、`attr_name`、`attr_value`、`quick_show` | 规格参数值，冗余 `attr_name` |
@@ -130,7 +130,7 @@ SPU 的变更（删除、上下架）必须评估对以上模块的影响。
 {
     "spuName": "iPhone 15",
     "spuDescription": "Apple iPhone 15",
-    "catalogId": 225,
+    "categoryId": 225,
     "brandId": 1,
     "weight": 171.0,
     "publishStatus": 0,
@@ -149,7 +149,7 @@ SPU 的变更（删除、上下架）必须评估对以上模块的影响。
 | 字段 | 类型 | 必填 | 校验规则 |
 |------|------|------|---------|
 | `spuName` | String | 是 | `@NotBlank`，最大 200 |
-| `catalogId` | Long | 是 | 存在的三级分类 |
+| `categoryId` | Long | 是 | 存在的三级分类 |
 | `brandId` | Long | 是 | 存在且属于该分类 |
 | `weight` | BigDecimal | 否 | `@DecimalMin("0")` |
 | `publishStatus` | Integer | 否 | 0/1，默认 0 |
@@ -160,7 +160,7 @@ SPU 的变更（删除、上下架）必须评估对以上模块的影响。
 **业务逻辑**：
 
 ```
-1. 校验 catalogId 为三级分类
+1. 校验 categoryId 为三级分类
 2. 校验 brandId 属于该分类（pms_category_brand_relation）
 3. 校验 baseAttrs 中每个 attrId 属于该分类且 attr_type ∈ {1,2}
 4. 插入 pms_spu_info（审计字段自动填充）
@@ -215,7 +215,7 @@ public class SpuSaveDTO {
     private String spuDescription;
 
     @NotNull(message = "所属分类不能为空")
-    private Long catalogId;
+    private Long categoryId;
 
     @NotNull(message = "品牌不能为空")
     private Long brandId;
@@ -249,7 +249,7 @@ public class SpuSaveDTO {
 | 错误码 | 枚举值 | 消息 | 触发场景 |
 |--------|--------|------|---------|
 | 54020 | `SPU_NOT_FOUND` | 商品不存在 | ID 查询不到 |
-| 54021 | `SPU_CATEGORY_INVALID` | 分类不存在或非三级分类 | `catalogId` 校验失败 |
+| 54021 | `SPU_CATEGORY_INVALID` | 分类不存在或非三级分类 | `categoryId` 校验失败 |
 | 54022 | `SPU_BRAND_INVALID` | 品牌不属于该分类 | `brandId` 与分类不匹配 |
 | 54023 | `SPU_HAS_SKUS` | 商品下存在 SKU，无法删除 | 删除 SPU 时有 SKU |
 | 54024 | `SPU_ATTR_INVALID` | 规格参数不属于该分类或类型不匹配 | `baseAttrs` 校验失败 |

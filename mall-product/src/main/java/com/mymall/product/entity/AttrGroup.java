@@ -38,5 +38,5 @@ public class AttrGroup extends BaseEntity {
     /**
      * 所属分类id
      */
-    private Long catelogId;
+    private Long categoryId;
 }
