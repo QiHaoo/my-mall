@@ -222,6 +222,21 @@ nav:
           - 通用组件与 Composables: learn-docs/frontend/08-composables-components.md
           - API 层设计: learn-docs/frontend/09-api-layer.md
           - 功能页面实现: learn-docs/frontend/10-feature-pages.md
+      - Spec Kit:
+          - 概述: learn-docs/spec-kit/README.md
+          - SDD 方法论: learn-docs/spec-kit/01-sdd-methodology.md
+          - 快速上手: learn-docs/spec-kit/02-getting-started.md
+          - 模板与质量: learn-docs/spec-kit/03-templates-and-quality.md
+          - Constitution: learn-docs/spec-kit/04-constitution.md
+          - 定制系统: learn-docs/spec-kit/05-customization-system.md
+          - 集成与架构: learn-docs/spec-kit/06-integrations-and-architecture.md
+      - Superpowers:
+          - 概述: learn-docs/superpowers/README.md
+          - 总览: learn-docs/superpowers/01-overview.md
+          - 架构: learn-docs/superpowers/02-architecture.md
+          - Skills 库: learn-docs/superpowers/03-skills-library.md
+          - 工作流: learn-docs/superpowers/04-workflow.md
+          - Skill 设计: learn-docs/superpowers/05-skill-design.md
   - 归档:
       - 2020 vs 2026 架构分析: other/architecture-analysis-2020-vs-2026.md
       - 架构分析与现代化: other/architecture-analysis-and-modernization.md
