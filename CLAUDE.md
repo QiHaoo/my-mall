@@ -157,6 +157,8 @@ com.mymall.common/
 | `docs/development-workflow.md` | AI 辅助开发流程规范（轻量 Spec + TDD，三阶段流程、核心/样板判定、配套 skill） |
 | `docs/controller-specification.md` | Controller 接口编写规范（参数校验、校验分组、返回值、URL 设计、分页、幂等性、检查清单） |
 | `docs/coding-standards.md` | 编码规范（分层架构、Service 事务、异常体系、GlobalExceptionHandler、日志、DTO/VO/Entity、命名规范） |
+| `docs/standards/security-specification.md` | 安全与认证授权规范（OAuth2 流程、JWT 设计、RBAC、敏感数据保护、密钥管理、攻击防护） |
+| `docs/standards/security-integration-guide.md` | 认证授权对接指南（业务模块如何使用 UserContext / @CurrentUser / Feign 透传，鉴权写法、错误码、迁移路径） |
 | `docs/testing-specification.md` | 后端测试规范（测试分层、各层写法、AssertJ、命名规范、依赖配置、提交前自查清单） |
 | `docs/feign-config.md` | 远程调用（Feign）配置说明（依赖、@FeignClient 规范、调用链路、测试配置） |
 | `docs/gateway-config-guide.md` | API 网关配置指南（路由规则、全局过滤器、断言演示、生产配置） |

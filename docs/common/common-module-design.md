@@ -24,12 +24,20 @@ com.mymall.common/
 ├── handler/
 │   └── MyMetaObjectHandler.java  # 公共字段自动填充
 ├── util/
-│   ├── UserContext.java          # 请求级用户上下文（ThreadLocal）
+│   ├── UserContext.java          # 请求级用户上下文（ThreadLocal<UserInfo>）
+│   ├── UserInfo.java             # 登录用户身份（record）
 │   └── PageUtils.java            # 分页转换工具（PageQuery→Page、Page→PageVO）
+├── web/
+│   ├── UserContextFilter.java        # 解析 X-User-* 请求头 → UserContext
+│   ├── CurrentUser.java              # @CurrentUser 注解（Controller 入参）
+│   └── CurrentUserArgumentResolver.java  # 解析 @CurrentUser 参数
+├── feign/
+│   └── FeignUserContextAutoConfiguration.java  # Feign 透传 X-User-* 头
 ├── config/
 │   ├── MybatisPlusConfig.java    # MP 拦截器 + 全局配置
 │   ├── SpringDocConfig.java      # OpenAPI 文档配置
 │   ├── JacksonConfig.java        # 序列化配置（Long→String/时间格式）
+│   ├── WebMvcConfig.java         # 注册 HandlerMethodArgumentResolver
 │   └── (各模块自有 config 不放此处)
 └── oss/
     ├── OssProperties.java        # OSS 配置属性
@@ -80,8 +88,13 @@ mall-common/src/main/resources/
 | `BaseEntity` | `entity` | 实体基类（主键/审计/逻辑删除/乐观锁） | §3.5 |
 | `MyMetaObjectHandler` | `handler` | 审计字段自动填充 | §3.6 |
 | `PageQuery` | `query` | 分页查询基类 | §3.7 |
-| `UserContext` | `util` | 请求级用户上下文（ThreadLocal） | §3.8 |
+| `UserContext` | `util` | 请求级用户上下文（ThreadLocal&lt;UserInfo&gt;） | §3.8 |
+| `UserInfo` | `util` | 登录用户身份 record（userId/username/roles） | §3.8 |
 | `PageUtils` | `util` | 分页转换工具（PageQuery→Page、Page→PageVO） | §3.8.1 |
+| `UserContextFilter` | `web` | 解析 X-User-* 请求头写入 UserContext | §3.11 |
+| `@CurrentUser` / `CurrentUserArgumentResolver` | `web` | Controller 入参声明式获取当前用户 | §3.11 |
+| `FeignUserContextAutoConfiguration` | `feign` | Feign 调用透传 X-User-* 头 | §3.11 |
+| `WebMvcConfig` | `config` | 注册自定义 ArgumentResolver | §3.9 |
 | `MybatisPlusConfig` / `SpringDocConfig` / `JacksonConfig` | `config` | 全局配置类 | §3.9 |
 | `OssTemplate` / `OssProperties` / `OssAutoConfiguration` | `oss` | 对象存储 SDK（MinIO 封装） | §3.10 |
 
@@ -183,11 +196,30 @@ new BizException(40010, "该优惠券已被领完")
 
 `pageNum`（默认 1）、`pageSize`（默认 10，上限 500）。分页 DTO 继承此类。分页插件 `PaginationInnerInterceptor` 已设 `maxLimit=500` 兜底。
 
-### 3.8 UserContext — 用户上下文
+### 3.8 UserContext / UserInfo — 用户上下文
 
-`ThreadLocal<Long>` 存当前请求用户 ID。网关鉴权后通过 `X-User-Id` 头透传，各服务 `UserContextFilter`（在 mall-oss 等服务内）解析写入。Service 层调 `UserContext.getUserId()` 获取，无需逐层透传。
+`UserContext` 基于 `ThreadLocal<UserInfo>` 存储当前请求的登录用户身份。网关鉴权后通过 `X-User-Id` / `X-User-Name` / `X-User-Roles` 请求头透传，各服务的 `UserContextFilter`（见 §3.11）解析组装为 `UserInfo` 写入 `UserContext`。Service 层调 `UserContext.getUserId()` 或 `UserContext.get()` 获取，无需逐层透传。
 
-> **线程池注意**：普通 ThreadLocal 在 `@Async`/线程池中不传递，异步逻辑需显式传 userId 或升级为 `TransmittableThreadLocal`。当前业务均在请求线程内完成。
+**UserInfo**（record，不可变）：
+```java
+public record UserInfo(Long userId, String username, List<String> roles) {
+    public boolean hasRole(String role) { ... }
+}
+```
+
+**UserContext**：
+```java
+public final class UserContext {
+    public static void set(UserInfo user);
+    public static UserInfo get();          // 完整信息
+    public static Long getUserId();        // 仅 userId（兼容旧调用点）
+    public static void clear();
+}
+```
+
+> **保留 `getUserId()` 静态方法的理由**：`MyMetaObjectHandler` 等已存在的调用点仅需 userId，避免本次基础设施升级引起大规模改动。需要完整用户信息时调 `get()`。
+
+> **线程池注意**：普通 ThreadLocal 在 `@Async`/线程池中不传递，异步逻辑需显式传 userId 或升级为 `TransmittableThreadLocal`。当前业务均在请求线程内完成。详见 [learn-docs/common/07-user-context.md](../learn-docs/common/07-user-context.md)。
 
 ### 3.8.1 PageUtils — 分页转换工具
 
@@ -212,11 +244,54 @@ return PageUtils.toPageVO(result, voList);
 
 `OssProperties`（endpoint/publicBaseUrl/region/上传限制）、`OssTemplate`（MinIO Presigned URL 签发/删除/statObject）、`OssAutoConfiguration`（按 `oss.*` 配置装配，minio 依赖 optional）。供 mall-oss 服务使用，设计详见 [对象存储设计](../mall-product/object-storage-design.md)。
 
+### 3.11 用户上下文基础设施
+
+由四个组件协作，串起「网关 → 业务服务 → Feign 下游」的用户身份传递链路。业务模块通过 `@CurrentUser` 或 `UserContext` 获取当前用户，无需关心底层透传细节。对接指南详见 [security-integration-guide.md](../standards/security-integration-guide.md)。
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│ 网关（待落地）                                                    │
+│   解析 JWT → 写入 X-User-Id / X-User-Name / X-User-Roles 请求头   │
+└──────────────────────────────┬───────────────────────────────────┘
+                               │ HTTPS
+                               ▼
+┌──────────────────────────────────────────────────────────────────┐
+│ 业务服务（mall-product / mall-order / ...）                       │
+│                                                                  │
+│  请求 → UserContextFilter                                        │
+│         解析 X-User-* 头 → 组装 UserInfo → UserContext.set()     │
+│                                                                  │
+│  Controller 入参 @CurrentUser Long userId                        │
+│              → CurrentUserArgumentResolver 从 UserContext 取出   │
+│                                                                  │
+│  Service 层 UserContext.getUserId() / UserContext.get()          │
+│                                                                  │
+│  Feign 调用 → FeignUserContextInterceptor                        │
+│              从 UserContext 取出 → 写入 X-User-* 头              │
+│                                                                  │
+│  请求结束 → UserContextFilter finally 块 UserContext.clear()     │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+| 组件 | 职责 | 自动装配方式 |
+|------|------|------------|
+| `UserContextFilter` | 解析 `X-User-Id` / `X-User-Name` / `X-User-Roles` 请求头，组装 `UserInfo` 写入 `UserContext`；请求结束时清理 ThreadLocal | `@Component` + `MybatisPlusConfig` 的 `@ComponentScan("com.mymall.common")` 扫描 |
+| `@CurrentUser` + `CurrentUserArgumentResolver` | Controller 入参声明式获取当前用户，支持 `Long` / `UserInfo` 两种类型 | `WebMvcConfig` 注册 `addArgumentResolvers` |
+| `WebMvcConfig` | Spring MVC 扩展配置，注册自定义 `HandlerMethodArgumentResolver` | `@Configuration` + ComponentScan |
+| `FeignUserContextAutoConfiguration` | Feign 调用前往请求头写入 `X-User-*`，下游服务解析得到调用者身份 | `@AutoConfiguration` + `AutoConfiguration.imports` + `@ConditionalOnClass(RequestInterceptor)` |
+
+**信任边界**：业务服务信任网关透传的 `X-User-*` 请求头，不二次校验 JWT 签名。生产环境须确保：
+1. 网关在转发前覆盖客户端传入的 `X-User-*` 头（即使伪造也无效）
+2. 服务间网络隔离（K8s NetworkPolicy），外部无法直接访问业务服务
+
+**当前阶段**：网关鉴权过滤器尚未落地，未登录请求 `userId` 为 null（不影响匿名场景如 OSS 直传）。认证授权模块落地后，`X-User-*` 头由网关注入，本组组件无需改动。
+
 ---
 
 ## 四、依赖管理
 
-- `mall-common/pom.xml`：Web / Validation / Nacos Config / MyBatis-Plus / MySQL / SpringDoc / hutool / Lombok / MinIO(optional)。
+- `mall-common/pom.xml`：Web / Validation / Nacos Config / MyBatis-Plus / MySQL / SpringDoc / hutool / Lombok / MinIO(optional) / OpenFeign(optional)。
+- **OpenFeign 标记为 optional**：仅供 `FeignUserContextAutoConfiguration` 编译使用，业务模块自行引入 `spring-cloud-starter-openfeign`，`@ConditionalOnClass` 控制装配。
 - **代码生成器依赖**（`mybatis-plus-generator` + `velocity`）为 `test` scope，不进 runtime classpath。
 - 各业务模块通过工程依赖引入 `mall-common`，自动获得上述全部能力。
 
@@ -228,6 +303,7 @@ return PageUtils.toPageVO(result, voList);
 |---------|---------|
 | [编码规范](../standards/coding-standards.md) | BizException/GlobalExceptionHandler/BaseEntity/日志/DTO/命名 |
 | [Controller 规范](../standards/controller-specification.md) | R/校验/HTTP 200 策略 |
+| [认证授权对接指南](../standards/security-integration-guide.md) | UserContext/UserInfo/UserContextFilter/@CurrentUser/FeignUserContextAutoConfiguration |
 | [表设计规范](../standards/table-design-specification.md) | BaseEntity 对应的 DDL 列 |
 | [MyBatis-Plus 代码生成规范](../standards/mybatis-plus-codegen-guide.md) | 实体继承 BaseEntity 的生成 |
 | [对象存储设计](../mall-product/object-storage-design.md) | oss 包 |
@@ -239,3 +315,4 @@ return PageUtils.toPageVO(result, voList);
 - v1（2026-06-22）：P0+P1 补齐——自动装配修复、BizException/ResultCode/GlobalExceptionHandler、PageQuery、BaseEntity @TableLogic、SpringDoc、hutool 统一。
 - v1.1（2026-06-23）：OSS 安全闭环增强（UserContext + Content-Type 校验 + 回调幂等）。
 - v1.2（2026-06-24）：生产级闭环——统一 200+业务码、补全异常处理器、Jackson Long→String、BaseEntity 审计字段+@Version、MetaObjectHandler 填充补全、MybatisPlusConfig 全局配置、生成器依赖移出 runtime。
+- v1.3（2026-07-01）：用户上下文基础设施补全——`UserContext` 升级为 `ThreadLocal<UserInfo>`（新增 `UserInfo` record，保留 `getUserId()` 兼容）、`UserContextFilter` 从 mall-oss 迁入 common 并解析三个头、新增 `@CurrentUser` 注解 + `CurrentUserArgumentResolver`、新增 `WebMvcConfig` 注册解析器、新增 `FeignUserContextAutoConfiguration` 透传 Feign 用户上下文。

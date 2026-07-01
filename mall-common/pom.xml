@@ -94,6 +94,14 @@
             <artifactId>lombok</artifactId>
         </dependency>
 
+        <!-- OpenFeign（optional，仅供 FeignUserContextAutoConfiguration 编译使用） -->
+        <!-- 业务模块自行引入 spring-cloud-starter-openfeign，@ConditionalOnClass 控制装配 -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-openfeign</artifactId>
+            <optional>true</optional>
+        </dependency>
+
         <!-- 测试 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

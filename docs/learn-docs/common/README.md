@@ -15,3 +15,4 @@
 | 请求参数基础设施 | `PageQuery` `PageUtils` `Create` `Update` | 分页参数统一 + 分页转换工具 + 校验分组设计 | [04-query-validation.md](./04-query-validation.md) |
 | 全局配置类 | `MybatisPlusConfig` `JacksonConfig` `SpringDocConfig` | 三个配置类各自解决什么问题 | [05-global-config.md](./05-global-config.md) |
 | 对象存储 SDK | `OssTemplate` `OssProperties` `OssAutoConfiguration` | Spring Boot starter 设计模式实战 | [06-oss-sdk.md](./06-oss-sdk.md) |
+| 用户上下文基础设施 | `UserContext` `UserInfo` `UserContextFilter` `@CurrentUser` `FeignUserContextAutoConfiguration` | ThreadLocal + ArgumentResolver + Feign 拦截器如何串起调用链 | [07-user-context.md](./07-user-context.md) |

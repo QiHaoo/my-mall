@@ -176,6 +176,7 @@ com.mymall.common/
 | `docs/standards/development-workflow.md` | AI 辅助开发流程规范（轻量 Spec + TDD，三阶段流程、核心/样板判定、配套 skill） |
 | `docs/standards/controller-specification.md` | Controller 接口编写规范（参数校验、校验分组、返回值、URL 设计、分页、幂等性、检查清单） |
 | `docs/standards/security-specification.md` | 安全与认证授权规范（OAuth2 流程、JWT 设计、RBAC 鉴权、敏感数据保护、密钥管理、攻击防护） |
+| `docs/standards/security-integration-guide.md` | 认证授权对接指南（业务模块如何使用 UserContext / @CurrentUser / Feign 透传，鉴权写法、错误码、迁移路径） |
 | `docs/standards/coding-standards.md` | 编码规范（分层架构、Service 事务、异常体系、GlobalExceptionHandler、日志、DTO/VO/Entity、命名规范） |
 | `docs/standards/testing-specification.md` | 测试规范（测试分层、各层写法、AssertJ、E2E、公共组件/网关测试、覆盖率门禁 Jacoco、CI 集成、前端测试体系规划、提交前自查清单、待补充事项行动清单） |
 | `docs/standards/logging-specification.md` | 日志输出规范（整体架构、MDC 链路追踪、logback-spring.xml 配置模板、各环境差异、文件滚动归档、MyBatis SQL 日志、Loki 采集、敏感信息脱敏） |

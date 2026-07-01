@@ -119,6 +119,8 @@ nav:
       - AI 辅助开发流程: standards/development-workflow.md
       - MyBatis-Plus 代码生成规范: standards/mybatis-plus-codegen-guide.md
       - MyBatis-Plus ORM 实践笔记: standards/mybatis-plus-orm-notes.md
+      - 安全与认证授权规范: standards/security-specification.md
+      - 认证授权对接指南: standards/security-integration-guide.md
       - CI/CD 总体设计: standards/ci-cd/overview.md
       - 后端 CI 工作流设计: standards/ci-cd/backend-ci.md
       - 前端 CI 工作流设计: standards/ci-cd/frontend-ci.md
@@ -210,6 +212,7 @@ nav:
           - 请求参数基础设施: learn-docs/common/04-query-validation.md
           - 全局配置类: learn-docs/common/05-global-config.md
           - 对象存储 SDK: learn-docs/common/06-oss-sdk.md
+          - 用户上下文基础设施: learn-docs/common/07-user-context.md
       - 前端开发:
           - 概述: learn-docs/frontend/README.md
           - Vue3 基础: learn-docs/frontend/01-vue3-basics.md

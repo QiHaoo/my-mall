@@ -7,9 +7,11 @@
 > **技术选型**：Spring Authorization Server 1.3 + Spring Security 6.4 + JWT（HS256 / RS256）+ Redis（Token 黑名单）。
 >
 > **相关文档**：
+> - 业务模块对接指南：[security-integration-guide.md](security-integration-guide.md) —— 业务模块如何使用 UserContext / @CurrentUser / Feign 透传
 > - 网关配置：[gateway-config-guide.md](../microservice/gateway-config-guide.md) §8 JWT 鉴权
 > - 编码规范：[coding-standards.md](coding-standards.md) §5 日志规范（敏感信息不记录）
 > - Controller 规范：[controller-specification.md](controller-specification.md) §8 幂等性
+> - 公共模块设计：[common-module-design.md](../common/common-module-design.md) §3.11 用户上下文基础设施
 
 ---
 

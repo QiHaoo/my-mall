@@ -186,13 +186,19 @@ MyBatis-Plus 执行 INSERT/UPDATE → 触发 MyMetaObjectHandler
 
 ```java
 public final class UserContext {
-    private static final ThreadLocal<Long> USER_ID = new ThreadLocal<>();
+    private static final ThreadLocal<UserInfo> HOLDER = new ThreadLocal<>();
 
-    public static void setUserId(Long userId) { USER_ID.set(userId); }
-    public static Long getUserId() { return USER_ID.get(); }
-    public static void clear() { USER_ID.remove(); }
+    public static void set(UserInfo user) { HOLDER.set(user); }
+    public static UserInfo get() { return HOLDER.get(); }
+    public static Long getUserId() {                       // 兼容方法，供 MyMetaObjectHandler 使用
+        UserInfo u = HOLDER.get();
+        return u == null ? null : u.userId();
+    }
+    public static void clear() { HOLDER.remove(); }
 }
 ```
+
+> `UserContext` 已升级为 `ThreadLocal<UserInfo>`（v1.3，2026-07-01），存储完整用户身份（userId / username / roles）。`getUserId()` 静态方法保留，避免影响 `MyMetaObjectHandler` 等已存在的调用点。完整设计原理见 [07-user-context.md](./07-user-context.md)。
 
 ThreadLocal 的核心特性：**每个线程有自己独立的变量副本**，线程之间互不干扰。
 
@@ -247,7 +253,7 @@ public void asyncTask() {
 
 ## UserContextFilter：请求头解析
 
-> 注：`UserContextFilter` 位于 `mall-oss` 模块，不属于 `mall-common`，但它是 `UserContext` 的搭档，放在一起讲解。
+> 注：`UserContextFilter` 位于 `mall-common/web` 包，所有业务模块通过自动装配共享。`UserContext` 升级为 `ThreadLocal<UserInfo>` 后，本过滤器解析三个头（`X-User-Id` / `X-User-Name` / `X-User-Roles`）组装为 `UserInfo` 写入上下文。详见 [07-user-context.md](./07-user-context.md)。
 
 ### 工作流程
 
@@ -257,16 +263,22 @@ public void asyncTask() {
 public class UserContextFilter extends OncePerRequestFilter {
 
     public static final String USER_ID_HEADER = "X-User-Id";
+    public static final String USER_NAME_HEADER = "X-User-Name";
+    public static final String USER_ROLES_HEADER = "X-User-Roles";
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, ...) {
-        String userIdStr = request.getHeader(USER_ID_HEADER);
-        if (userIdStr != null && !userIdStr.isBlank()) {
-            try {
-                UserContext.setUserId(Long.parseLong(userIdStr));
-            } catch (NumberFormatException e) {
-                logger.warn("非法的 X-User-Id 请求头: " + userIdStr);
-            }
+        UserInfo userInfo = parseUserInfo(request);
+        if (userInfo != null) {
+            UserContext.set(userInfo);  // 升级为 UserInfo
+        }
+        try {
+            filterChain.doFilter(request, response);
+        } finally {
+            UserContext.clear();
+        }
+    }
+}
         }
         try {
             filterChain.doFilter(request, response);
@@ -315,8 +327,8 @@ sequenceDiagram
     participant MP as MyBatis-Plus
     participant MMH as MyMetaObjectHandler
 
-    GW->>F: 请求 + X-User-Id: 123
-    F->>UC: setUserId(123)
+    GW->>F: 请求 + X-User-Id: 123 / X-User-Name: alice / X-User-Roles: ROLE_USER
+    F->>UC: set(UserInfo{123, alice, [ROLE_USER]})
     F->>C: 放行请求
     C->>S: createBrand(brandDTO)
     S->>MP: brandMapper.insert(brand)

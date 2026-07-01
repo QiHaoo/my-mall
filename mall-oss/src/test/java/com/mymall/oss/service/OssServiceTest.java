@@ -4,6 +4,7 @@ import com.mymall.common.exception.BizException;
 import com.mymall.common.exception.ResultCode;
 import com.mymall.common.oss.OssTemplate;
 import com.mymall.common.util.UserContext;
+import com.mymall.common.util.UserInfo;
 import com.mymall.oss.dto.CallbackDTO;
 import com.mymall.oss.dto.UploadPolicyDTO;
 import com.mymall.oss.entity.OssFileMeta;
@@ -115,7 +116,7 @@ class OssServiceTest {
         void shouldWriteUploaderIdWhenLoggedIn() {
             // Given
             UploadPolicyDTO dto = buildValidPolicy();
-            UserContext.setUserId(123L);
+            UserContext.set(new UserInfo(123L, "uploader", List.of()));
             when(ossTemplate.getPresignedPutUrl(anyString(), anyString(), anyInt()))
                     .thenReturn("http://mock/url");
 
@@ -390,7 +391,7 @@ class OssServiceTest {
             // Given
             OssFileMeta meta = buildActiveMeta();
             meta.setUploaderId(1L);       // 文件归属用户 1
-            UserContext.setUserId(2L);    // 当前登录用户 2
+            UserContext.set(new UserInfo(2L, "deleter", List.of()));    // 当前登录用户 2
             when(ossFileMetaMapper.selectOne(any(), anyBoolean())).thenReturn(meta);
 
             // When & Then
